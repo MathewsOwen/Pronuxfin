@@ -1,1 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Pronuxfin | Inteligência de Mercado e Dados Financeiros</title>
+
+<meta name="description" content="Pronuxfin é uma plataforma de inteligência financeira com dados de mercado, criptomoedas, ações e radar de oportunidades em tempo real.">
+<meta name="keywords" content="mercado financeiro, ações hoje, bitcoin hoje, ibovespa agora, criptomoedas, radar do mercado">
+<meta name="author" content="Pronuxfin">
+
+<meta property="og:title" content="Pronuxfin | Inteligência Financeira">
+<meta property="og:description" content="Dados de mercado, ranking de ações e radar de investimentos.">
+<meta property="og:type" content="website">
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/layout.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<header class="header">
+
+<div class="container nav">
+
+<div class="logo">PRONUXFIN</div>
+
+<nav>
+
+<a href="index.html">Home</a>
+<a href="mercados.html">Mercados</a>
+<a href="acoes.html">Ações</a>
+<a href="cripto.html">Cripto</a>
+<a href="noticias.html">Notícias</a>
+<a href="radar.html">Radar</a>
+
+</nav>
+
+</div>
+
+</header>
+
+
+<div class="ticker">
+
+<div class="ticker-track" id="tickerTrack">
+
+<span>BTC $64,120 ▲</span>
+<span>ETH $3,450 ▲</span>
+<span>IBOV 128,450 ▼</span>
+<span>USD/BRL 5.02</span>
+<span>OURO $2,150 ▲</span>
+
+</div>
+
+</div>
+
+
+<section class="hero">
+
+<h1>Onde dados viram decisões.</h1>
+
+<p>
+Acompanhe mercados globais, criptomoedas, ações e oportunidades em tempo real.
+</p>
+
+</section>
+
+
+<section class="markets container">
+
+<h2>Mercados agora</h2>
+
+<div class="market-grid">
+
+<div class="market-card">
+
+<h3>Bitcoin</h3>
+
+<p id="btcPrice">carregando...</p>
+
+</div>
+
+<div class="market-card">
+
+<h3>Ethereum</h3>
+
+<p id="ethPrice">carregando...</p>
+
+</div>
+
+<div class="market-card">
+
+<h3>Ibovespa</h3>
+
+<p>128.450</p>
+
+</div>
+
+<div class="market-card">
+
+<h3>Dólar</h3>
+
+<p>5.02</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+<section class="ranking container">
+
+<h2>Radar do Mercado</h2>
+
+<div class="ranking-grid">
+
+<div class="ranking-box">
+
+<h3>Top Altas</h3>
+
+<ul id="topGainers"></ul>
+
+</div>
+
+<div class="ranking-box">
+
+<h3>Top Quedas</h3>
+
+<ul id="topLosers"></ul>
+
+</div>
+
+</div>
+
+</section>
+
+
+<footer class="footer">
+
+<p>© 2026 Pronuxfin — Plataforma de Inteligência Financeira</p>
+
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
