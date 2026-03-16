@@ -1,1 +1,16 @@
+body{
+margin:0;
+font-family:'Inter',sans-serif;
+background:#0b0f1c;
+color:white;
+}
 
+.container{
+max-width:1200px;
+margin:auto;
+padding:40px 20px;
+}
+
+h1,h2,h3{
+margin:0 0 15px 0;
+}
