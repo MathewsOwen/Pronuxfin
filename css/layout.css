@@ -1,1 +1,89 @@
+.header{
+background:#111;
+border-bottom:1px solid #222;
+}
 
+.nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logo{
+font-weight:700;
+font-size:20px;
+color:#d4af37;
+}
+
+nav a{
+margin-left:20px;
+text-decoration:none;
+color:white;
+font-weight:500;
+}
+
+nav a:hover{
+color:#00ff88;
+}
+
+.ticker{
+background:#000;
+overflow:hidden;
+white-space:nowrap;
+border-bottom:1px solid #222;
+}
+
+.ticker-track{
+display:inline-block;
+padding:10px;
+animation:tickerMove 20s linear infinite;
+}
+
+.ticker span{
+margin-right:40px;
+}
+
+@keyframes tickerMove{
+0%{transform:translateX(0)}
+100%{transform:translateX(-50%)}
+}
+
+.hero{
+text-align:center;
+padding:80px 20px;
+}
+
+.hero h1{
+font-size:42px;
+}
+
+.market-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:20px;
+}
+
+.market-card{
+background:#151a2b;
+padding:20px;
+border-radius:10px;
+}
+
+.ranking-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.ranking-box{
+background:#151a2b;
+padding:20px;
+border-radius:10px;
+}
+
+.footer{
+text-align:center;
+padding:30px;
+background:#111;
+border-top:1px solid #222;
+}
