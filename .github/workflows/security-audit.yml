@@ -1,0 +1,48 @@
+name: Security audit
+
+# Parte 5: varredura agendada (nível alto) sem bloquear o CI diário só com critical.
+# CI principal já corre `npm audit --audit-level=critical` por pacote.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 8 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  npm-audit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: web
+            cwd: web
+            lock: web/package-lock.json
+          - name: backend
+            cwd: backend
+            lock: backend/package-lock.json
+          - name: root
+            cwd: .
+            lock: package-lock.json
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.cwd }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ${{ matrix.lock }}
+
+      - name: npm ci
+        run: npm ci
+
+      - name: npm audit (high+)
+        run: npm audit --audit-level=high

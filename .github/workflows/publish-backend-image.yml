@@ -1,0 +1,57 @@
+# Publica a imagem da API no GitHub Container Registry (GHCR).
+# Dispara em pushes a `main` que alterem `backend/**`, ou manualmente ("Run workflow").
+# Pull na VPS (exemplo): docker pull ghcr.io/<owner>/<repo>:latest
+#
+# Pacotes privados: defina os pacotes como visíveis na org ou associe SSO, conforme a política do GitHub.
+
+name: Publish API image (GHCR)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - ".github/workflows/publish-backend-image.yml"
+
+concurrency:
+  group: publish-backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  ghcr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image name (minúsculas, requisito GHCR)
+        run: |
+          R=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "IMAGE=ghcr.io/${R}" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

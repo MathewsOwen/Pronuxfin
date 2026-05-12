@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none" role="img" aria-labelledby="pronuxMarkTitle">
+  <title id="pronuxMarkTitle">Marca PRONUXFIN  nexo e trajet�ria</title>
+  <defs>
+    <linearGradient id="pfn-g" x1="12" y1="12" x2="88" y2="84" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5eebf8"/>
+      <stop offset="0.45" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#818cf8"/>
+    </linearGradient>
+    <linearGradient id="pfn-g-soft" x1="48" y1="68" x2="88" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbbf24" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="pfn-soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Base escura alinhada ao tema PRONUXFIN -->
+  <rect width="96" height="96" rx="22" fill="#070b14"/>
+  <rect width="96" height="96" rx="22" fill="url(#pfn-g-soft)" opacity="0.9"/>
+  <!-- Trajet�ria ascendente minimalista -->
+  <path
+    filter="url(#pfn-soft)"
+    d="M18 62c12-28 38-42 62-56"
+    stroke="url(#pfn-g)"
+    stroke-width="4.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.92"
+  />
+  <!-- Tr�s n�s = nexo (equities � crypto � macro) -->
+  <circle cx="24" cy="58" r="5" fill="url(#pfn-g)" opacity="0.95"/>
+  <circle cx="48" cy="44" r="5" fill="url(#pfn-g)" opacity="0.95"/>
+  <circle cx="74" cy="26" r="5.25" fill="url(#pfn-g)"/>
+  <!-- Micro-arco estrutural (mem�ria visual: �ngulo assim�trico) -->
+  <path
+    d="M52 68c10-22 34-38 54-52"
+    stroke="#fbbf24"
+    stroke-opacity="0.22"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+</svg>
