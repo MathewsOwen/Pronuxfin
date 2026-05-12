@@ -1,0 +1,38 @@
+# Environment
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+.next/
+out/
+dist/
+build/
+coverage/
+.turbo/
+
+# Generated files
+generated/
+backend/generated/
+web/.next/
+backend/dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Tooling / OS
+.DS_Store
+Thumbs.db
+.vercel/
+
+# TypeScript
+*.tsbuildinfo

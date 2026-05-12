@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  name                String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  aiKeys              UserAiKeys?
+  passwordResetTokens PasswordResetToken[]
+  watchlistItems      UserWatchlistItem[]
+  watchlistAlertRules UserWatchlistAlertRule[]
+  watchlistSignals    UserWatchlistSignalHistory[]
+}
+
+/// Chaves externas BYOK guardadas AES-256-GCM ( ciphertext em Base64 ).
+model UserAiKeys {
+  userId        String   @id
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  openaiCipher  String?
+  geminiCipher  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, expiresAt])
+}
+
+model UserWatchlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol    String
+  region    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, symbol])
+  @@index([userId, createdAt])
+}
+
+model UserWatchlistAlertRule {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol    String   @default("*")
+  ruleType  String
+  threshold Float?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, symbol, ruleType])
+  @@index([userId, enabled])
+  @@index([userId, symbol])
+}
+
+model UserWatchlistSignalHistory {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol         String
+  priority       Int
+  attentionLevel String
+  reasonsJson    Json
+  newsCount      Int
+  moveAbs        Float?
+  rangeProgress  Int?
+  createdAt      DateTime @default(now())
+
+  @@index([userId, symbol, createdAt])
+}

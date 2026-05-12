@@ -1,0 +1,708 @@
+import type { Metadata } from "next";
+import { getLocale, getTranslations } from "next-intl/server";
+import { ArrowUpRight, Bookmark, ShieldCheck, Sparkles, Waves } from "lucide-react";
+import { WatchlistSignalSync } from "@/components/dashboard/watchlist-signal-sync";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Link } from "@/i18n/navigation";
+import type { AppLocale } from "@/i18n/routing";
+import { loadAssetDossier } from "@/lib/market/load-asset-dossier";
+import { formatRelativeTime } from "@/lib/market/time";
+import { privateAppMetadata } from "@/lib/page-metadata";
+import { getCurrentUser } from "@/lib/session";
+import {
+  buildWatchlistAlertCenter,
+  buildWatchlistBriefing,
+} from "@/lib/user-watchlist/briefing";
+import { listLatestWatchlistSignalSnapshots } from "@/lib/user-watchlist/history";
+import {
+  buildWatchlistRadarSignal,
+  type WatchlistAttentionLevel,
+  type WatchlistRadarReason,
+} from "@/lib/user-watchlist/intelligence";
+import { listUserWatchlist } from "@/lib/user-watchlist/load";
+import { listEffectiveWatchlistAlertRules } from "@/lib/user-watchlist/rules";
+import { cn } from "@/lib/utils";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = (await getLocale()) as AppLocale;
+  const tShell = await getTranslations("AppShell");
+  const tDash = await getTranslations("Dashboard");
+  return privateAppMetadata({
+    pathname: "/dashboard",
+    title: tShell("panel"),
+    description: tDash("metaDescription"),
+    locale,
+  });
+}
+
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  const t = await getTranslations("Dashboard");
+  const locale = await getLocale();
+  const greeting = user?.email?.split("@")[0] ?? t("guestFallback");
+  const watchlistItems = user ? await listUserWatchlist(user.id) : [];
+  const effectiveRules = user ? await listEffectiveWatchlistAlertRules(user.id) : [];
+  const radarDossiers = (
+    await Promise.all(
+      watchlistItems.slice(0, 6).map((item) => loadAssetDossier(item.symbol)),
+    )
+  ).filter((item): item is NonNullable<typeof item> => Boolean(item));
+  const previousSnapshots = user
+    ? await listLatestWatchlistSignalSnapshots(
+        user.id,
+        radarDossiers.map((item) => item.symbol),
+      )
+    : {};
+  const radarItems = radarDossiers
+    .map((dossier) => ({
+      dossier,
+      signal: buildWatchlistRadarSignal(dossier, effectiveRules),
+      previous: previousSnapshots[dossier.symbol],
+    }))
+    .sort((a, b) => b.signal.priority - a.signal.priority);
+  const briefingItems = buildWatchlistBriefing(radarItems, effectiveRules);
+  const alertEvents = buildWatchlistAlertCenter(radarItems, effectiveRules);
+  const compareHref = buildCompareHref(radarItems.map((item) => item.dossier.symbol));
+  const assistantHref = buildDashboardAssistantHref(
+    radarItems.map((item) => item.dossier.symbol),
+    locale,
+  );
+  const radarHighCount = radarItems.filter((item) => item.signal.attentionLevel === "high").length;
+  const radarLiveCount = radarItems.filter((item) =>
+    item.signal.reasons.some((reason) => reason.code === "live_history"),
+  ).length;
+  const radarNewsCount = radarItems.filter((item) => item.signal.newsCount > 0).length;
+
+  const kpis = [
+    { label: t("kpiConsolidated"), value: "R$ 84.290", delta: "+4,2%", up: true as boolean | null },
+    { label: t("kpiIncome"), value: "R$ 18.400", delta: "+1,1%", up: true },
+    { label: t("kpiExpense"), value: "R$ 12.080", delta: "−0,6%", up: true },
+    { label: t("kpiGoals"), value: "5", delta: t("kpiGoalsHint"), up: null },
+  ];
+  const signals = [
+    {
+      label: t("signalAllocationLabel"),
+      value: t("signalAllocationValue"),
+      icon: Waves,
+      tone: "border-sky-500/25 bg-sky-950/16 text-sky-100",
+    },
+    {
+      label: t("signalDisciplineLabel"),
+      value: t("signalDisciplineValue"),
+      icon: ShieldCheck,
+      tone: "border-emerald-500/25 bg-emerald-950/16 text-emerald-100",
+    },
+    {
+      label: t("signalAutomationLabel"),
+      value: t("signalAutomationValue"),
+      icon: Sparkles,
+      tone: "border-amber-500/25 bg-amber-950/16 text-amber-100",
+    },
+  ];
+  const agenda = [
+    t("agendaItem1"),
+    t("agendaItem2"),
+    t("agendaItem3"),
+  ];
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-8">
+      <WatchlistSignalSync
+        items={radarItems.map((item) => ({
+          symbol: item.dossier.symbol,
+          signal: item.signal,
+        }))}
+      />
+      <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))] px-6 py-8 shadow-[inset_0_1px_0_oklch(1_0_0/0.05)] md:px-8">
+        <div className="pointer-events-none absolute -left-6 -top-6 size-40 rounded-full bg-primary/10 blur-3xl" />
+        <p className="text-sm font-medium text-muted-foreground">{t("eyebrow")}</p>
+        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight md:text-4xl">
+          {t("greeting")} <span className="text-gradient-brand">{greeting}</span>
+        </h1>
+        <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">{t("subtitle")}</p>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Badge className="border-primary/25 bg-primary/10 text-primary">
+            {t("heroPillOverview")}
+          </Badge>
+          <Badge className="border-white/10 bg-white/[0.04] text-muted-foreground">
+            {t("heroPillLiveReady")}
+          </Badge>
+          <Badge className="border-white/10 bg-white/[0.04] text-muted-foreground">
+            {t("heroPillPrivateDesk")}
+          </Badge>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {signals.map(({ label, value, icon: Icon, tone }) => (
+          <div
+            key={label}
+            className={`glass-panel card-shine rounded-3xl border px-5 py-4 shadow-none ring-0 ${tone}`}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                  {label}
+                </p>
+                <p className="mt-2 text-lg font-semibold tracking-tight text-foreground">
+                  {value}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-2">
+                <Icon className="size-4" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {kpis.map((k) => (
+          <div key={k.label}>
+            <Card className="glass-panel card-shine border-white/12 shadow-none ring-0 transition-transform duration-300 hover:-translate-y-0.5">
+              <CardHeader className="pb-2">
+                <CardDescription>{k.label}</CardDescription>
+                <CardTitle className="font-heading text-2xl tabular-nums tracking-tight">
+                  {k.value}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Badge
+                  variant="secondary"
+                  className={
+                    k.up === null
+                      ? "bg-muted text-muted-foreground"
+                      : k.up
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-white/10 bg-white/5"
+                  }
+                >
+                  {k.delta}
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0 lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="font-heading">{t("flowTitle")}</CardTitle>
+            <CardDescription>{t("flowSubtitle")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex h-48 items-end gap-2">
+              {[38, 52, 44, 68, 58, 72, 49].map((h, i) => (
+                <div key={i} className="flex h-full flex-1 flex-col justify-end">
+                  <div
+                    className="w-full rounded-t-md bg-gradient-to-t from-primary/25 to-primary shadow-[0_0_20px_oklch(0.74_0.14_215/0.15)] transition-all hover:from-primary/35"
+                    style={{ height: `${h}%` }}
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
+          <CardHeader>
+            <CardTitle className="font-heading">{t("aiTitle")}</CardTitle>
+            <CardDescription>{t("aiSubtitle")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-muted-foreground leading-relaxed">
+            <p>• {t("aiP1")}</p>
+            <p>• {t("aiP2")}</p>
+            <p className="rounded-xl border border-primary/25 bg-primary/10 p-3 text-primary">
+              {t("aiCta")}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
+          <CardHeader>
+            <CardTitle className="font-heading">{t("allocationTitle")}</CardTitle>
+            <CardDescription>{t("allocationSubtitle")}</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            {[
+              { label: t("allocationReserve"), value: "28%" },
+              { label: t("allocationIncome"), value: "41%" },
+              { label: t("allocationGrowth"), value: "31%" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+              >
+                <p className="text-sm text-muted-foreground">{item.label}</p>
+                <div className="mt-3 flex items-end justify-between gap-3">
+                  <p className="font-heading text-3xl font-semibold tabular-nums tracking-tight">
+                    {item.value}
+                  </p>
+                  <ArrowUpRight className="size-4 text-primary" />
+                </div>
+                <div className="mt-4 h-2 rounded-full bg-white/5">
+                  <div
+                    className="h-2 rounded-full bg-gradient-to-r from-primary/35 via-primary to-amber-400"
+                    style={{ width: item.value }}
+                  />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
+          <CardHeader>
+            <CardTitle className="font-heading">{t("agendaTitle")}</CardTitle>
+            <CardDescription>{t("agendaSubtitle")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {agenda.map((item, index) => (
+              <div
+                key={item}
+                className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+              >
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-semibold text-primary">
+                  {index + 1}
+                </div>
+                <p className="pt-1 text-sm leading-relaxed text-muted-foreground">
+                  {item}
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
+        <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <CardTitle className="font-heading">{t("radarTitle")}</CardTitle>
+            <CardDescription>{t("radarSubtitle")}</CardDescription>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/compare"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              {t("radarOpenWatchlist")}
+            </Link>
+            <Link
+              href={compareHref}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                radarItems.length < 2 ? "pointer-events-none opacity-50" : "",
+              )}
+              aria-disabled={radarItems.length < 2}
+            >
+              {t("radarOpenComparator")}
+            </Link>
+            <Link
+              href={assistantHref}
+              className={cn(
+                buttonVariants({ size: "sm" }),
+                "glow-ring",
+                radarItems.length === 0 ? "pointer-events-none opacity-50" : "",
+              )}
+              aria-disabled={radarItems.length === 0}
+            >
+              {t("radarOpenAssistant")}
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {radarItems.length > 0 ? (
+            <div className="mb-5 grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+              <div className="grid gap-3 md:grid-cols-3">
+                <RadarMetric
+                  label={t("radarSummaryHigh")}
+                  value={String(radarHighCount)}
+                  accent="text-amber-300"
+                />
+                <RadarMetric
+                  label={t("radarSummaryLive")}
+                  value={String(radarLiveCount)}
+                  accent="text-sky-300"
+                />
+                <RadarMetric
+                  label={t("radarSummaryNews")}
+                  value={String(radarNewsCount)}
+                  accent="text-emerald-300"
+                />
+              </div>
+              <div className="space-y-4">
+                <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                    {t("briefingTitle")}
+                  </p>
+                  <div className="mt-3 space-y-3">
+                    {briefingItems.length > 0 ? (
+                      briefingItems.map((item) => (
+                        <div
+                          key={item.symbol}
+                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold tracking-tight text-foreground">
+                                {item.symbol}
+                              </p>
+                              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                                {formatBriefingLine(item, t)}
+                              </p>
+                            </div>
+                            <Badge className={attentionBadgeClass(item.attentionLevel)}>
+                              {t(attentionLabelKey(item.attentionLevel))}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t("briefingEmpty")}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                      {t("alertCenterTitle")}
+                    </p>
+                    <Link
+                      href="/alerts"
+                      className={cn(
+                        buttonVariants({ variant: "ghost", size: "sm" }),
+                        "h-auto px-0 py-0 text-xs text-primary hover:bg-transparent hover:text-primary/85",
+                      )}
+                    >
+                      {t("alertCenterOpen")}
+                    </Link>
+                  </div>
+                  <div className="mt-3 space-y-3">
+                    {alertEvents.length > 0 ? (
+                      alertEvents.map((event) => (
+                        <div
+                          key={`${event.symbol}-${event.kind}`}
+                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold tracking-tight text-foreground">
+                                {event.symbol}
+                              </p>
+                              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                                {formatAlertCenterLine(event, t)}
+                              </p>
+                              <p className="mt-1 text-[11px] text-muted-foreground">
+                                {t("alertCenterSince", {
+                                  value: formatRelativeTime(event.previousCreatedAt, locale),
+                                })}
+                              </p>
+                            </div>
+                            <Badge className={attentionBadgeClass(event.attentionLevel)}>
+                              {t(attentionLabelKey(event.attentionLevel))}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t("alertCenterEmpty")}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+          {radarItems.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] px-6 py-8 text-center">
+              <Bookmark className="mx-auto size-10 text-muted-foreground" />
+              <p className="mt-4 text-lg font-semibold tracking-tight text-foreground">
+                {t("radarEmptyTitle")}
+              </p>
+              <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                {t("radarEmptyLead")}
+              </p>
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
+                <Link
+                  href="/bolsa"
+                  className={cn(buttonVariants({ size: "lg" }), "glow-ring")}
+                >
+                  {t("radarEmptyMarket")}
+                </Link>
+                <Link
+                  href="/compare"
+                  className={buttonVariants({ variant: "outline", size: "lg" })}
+                >
+                  {t("radarEmptyCompare")}
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
+              {radarItems.map(({ dossier, signal }) => {
+                const move = dossier.quote.regularMarketChangePercent;
+                const up = (move ?? 0) >= 0;
+                return (
+                  <div
+                    key={dossier.symbol}
+                    className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                          {dossier.symbol}
+                        </p>
+                        <p className="mt-2 text-xl font-semibold tracking-tight text-foreground">
+                          {dossier.companyName}
+                        </p>
+                      </div>
+                      <Badge className={attentionBadgeClass(signal.attentionLevel)}>
+                        {t(attentionLabelKey(signal.attentionLevel))}
+                      </Badge>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {dossier.sector ?? t("radarNotAvailable")}
+                    </p>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {t("radarPriorityValue", { value: signal.priority })} ·{" "}
+                      {signal.reasons
+                        .map((reason) => formatDashboardRadarReason(reason, t))
+                        .join(" · ")}
+                    </p>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                      <RadarMetric
+                        label={t("radarMetricPrice")}
+                        value={formatMoney(
+                          dossier.quote.regularMarketPrice,
+                          dossier.currency,
+                          locale,
+                        )}
+                      />
+                      <RadarMetric
+                        label={t("radarMetricMove")}
+                        value={formatSignedPercent(move)}
+                        accent={up ? "text-emerald-400" : "text-rose-400"}
+                      />
+                      <RadarMetric
+                        label={t("radarMetricVolume")}
+                        value={formatCompactNumber(dossier.regularMarketVolume, locale)}
+                      />
+                      <RadarMetric
+                        label={t("radarMetricNews")}
+                        value={String(dossier.relatedNews.length)}
+                      />
+                    </div>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <Link
+                        href={`/ativo/${dossier.symbol}`}
+                        className={buttonVariants({ variant: "outline", size: "sm" })}
+                      >
+                        {t("radarOpenAsset")}
+                      </Link>
+                      <Link
+                        href={`/compare?symbols=${encodeURIComponent(dossier.symbol)}`}
+                        className={buttonVariants({ variant: "ghost", size: "sm" })}
+                      >
+                        {t("radarOpenSingleCompare")}
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function RadarMetric({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+      <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+      <p className={cn("mt-2 text-lg font-semibold tracking-tight text-foreground", accent)}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function buildCompareHref(symbols: string[]) {
+  const clean = [...new Set(symbols)].slice(0, 4);
+  if (clean.length === 0) return "/compare";
+  return `/compare?symbols=${encodeURIComponent(clean.join(","))}`;
+}
+
+function buildDashboardAssistantHref(symbols: string[], locale: string) {
+  const clean = [...new Set(symbols)].slice(0, 4);
+  const label = clean.join(", ");
+  const prompt =
+    locale === "pt-BR"
+      ? clean.length >= 2
+        ? `Priorize a minha watchlist ${label} e explique quais ativos merecem mais atenção hoje, considerando variação, liquidez, contexto e notícias relacionadas.`
+        : `Analise a minha watchlist e diga quais ativos merecem mais atenção hoje, considerando variação, liquidez, contexto e notícias relacionadas.`
+      : clean.length >= 2
+        ? `Prioritize my watchlist ${label} and explain which assets deserve more attention today considering move, liquidity, context and related news.`
+        : `Analyze my watchlist and explain which assets deserve more attention today considering move, liquidity, context and related news.`;
+
+  const params = new URLSearchParams({
+    channel: "equities",
+    audience: "pf",
+    open: "1",
+    prompt,
+  });
+  if (clean[0]) {
+    params.set("asset", clean[0]);
+  }
+  return `/assistant?${params.toString()}`;
+}
+
+function formatMoney(value: number | null | undefined, currency: string, locale: string) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  } catch {
+    return `${currency} ${value.toFixed(2)}`;
+  }
+}
+
+function formatSignedPercent(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+}
+
+function formatCompactNumber(value: number | null | undefined, locale: string) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return new Intl.NumberFormat(locale, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function formatDashboardRadarReason(
+  reason: WatchlistRadarReason,
+  t: (key: string, values?: Record<string, string | number>) => string,
+) {
+  switch (reason.code) {
+    case "large_move":
+      return t("radarReasonLargeMove", { value: (reason.value ?? 0).toFixed(1) });
+    case "news_flow":
+      return t("radarReasonNewsFlow", { value: Math.round(reason.value ?? 0) });
+    case "near_52w_high":
+      return t("radarReasonNearHigh");
+    case "near_52w_low":
+      return t("radarReasonNearLow");
+    case "live_history":
+      return t("radarReasonLive");
+    case "liquid":
+      return t("radarReasonLiquid");
+    default:
+      return t("radarReasonLive");
+  }
+}
+
+function formatBriefingLine(
+  item: ReturnType<typeof buildWatchlistBriefing>[number],
+  t: (key: string, values?: Record<string, string | number>) => string,
+) {
+  switch (item.kind) {
+    case "attention_up":
+      return t("briefingAttentionUp", {
+        symbol: item.symbol,
+        value: item.delta ?? item.priority,
+      });
+    case "fresh_news":
+      return t("briefingFreshNews", {
+        symbol: item.symbol,
+        value: item.newsCount,
+      });
+    case "range_extreme":
+      return t("briefingRangeExtreme", {
+        symbol: item.symbol,
+      });
+    case "steady_high":
+      return t("briefingSteadyHigh", {
+        symbol: item.symbol,
+      });
+    default:
+      return t("briefingBaseline", {
+        symbol: item.symbol,
+      });
+  }
+}
+
+function formatAlertCenterLine(
+  item: ReturnType<typeof buildWatchlistAlertCenter>[number],
+  t: (key: string, values?: Record<string, string | number>) => string,
+) {
+  switch (item.kind) {
+    case "attention_up":
+      return t("alertCenterAttentionUp", {
+        symbol: item.symbol,
+        value: item.delta ?? item.priority,
+      });
+    case "fresh_news":
+      return t("alertCenterFreshNews", {
+        symbol: item.symbol,
+        value: item.newsCount,
+      });
+    case "range_extreme":
+      return t("alertCenterRangeExtreme", {
+        symbol: item.symbol,
+      });
+    case "steady_high":
+      return t("alertCenterSteadyHigh", {
+        symbol: item.symbol,
+      });
+    default:
+      return t("alertCenterBaseline", {
+        symbol: item.symbol,
+      });
+  }
+}
+
+function attentionLabelKey(level: WatchlistAttentionLevel) {
+  switch (level) {
+    case "high":
+      return "radarAttentionHigh";
+    case "medium":
+      return "radarAttentionMedium";
+    default:
+      return "radarAttentionBaseline";
+  }
+}
+
+function attentionBadgeClass(level: WatchlistAttentionLevel) {
+  switch (level) {
+    case "high":
+      return "border-amber-500/25 bg-amber-950/20 text-amber-100";
+    case "medium":
+      return "border-sky-500/25 bg-sky-950/20 text-sky-100";
+    default:
+      return "border-white/10 bg-white/[0.04] text-muted-foreground";
+  }
+}

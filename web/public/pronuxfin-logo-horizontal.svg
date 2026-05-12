@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 96" fill="none" role="img" aria-labelledby="pfnLogoTitle">
+  <title id="pfnLogoTitle">PRONUXFIN  logotipo horizontal</title>
+  <defs>
+    <linearGradient id="hl-g" x1="12" y1="12" x2="88" y2="84" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5eebf8"/>
+      <stop offset="0.45" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#818cf8"/>
+    </linearGradient>
+    <linearGradient id="hl-g-soft" x1="48" y1="68" x2="88" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbbf24" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Mark compacto -->
+  <rect x="0" y="0" width="96" height="96" rx="22" fill="#070b14"/>
+  <rect x="0" y="0" width="96" height="96" rx="22" fill="url(#hl-g-soft)"/>
+  <path
+    d="M18 62c12-28 38-42 62-56"
+    stroke="url(#hl-g)"
+    stroke-width="4.5"
+    stroke-linecap="round"
+  />
+  <circle cx="24" cy="58" r="5" fill="url(#hl-g)"/>
+  <circle cx="48" cy="44" r="5" fill="url(#hl-g)"/>
+  <circle cx="74" cy="26" r="5.25" fill="url(#hl-g)"/>
+  <!-- Wordmark: Inter semibold surrogate (outline paths minimal)  TEXTO PARA FALLBACK -->
+  <text
+    x="112"
+    y="58"
+    fill="#eef2ff"
+    font-family="system-ui, -apple-system, 'Segoe UI', Inter, sans-serif"
+    font-size="31"
+    font-weight="650"
+    letter-spacing="-0.04em"
+  >PRONUX<tspan fill="#5eebf8" font-weight="680">FIN</tspan></text>
+  <text
+    x="112"
+    y="78"
+    fill="#94a3b8"
+    font-family="ui-monospace, 'Geist Mono', 'JetBrains Mono', monospace"
+    font-size="10"
+    letter-spacing="0.32em"
+  >MESACOGNITIVA</text>
+</svg>

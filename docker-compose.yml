@@ -1,0 +1,45 @@
+# Stack base (Postgres + Ollama na rede interna). Copie docker-compose.env.example → .env
+#
+# Só infra:
+#   docker compose up -d
+#
+# API Nest + esta infra (Compose overlay):
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Desenvolvimento local (expose à loopback para DBeaver / Ollama no host):
+#   docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pronuxfin-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-pronuxfin}
+    volumes:
+      - pronuxfin_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
+  # LLM local — exemplo no container com rede interna:
+  # docker exec -it pronuxfin-ollama ollama pull llama3.2
+  ollama:
+    image: ollama/ollama:latest
+    container_name: pronuxfin-ollama
+    restart: unless-stopped
+    volumes:
+      - pronuxfin_ollama:/root/.ollama
+
+volumes:
+  pronuxfin_pg_data:
+  pronuxfin_ollama:

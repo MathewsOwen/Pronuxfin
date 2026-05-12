@@ -1,0 +1,40 @@
+# Stack com API Nest em rede interna atrás da mesma Postgres do projeto base.
+#
+# Uso típico (VPS ou homelab):
+#   cp docker-compose.env.example .env
+#   # edite JWT_SECRET, POSTGRES_* e opcionalmente FRONTEND_URL / APP_ENV
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Imagem pré-construída (GHCR), após workflow "Publish API image":
+#   # no serviço `api`: image: ghcr.io/<owner>/<repo>:latest
+#   # e remova ou comente o bloco `build:`
+#
+# A API só escuta em 127.0.0.1 — exponha 443 com reverse proxy + TLS, ou tunnel privado.
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pronuxfin-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      APP_ENV: ${APP_ENV:-production}
+      PORT: "4000"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no ficheiro .env}
+      FRONTEND_URL: ${FRONTEND_URL:-http://127.0.0.1:3000}
+      # SKIP_PRISMA_MIGRATE=1 — apenas emergência (schema já aplicado à mão)
+      SKIP_PRISMA_MIGRATE: ${SKIP_PRISMA_MIGRATE:-0}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${API_PORT:-4000}:4000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:4000/health/live"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 50s
