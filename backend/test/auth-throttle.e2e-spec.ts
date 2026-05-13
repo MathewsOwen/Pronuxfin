@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
+import { initE2eApp } from './e2e-app';
 
 /**
  * Cobre `@Throttle` no AuthController sem depender de credenciais válidas:
@@ -16,8 +17,7 @@ describe('Auth throttling (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+    app = await initE2eApp(moduleFixture);
   });
 
   afterAll(async () => {
