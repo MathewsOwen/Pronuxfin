@@ -57,8 +57,9 @@ jobs:
           POSTGRES_DB: pronuxfin_test
         ports:
           - 5432:5432
+        # Quote the whole command: unquoted `-d pronuxfin_test` is parsed by `docker run` as detach (-d).
         options: >-
-          --health-cmd pg_isready -U postgres -d pronuxfin_test
+          --health-cmd "pg_isready -U postgres -d pronuxfin_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 8
