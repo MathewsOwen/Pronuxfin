@@ -1,16 +1,37 @@
-# Deploy automático Next (branch main).
-# Previews de PR/branches na Vercel = ambiente tipo staging (URL por deploy).
-# Opcional: ENABLE_CSP_REPORT_ONLY=1 — cabeçalho CSP Report-Only e POST /api/security/csp-report (logs).
-# Sentry (passo 7): na Vercel, `NEXT_PUBLIC_SENTRY_DSN` (+ opcional `SENTRY_ORG`/`SENTRY_PROJECT`/`SENTRY_AUTH_TOKEN` na build para source maps).
+# Deploy do Next via CLI da Vercel (opcional).
+#
+# Se o projeto já está ligado ao GitHub em vercel.com (recomendado), a Vercel
+# faz o deploy sozinha — este workflow fica redundante e falhava no passo
+# "Deploy to production" quando os secrets não batiam com o projeto.
+#
+# Para ativar este job: GitHub → Settings → Secrets and variables → Actions
+# → Variables → crie `ENABLE_VERCEL_CLI_DEPLOY` = `true` e configure
+# `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` em Secrets.
+#
+# Previews de PR na Vercel continuam pelo painel da Vercel (Git integration).
+# Opcional: ENABLE_CSP_REPORT_ONLY=1 — CSP Report-Only e POST /api/security/csp-report.
+# Sentry: na Vercel, `NEXT_PUBLIC_SENTRY_DSN` (+ source maps opcionais).
 
 name: Deploy web to Vercel
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/deploy-web-vercel.yml"
+
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
+    if: ${{ vars.ENABLE_VERCEL_CLI_DEPLOY == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
