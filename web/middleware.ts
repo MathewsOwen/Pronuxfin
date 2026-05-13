@@ -65,5 +65,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/|\\.well-known|(?:[^/]+)\\.[\\w]+$).*)"],
+  matcher: ["/((?!api|_next|_vercel|\\.well-known|.*\\..*).*)"],
 };

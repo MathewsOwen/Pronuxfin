@@ -1,5 +1,7 @@
 # Deploy PRONUXFIN (frontend Next.js)
 
+> Para a visao completa de GitHub + banco + backend + smoke test de producao, consulte `docs/github-production-checklist.md` na raiz.
+
 ## Por que não abria no PC?
 
 1. **Suba o servidor** na pasta `web`:
@@ -14,11 +16,11 @@
 
 3. Se usar **OneDrive** na pasta do projeto, pode haver travamentos ou sync lento; prefira clonar em `C:\dev\PronuxFin` sem sync pesado.
 
-## Deploy gratuito na Vercel (recomendado)
+## Deploy na Vercel (recomendado)
 
 1. Suba o código para um repositório **GitHub**.
 2. Em [vercel.com](https://vercel.com), **Add New Project** → importe o repo.
-3. Configure **Root Directory** = `web` (importante: monorepo).
+3. Configure **Root Directory** = `web` (obrigatório: o Next vive em `web/` e as rotas públicas estão em `src/app/[locale]/`; sem isto verá 404 na home).
 4. Variáveis de ambiente (Production):
 
    | Nome | Valor |
@@ -28,9 +30,14 @@
    | `API_URL` | URL pública do NestJS (ex.: Railway/Render). Sem isso, login/registro quebram. |
    | `BRAPI_TOKEN` | (opcional) Token [brapi.dev](https://brapi.dev) para cotações mais estáveis |
 
-5. Deploy. A URL tipo `https://<projeto>.vercel.app` é o link público até você apontar o domínio comprado.
+5. Se o front usar recursos autenticados com Prisma no ambiente Next, configure tambem:
 
-## CI com GitHub Actions (opcional)
+   - `DATABASE_URL`
+   - `AI_KEYS_ENCRYPTION_KEY`
+
+6. Deploy. A URL tipo `https://<projeto>.vercel.app` é o link público até você apontar o domínio comprado.
+
+## CI com GitHub Actions
 
 1. Crie um projeto na Vercel e copie **Org ID** e **Project ID** (Settings → General).
 2. Gere um **Token** em Vercel → Account Settings → Tokens.
@@ -38,7 +45,14 @@
    - `VERCEL_TOKEN`
    - `VERCEL_ORG_ID`
    - `VERCEL_PROJECT_ID`
-4. Cada push na branch `main` dispara `.github/workflows/deploy-web-vercel.yml`.
+4. Cada push relevante na branch `main` dispara `.github/workflows/deploy-web-vercel.yml`.
+
+## Antes de abrir para usuarios reais
+
+1. Validar `API_URL` apontando para a API publica correta
+2. Confirmar que `JWT_SECRET` e configuracoes de auth estao coerentes entre front e backend
+3. Confirmar que o banco real ja recebeu as migracoes
+4. Testar login, dashboard, watchlist, comparador, alertas e reset de senha
 
 ## APIs “mais rápidas” neste projeto
 
