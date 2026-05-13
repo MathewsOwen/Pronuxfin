@@ -1,0 +1,38 @@
+name: Bug report
+description: Reportar falha, regressao ou comportamento inesperado
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Resumo
+      description: O que aconteceu?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      description: Como reproduzir o problema?
+      placeholder: |
+        1. Abrir ...
+        2. Clicar em ...
+        3. Ver erro ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Navegador, sistema, URL, branch, etc.

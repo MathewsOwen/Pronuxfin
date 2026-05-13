@@ -1,0 +1,27 @@
+name: Feature request
+description: Sugerir nova funcionalidade ou melhoria de produto
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema ou oportunidade
+      description: Qual dor ou oportunidade esta sendo enderecada?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+      description: Como a funcionalidade deveria funcionar?
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impacto esperado
+      description: Qual resultado de produto, operacao ou usuario isso deve gerar?

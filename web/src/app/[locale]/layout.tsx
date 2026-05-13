@@ -1,0 +1,116 @@
+import type { Metadata, Viewport } from "next";
+import { Geist_Mono, Inter, Sora } from "next/font/google";
+import { notFound } from "next/navigation";
+import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import type { ReactNode } from "react";
+import { AppMotionRoot } from "@/components/providers/app-motion-root";
+import { SkipLink } from "@/components/layout/skip-link";
+import { OrganizationJsonLd } from "@/components/seo/organization-json-ld";
+import { getSiteOrigin } from "@/lib/page-metadata";
+import type { AppLocale } from "@/i18n/routing";
+import { routing } from "@/i18n/routing";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const sora = Sora({
+  variable: "--font-sora",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const siteOrigin = getSiteOrigin();
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteOrigin),
+  manifest: "/site.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "PRONUXFIN",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  title: {
+    default: "PRONUXFIN",
+    template: "%s | PRONUXFIN",
+  },
+  keywords: [
+    "PRONUXFIN",
+    "fintech",
+    "financial infrastructure",
+    "infraestrutura financeira",
+    "investimentos",
+    "investments",
+    "Brazil markets",
+    "mercado financeiro",
+    "market data",
+    "Open Finance",
+  ],
+  authors: [{ name: "PRONUXFIN" }],
+  creator: "PRONUXFIN",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#070b14",
+  colorScheme: "dark",
+};
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: Readonly<{
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}>) {
+  const { locale } = await params;
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
+  }
+
+  setRequestLocale(locale);
+
+  const resolvedLocale = (await getLocale()) as AppLocale;
+  const messages = await getMessages();
+  const tSeo = await getTranslations("Seo");
+
+  return (
+    <html
+      lang={resolvedLocale}
+      className={`dark ${inter.variable} ${sora.variable} ${geistMono.variable} h-full`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-full flex flex-col bg-background">
+        <OrganizationJsonLd siteUrl={siteOrigin} description={tSeo("siteDescription")} />
+        <NextIntlClientProvider locale={resolvedLocale} messages={messages}>
+          <AppMotionRoot>
+            <SkipLink />
+            {children}
+          </AppMotionRoot>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
+}
