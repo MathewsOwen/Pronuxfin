@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Sora } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import { AppMotionRoot } from "@/components/providers/app-motion-root";
 import { SkipLink } from "@/components/layout/skip-link";
@@ -92,7 +92,7 @@ export default async function LocaleLayout({
 
   setRequestLocale(locale);
 
-  const resolvedLocale = (await getLocale()) as AppLocale;
+  const resolvedLocale = locale as AppLocale;
   const messages = await getMessages();
   const tSeo = await getTranslations("Seo");
 
