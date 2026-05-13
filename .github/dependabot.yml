@@ -12,11 +12,25 @@ updates:
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
 
+  # Web: mesmo que backend — Prisma major exige migração coordenada (schema, CI, Vercel).
+  # Next/React major também deve subir em conjunto com eslint-config-next.
   - package-ecosystem: npm
     directory: "/web"
     schedule:
       interval: weekly
     ignore:
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "eslint-config-next"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
 
