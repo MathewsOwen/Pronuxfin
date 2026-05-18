@@ -258,7 +258,7 @@ export function CompoundInterestCalculator({
               <Metric
                 label={t("interest")}
                 value={money(result.totalInterest)}
-                accent="text-emerald-400"
+                accent="text-market-up"
               />
             </div>
           </CardContent>
@@ -316,7 +316,7 @@ export function CompoundInterestCalculator({
                       </button>
                       <button
                         type="button"
-                        className="text-xs text-muted-foreground hover:text-rose-400"
+                        className="text-xs text-muted-foreground hover:text-market-down"
                         onClick={() => void handleDelete(item.id)}
                       >
                         {t("remove")}

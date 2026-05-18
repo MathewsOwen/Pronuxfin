@@ -73,7 +73,7 @@ export async function DashboardAnalyticsSection({
             <CardContent className="space-y-4 text-sm leading-relaxed text-muted-foreground">
               <p>• {t("aiP1")}</p>
               <p>• {t("aiP2")}</p>
-              <p className="rounded-xl border border-emerald-500/25 bg-emerald-950/20 p-3 text-emerald-200">
+              <p className="rounded-xl border border-status-live/25 bg-status-live/10 p-3 text-status-live">
                 {t("aiCta")}
               </p>
             </CardContent>
@@ -129,7 +129,7 @@ export async function DashboardAnalyticsSection({
                       key={ev.id}
                       className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
                     >
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-emerald-500/25 bg-emerald-950/20 text-xs font-semibold text-emerald-300">
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-status-live/25 bg-status-live/10 text-xs font-semibold text-market-up">
                         {index + 1}
                       </div>
                       <div className="min-w-0 flex-1 pt-0.5">
@@ -155,7 +155,7 @@ export async function DashboardAnalyticsSection({
                     key={item}
                     className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
                   >
-                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-emerald-500/25 bg-emerald-950/20 text-xs font-semibold text-emerald-300">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-status-live/25 bg-status-live/10 text-xs font-semibold text-market-up">
                       {index + 1}
                     </div>
                     <p className="pt-1 text-sm leading-relaxed text-muted-foreground">{item}</p>

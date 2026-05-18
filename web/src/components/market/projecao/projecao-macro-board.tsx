@@ -31,7 +31,7 @@ export function ProjecaoMacroBoard() {
     <section className="mt-10 space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-400/90">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">
             {t("boardEyebrow")}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">{t("boardLead")}</p>
@@ -51,8 +51,8 @@ export function ProjecaoMacroBoard() {
           className={cn(
             "card-shine rounded-2xl border p-6 sm:p-8 shadow-[inset_0_1px_0_oklch(1_0_0/0.04)]",
             bias === "alta"
-              ? "border-emerald-500/25 bg-emerald-950/[0.12]"
-              : "border-rose-500/25 bg-rose-950/[0.12]",
+              ? "border-status-live/25 bg-status-live/10"
+              : "border-status-degraded/25 bg-status-degraded/10",
           )}
         >
           <div className="flex flex-wrap items-center gap-2">
@@ -61,8 +61,8 @@ export function ProjecaoMacroBoard() {
               className={cn(
                 "border font-mono text-[10px] uppercase tracking-wider",
                 bias === "alta"
-                  ? "border-emerald-500/40 text-emerald-300"
-                  : "border-rose-500/40 text-rose-300",
+                  ? "border-status-live/40 text-market-up"
+                  : "border-market-down/40 text-market-down",
               )}
             >
               {bias === "alta" ? t("checklistBull") : t("checklistBear")}
@@ -83,7 +83,7 @@ export function ProjecaoMacroBoard() {
 
         <div className="rounded-2xl border border-white/10 bg-black/25 p-6">
           <div className="flex items-center gap-2">
-            <Layers className="size-5 text-amber-400/80" aria-hidden />
+            <Layers className="size-5 text-cognitive/80" aria-hidden />
             <h3 className="font-heading text-base font-semibold">{t("driversTitle")}</h3>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">{t("driversSubtitle")}</p>
@@ -99,8 +99,8 @@ export function ProjecaoMacroBoard() {
                     className={cn(
                       "rounded-full px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider",
                       bias === "alta"
-                        ? "bg-emerald-500/15 text-emerald-300"
-                        : "bg-rose-500/15 text-rose-300",
+                        ? "bg-market-up/15 text-market-up"
+                        : "bg-market-down/15 text-market-down",
                     )}
                   >
                     {d.impact}
@@ -137,8 +137,8 @@ function BiasButton({
         "flex items-center gap-2 rounded-lg px-4 py-2 transition-colors",
         active
           ? up
-            ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500/35"
-            : "bg-rose-500/15 text-rose-300 ring-1 ring-rose-500/35"
+            ? "bg-market-up/20 text-market-up ring-1 ring-market-up/35"
+            : "bg-market-down/15 text-market-down ring-1 ring-market-down/35"
           : "text-muted-foreground hover:text-foreground",
       )}
     >

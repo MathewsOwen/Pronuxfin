@@ -23,8 +23,8 @@ export default async function EducationPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] px-6 py-10 text-center md:px-10">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-emerald-500/25 bg-emerald-950/20">
-          <BookOpen className="size-7 text-emerald-300" />
+        <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-status-live/25 bg-status-live/10">
+          <BookOpen className="size-7 text-market-up" />
         </div>
         <p className="font-mono mt-6 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
           {t("comingSoonEyebrow")}

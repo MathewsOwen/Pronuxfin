@@ -107,7 +107,7 @@ export function ProjecaoGoalPanel({ loggedIn }: { loggedIn: boolean }) {
           <Stat
             label={result.onTrack ? t("onTrack") : t("gap")}
             value={result.onTrack ? t("onTrackValue") : money(Math.max(0, result.gap))}
-            accent={result.onTrack ? "text-emerald-400" : "text-rose-400"}
+            accent={result.onTrack ? "text-market-up" : "text-market-down"}
           />
           <Stat
             label={t("extraMonthly")}
@@ -130,7 +130,7 @@ export function ProjecaoGoalPanel({ loggedIn }: { loggedIn: boolean }) {
           <div
             className={cn(
               "h-full rounded-full transition-all",
-              result.onTrack ? "bg-emerald-500" : "bg-amber-500",
+              result.onTrack ? "bg-market-up" : "bg-status-warning",
             )}
             style={{ width: `${Math.min(100, result.progressPct)}%` }}
           />

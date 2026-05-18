@@ -85,16 +85,16 @@ export function EconomicCalendarView({
   return (
     <div className="space-y-4">
       {calendarMode === "live" ? (
-        <p className="text-xs text-emerald-300/90">{t("modeLive")}</p>
+        <p className="text-xs text-market-up/90">{t("modeLive")}</p>
       ) : calendarMode === "hybrid" ? (
-        <p className="text-xs text-emerald-300/90">{t("modeHybrid")}</p>
+        <p className="text-xs text-market-up/90">{t("modeHybrid")}</p>
       ) : calendarMode === "curated" ? (
-        <p className="text-xs text-amber-200/90">{t("modeCurated")}</p>
+        <p className="text-xs text-status-warning/90">{t("modeCurated")}</p>
       ) : fmpAvailable ? (
-        <p className="text-xs text-emerald-300/90">{t("fmpLiveHint")}</p>
+        <p className="text-xs text-market-up/90">{t("fmpLiveHint")}</p>
       ) : null}
       {loggedIn && watchlistSymbols.some((s) => /\d$/.test(s.trim())) ? (
-        <p className="text-xs text-sky-200/90">{t("b3SeasonHint")}</p>
+        <p className="text-xs text-cognitive/90">{t("b3SeasonHint")}</p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2">
@@ -225,12 +225,12 @@ function CalendarEventRow({
           </Badge>
         ) : null}
         {ev.source === "fmp" ? (
-          <Badge className="border-emerald-500/30 bg-emerald-950/20 font-mono text-[10px] uppercase text-emerald-200">
+          <Badge className="border-status-live/30 bg-status-live/10 font-mono text-[10px] uppercase text-status-live">
             {t("fmpBadge")}
           </Badge>
         ) : null}
         {ev.source === "b3-season" ? (
-          <Badge className="border-sky-500/30 bg-sky-950/20 font-mono text-[10px] uppercase text-sky-200">
+          <Badge className="border-cognitive/30 bg-cognitive/10 font-mono text-[10px] uppercase text-cognitive">
             {t("b3SeasonBadge")}
           </Badge>
         ) : null}
@@ -246,9 +246,9 @@ function CalendarEventRow({
           className={cn(
             "font-mono text-[10px] uppercase",
             ev.impact === "high"
-              ? "border-rose-500/30 bg-rose-950/20 text-rose-200"
+              ? "border-status-degraded/30 bg-status-degraded/10 text-status-degraded"
               : ev.impact === "medium"
-                ? "border-amber-500/30 bg-amber-950/20 text-amber-200"
+                ? "border-border bg-primary/8 text-status-warning"
                 : "border-white/10 bg-white/5 text-muted-foreground",
           )}
         >

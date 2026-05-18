@@ -167,7 +167,7 @@ export function PrivateComparatorPage({
           ) : (
             <>
               {mutationError ? (
-                <p className="text-sm text-rose-300">{mutationError}</p>
+                <p className="text-sm text-market-down">{mutationError}</p>
               ) : null}
               <div className="flex flex-wrap gap-2">
                 {selectedSymbols.length > 0 ? (
@@ -254,7 +254,7 @@ export function PrivateComparatorPage({
                             void removeFromWatchlist(item.symbol);
                           }}
                           disabled={removingSymbol === item.symbol}
-                          className="text-rose-300 hover:bg-rose-950/20 hover:text-rose-200"
+                          className="text-market-down hover:bg-status-degraded/10 hover:text-status-degraded"
                         >
                           <Trash2 className="size-4" />
                           {removingSymbol === item.symbol
@@ -346,8 +346,8 @@ export function PrivateComparatorPage({
                           className={cn(
                             "mt-1 text-sm font-medium",
                             (dossier.quote.regularMarketChangePercent ?? 0) >= 0
-                              ? "text-emerald-400"
-                              : "text-rose-400",
+                              ? "text-market-up"
+                              : "text-market-down",
                           )}
                         >
                           {formatSignedPercent(dossier.quote.regularMarketChangePercent)}
@@ -547,9 +547,9 @@ function attentionLabelKey(level: WatchlistAttentionLevel) {
 function attentionBadgeClass(level: WatchlistAttentionLevel) {
   switch (level) {
     case "high":
-      return "border-amber-500/25 bg-amber-950/20 text-amber-100";
+      return "border-primary/20 bg-primary/8 text-status-warning";
     case "medium":
-      return "border-sky-500/25 bg-sky-950/20 text-sky-100";
+      return "border-cognitive/25 bg-cognitive/10 text-cognitive";
     default:
       return "border-white/10 bg-white/[0.04] text-muted-foreground";
   }

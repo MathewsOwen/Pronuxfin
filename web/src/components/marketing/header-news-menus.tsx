@@ -49,7 +49,7 @@ export function HeaderNewsNavDesktop({ navLinkClass, label }: HeaderNewsMenusPro
       {/* pt + margem negativa = ponte só no hover entre item e cartão */}
       <div className="absolute left-1/2 top-full z-[60] w-max min-w-[min(22rem,calc(100vw-4rem))] max-w-xl -translate-x-1/2 pt-7 -mt-5 invisible opacity-0 translate-y-1 transition-[opacity,transform,visibility] duration-200 ease-out group-hover/navnews:visible group-hover/navnews:translate-y-0 group-hover/navnews:opacity-100">
         <div className="rounded-xl border border-white/[0.12] bg-[oklch(0.11_0.041_262/0.97)] px-5 py-4 shadow-[0_24px_80px_oklch(0_0_0/0.55)] backdrop-blur-xl">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/90">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             {t("newsChannelEyebrow")}
           </p>
           <p className="mt-2 max-w-sm text-[12px] leading-relaxed text-muted-foreground">
@@ -120,7 +120,7 @@ export function HeaderNewsNavMobile({ navLinkClass, label, onNavigate }: HeaderN
       >
         {label}
       </Link>
-      <p className="px-3 pt-2 font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-amber-400/90">
+      <p className="px-3 pt-2 font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
         {t("newsChannelEyebrow")}
       </p>
       <div className="flex flex-wrap gap-x-4 gap-y-2 px-3 pb-3 pt-2">

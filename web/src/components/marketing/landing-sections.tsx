@@ -66,7 +66,7 @@ export function IaSection() {
                   key={line}
                   className="surface-rise flex items-start gap-3 rounded-xl border border-white/[0.07] bg-black/15 px-4 py-3"
                 >
-                  <Radar className="mt-0.5 size-5 shrink-0 text-amber-400/90" />
+                  <Radar className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
                   <span className="text-sm leading-relaxed text-muted-foreground">{line}</span>
                 </NestStaggerLi>
               ))}
@@ -102,7 +102,7 @@ export function BenefitsSection() {
           {benefits.map((b) => (
             <RevealCard
               key={b.title}
-              className="glass-panel card-shine group p-6 transition-[border-color,box-shadow] duration-300 hover:border-amber-500/25 hover:shadow-[inset_0_1px_0_oklch(0.88_0.06_85_/_.06)]"
+              className="glass-panel card-shine group p-6 transition-[border-color,box-shadow] duration-300 hover:border-primary/20 hover:shadow-[inset_0_1px_0_oklch(0.88_0.06_85_/_.06)]"
             >
               <div className="rounded-xl bg-primary/10 p-2.5 text-primary ring-1 ring-primary/20 transition-colors group-hover:bg-primary/15">
                 <b.icon className="size-7" />
@@ -135,8 +135,8 @@ export function FeaturesSection() {
             />
           </RevealBlock>
           <RevealBlock tight>
-            <div className="flex w-fit items-center gap-2 rounded-full border border-amber-500/25 bg-amber-950/20 px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-amber-200/95 lg:shrink-0">
-              <Zap className="size-4 text-amber-400" aria-hidden /> {t("chip")}
+            <div className="flex w-fit items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-status-warning/90 lg:shrink-0">
+              <Zap className="size-4 text-cognitive" aria-hidden /> {t("chip")}
             </div>
           </RevealBlock>
         </RevealSection>
@@ -147,9 +147,9 @@ export function FeaturesSection() {
           {items.map((f) => (
             <NestStaggerLi
               key={f}
-              className="surface-rise flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm backdrop-blur-sm transition-colors hover:border-amber-500/20 hover:bg-white/[0.05]"
+              className="surface-rise flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm backdrop-blur-sm transition-colors hover:border-border hover:bg-white/[0.05]"
             >
-              <span className="size-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_12px_oklch(0.74_0.14_215/0.8)]" />
+              <span className="size-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_12px_color-mix(in_oklch,var(--primary)_%,transparent)]" />
               {f}
             </NestStaggerLi>
           ))}
@@ -178,7 +178,7 @@ export function DashboardMockSection() {
           </RevealBlock>
           <RevealBlock className="mt-14">
             <div className="glass-panel glow-ring card-shine rounded-3xl border-white/12 p-6 sm:p-8">
-              <p className="mb-6 rounded-xl border border-amber-500/20 bg-amber-950/15 px-4 py-3 text-center font-mono text-[10px] uppercase tracking-wider text-amber-200/90">
+              <p className="mb-6 rounded-xl border border-border bg-status-warning/8 px-4 py-3 text-center font-mono text-[10px] uppercase tracking-wider text-status-warning/90">
                 {t("banner")}
               </p>
               <div className="grid gap-6 lg:grid-cols-3">
@@ -202,12 +202,12 @@ export function DashboardMockSection() {
                       <div key={i} className="flex h-full flex-1 flex-col justify-end">
                         {reduceMotion ? (
                           <div
-                            className="w-full rounded-t-md bg-gradient-to-t from-primary/25 to-primary shadow-[0_0_24px_oklch(0.74_0.14_215/0.2)]"
+                            className="w-full rounded-t-md bg-gradient-to-t from-primary/25 to-primary shadow-[0_0_24px_color-mix(in_oklch,var(--primary)_%,transparent)]"
                             style={{ height: `${h}%` }}
                           />
                         ) : (
                           <motion.div
-                            className="w-full rounded-t-md bg-gradient-to-t from-primary/25 to-primary shadow-[0_0_24px_oklch(0.74_0.14_215/0.2)]"
+                            className="w-full rounded-t-md bg-gradient-to-t from-primary/25 to-primary shadow-[0_0_24px_color-mix(in_oklch,var(--primary)_%,transparent)]"
                             initial={{ height: 0 }}
                             whileInView={{ height: `${h}%` }}
                             viewport={viewportStandard}
@@ -262,7 +262,7 @@ export function CtaSection() {
 
   return (
     <section className="relative px-4 py-24 sm:px-6">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center_top,oklch(0.74_0.14_215/0.12),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center_top,color-mix(in_oklch,var(--primary)_%,transparent),transparent_55%)]" />
         <RevealOnce className="glass-panel glow-ring surface-rise relative mx-auto max-w-4xl rounded-3xl border border-primary/25 bg-black/20 px-8 py-14 text-center shadow-[inset_0_1px_0_oklch(1_0_0/0.04)] ring-1 ring-white/[0.06] sm:px-12">
         <h2 className="font-heading text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
           {t("title")}
@@ -271,7 +271,7 @@ export function CtaSection() {
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link
             href="/register"
-            className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-9 text-sm font-medium text-primary-foreground glow-ring shadow-[inset_0_1px_0_oklch(1_0_0/0.14)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_0_36px_oklch(0.74_0.14_215/0.35)] active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100"
+            className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-9 text-sm font-medium text-primary-foreground glow-ring shadow-[inset_0_1px_0_oklch(1_0_0/0.14)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_0_36px_color-mix(in_oklch,var(--primary)_%,transparent)] active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100"
           >
             {t("primary")}
           </Link>

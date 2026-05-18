@@ -152,10 +152,10 @@ export function FinancialRouteDesk({
       </div>
 
       {alerts.length > 0 ? (
-        <Card className="glass-panel border-amber-500/25 bg-amber-950/10 shadow-none ring-0">
+        <Card className="glass-panel border-primary/20 bg-status-warning/6 shadow-none ring-0">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-heading text-lg">
-              <AlertTriangle className="size-5 text-amber-300" />
+              <AlertTriangle className="size-5 text-status-warning" />
               {t("alertsTitle")}
             </CardTitle>
             <CardDescription>{t("alertsSubtitle")}</CardDescription>
@@ -343,7 +343,7 @@ export function FinancialRouteDesk({
                       {t(`goalTypes.${route.goalType}`)}
                     </Badge>
                     {macro?.hasHighImpactThisWeek ? (
-                      <Badge className="border-sky-500/30 bg-sky-950/20 font-mono text-[10px] uppercase text-sky-200">
+                      <Badge className="border-cognitive/30 bg-cognitive/10 font-mono text-[10px] uppercase text-cognitive">
                         {t("macroRecalcBadge")}
                       </Badge>
                     ) : null}
@@ -356,7 +356,7 @@ export function FinancialRouteDesk({
                   type="button"
                   disabled={pending}
                   onClick={() => void handleDelete(route.id)}
-                  className="rounded-lg border border-white/10 p-2 text-muted-foreground hover:text-rose-400"
+                  className="rounded-lg border border-white/10 p-2 text-muted-foreground hover:text-market-down"
                   aria-label={t("deleteRoute")}
                 >
                   <Trash2 className="size-4" />
@@ -365,12 +365,12 @@ export function FinancialRouteDesk({
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   {status.onTrack ? (
-                    <Badge className="border-emerald-500/30 bg-emerald-950/20 text-emerald-200">
+                    <Badge className="border-status-live/30 bg-status-live/10 text-status-live">
                       <CheckCircle2 className="mr-1 size-3" />
                       {t("statusOnTrack")}
                     </Badge>
                   ) : (
-                    <Badge className="border-amber-500/30 bg-amber-950/20 text-amber-200">
+                    <Badge className="border-border bg-primary/8 text-status-warning">
                       <Clock className="mr-1 size-3" />
                       {t("statusBehind", { months: status.monthsBehind })}
                     </Badge>
@@ -384,8 +384,8 @@ export function FinancialRouteDesk({
                     className={cn(
                       "h-full rounded-full transition-all",
                       status.onTrack
-                        ? "bg-gradient-to-r from-emerald-500 to-primary"
-                        : "bg-gradient-to-r from-amber-500 to-rose-500",
+                        ? "bg-gradient-to-r from-market-up to-primary"
+                        : "bg-gradient-to-r from-status-warning to-status-degraded",
                     )}
                     style={{ width: `${Math.min(100, status.progressPct)}%` }}
                   />

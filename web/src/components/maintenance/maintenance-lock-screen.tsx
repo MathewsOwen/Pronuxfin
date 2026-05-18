@@ -17,7 +17,7 @@ export async function MaintenanceLockScreen({
   return (
     <main className="relative mx-auto flex min-h-[70vh] w-full max-w-3xl items-center justify-center px-4 py-16">
       <div className="glass-panel glow-ring w-full rounded-3xl border-white/12 px-8 py-12 text-center ring-1 ring-white/[0.04] sm:px-12">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/12 text-amber-300">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-status-warning/12 text-status-warning">
           <AlertTriangle className="size-6" />
         </div>
         <h1 className="font-heading mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -32,7 +32,7 @@ export async function MaintenanceLockScreen({
             {readiness.checks.map((check) => (
               <li key={check.key} className="flex items-center justify-between gap-3">
                 <span className="truncate text-foreground/90">{check.key}</span>
-                <span className={check.ok ? "text-emerald-300" : "text-rose-300"}>
+                <span className={check.ok ? "text-market-up" : "text-market-down"}>
                   {check.ok ? t("checkOk") : check.detail}
                 </span>
               </li>

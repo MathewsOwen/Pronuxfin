@@ -191,7 +191,7 @@ export function PortfolioManager({
                 aria-live="polite"
                 className={cn(
                   "text-sm",
-                  messageTone === "success" ? "text-emerald-400" : "text-rose-400",
+                  messageTone === "success" ? "text-market-up" : "text-market-down",
                 )}
               >
                 {message}
@@ -234,12 +234,12 @@ export function PortfolioRemoveButton({ symbol }: { symbol: string }) {
         type="button"
         disabled={pending}
         onClick={() => void remove()}
-        className="text-xs text-muted-foreground hover:text-rose-400 disabled:opacity-50"
+        className="text-xs text-muted-foreground hover:text-market-down disabled:opacity-50"
       >
         {pending ? t("removing") : t("remove")}
       </button>
       {error ? (
-        <p className="text-[10px] text-rose-400" role="alert">
+        <p className="text-[10px] text-market-down" role="alert">
           {error}
         </p>
       ) : null}

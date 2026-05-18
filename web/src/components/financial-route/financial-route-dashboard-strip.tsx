@@ -14,10 +14,10 @@ export async function FinancialRouteDashboardStrip({
   const behindCount = routes.filter((r) => !r.status.onTrack).length;
 
   return (
-    <div className="flex flex-col gap-4 rounded-[2rem] border border-sky-500/20 bg-sky-950/10 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-[2rem] border border-cognitive/20 bg-cognitive/8 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-start gap-3">
-        <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-2">
-          <Navigation className="size-5 text-sky-300" />
+        <div className="rounded-xl border border-cognitive/30 bg-cognitive/10 p-2">
+          <Navigation className="size-5 text-cognitive" />
         </div>
         <div>
           <p className="font-heading font-semibold text-foreground">{t("dashboardTitle")}</p>
@@ -30,7 +30,7 @@ export async function FinancialRouteDashboardStrip({
                 : null}
           </p>
           {primary ? (
-            <p className="mt-1 font-mono text-xs text-sky-200/90">
+            <p className="mt-1 font-mono text-xs text-cognitive/90">
               {primary.route.label} — {Math.round(primary.status.progressPct)}%
             </p>
           ) : null}

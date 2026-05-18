@@ -53,7 +53,7 @@ export function ProjecaoSensitivityPanel({ input }: { input: WealthProjectionInp
     <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Grid3x3 className="size-5 text-sky-400" aria-hidden />
+          <Grid3x3 className="size-5 text-cognitive" aria-hidden />
           <CardTitle className="font-heading">{t("title")}</CardTitle>
         </div>
         <CardDescription>{t("subtitle")}</CardDescription>
@@ -94,7 +94,7 @@ export function ProjecaoSensitivityPanel({ input }: { input: WealthProjectionInp
                         className={cn(
                           "rounded-lg px-2 py-2 text-center font-mono text-[11px] font-semibold tabular-nums",
                           intensity > 0.85
-                            ? "bg-emerald-500/25 text-emerald-200"
+                            ? "bg-market-up/25 text-status-live"
                             : intensity > 0.55
                               ? "bg-primary/20 text-primary-foreground"
                               : intensity > 0.3

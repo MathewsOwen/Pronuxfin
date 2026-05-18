@@ -19,9 +19,9 @@ export async function MacroRouteBanner({
   const summary = locale.startsWith("pt") ? macro.eventSummaryPt : macro.eventSummaryEn;
 
   return (
-    <div className="rounded-2xl border border-sky-500/25 bg-sky-950/15 px-4 py-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
+    <div className="rounded-2xl border border-cognitive/25 bg-cognitive/8 px-4 py-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
       <div className="flex gap-3">
-        <CalendarDays className="mt-0.5 size-5 shrink-0 text-sky-300" />
+        <CalendarDays className="mt-0.5 size-5 shrink-0 text-cognitive" />
         <div>
           <p className="text-sm font-medium text-foreground">
             {macro.hasHighImpactToday ? t("macroBannerToday") : t("macroBannerWeek")}

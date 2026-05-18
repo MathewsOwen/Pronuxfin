@@ -60,7 +60,7 @@ export function HeroLiveDesk() {
       transition={{ duration: 0.75, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
       className="relative mx-auto w-full max-w-lg lg:mx-0"
     >
-      <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-primary/25 via-transparent to-amber-500/10 blur-2xl motion-reduce:hidden" />
+      <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-primary/25 via-transparent to-cognitive/8 blur-2xl motion-reduce:hidden" />
 
       <div className="glass-panel card-shine glow-ring relative overflow-hidden rounded-[1.75rem] border-white/15 shadow-2xl">
         <div className="pointer-events-none absolute inset-0 opacity-[0.05] terminal-grid-bg" />
@@ -69,8 +69,8 @@ export function HeroLiveDesk() {
           className={cn(
             "absolute right-4 top-4 flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-[9px] font-semibold uppercase tracking-wider",
             live
-              ? "border-emerald-500/25 bg-emerald-950/40 text-emerald-400"
-              : "border-amber-500/35 bg-amber-950/40 text-amber-200",
+              ? "border-status-live/35 bg-status-live/10 text-status-live"
+              : "border-status-warning/35 bg-status-warning/10 text-status-warning",
           )}
         >
           <Radio className="size-3" aria-hidden />
@@ -92,8 +92,8 @@ export function HeroLiveDesk() {
             ))}
           </ul>
 
-          <div className="rounded-xl border border-amber-500/15 bg-black/35 p-3">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-amber-400/95">
+          <div className="rounded-xl border border-border bg-black/35 p-3">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               {t("cognitiveTitle")}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("cognitiveBody")}</p>
@@ -155,7 +155,7 @@ function QuoteRow({
           <p
             className={cn(
               "font-mono text-[11px] font-medium",
-              up ? "text-emerald-400" : "text-rose-400",
+              up ? "text-market-up" : "text-market-down",
             )}
           >
             {change}

@@ -11,14 +11,14 @@ export async function AuthBrandPanel() {
 
   return (
     <div className="relative hidden overflow-hidden border-r border-white/10 bg-[oklch(0.08_0.04_262)] lg:flex lg:w-[42%] lg:flex-col lg:justify-between xl:w-[44%]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,oklch(0.74_0.14_215/0.2),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,color-mix(in_oklch,var(--primary)_%,transparent),transparent_55%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.4] motion-safe:animate-pulse-soft">
         <div
           className="h-full w-full"
           style={{
             backgroundImage: `
-            linear-gradient(oklch(0.74 0.14 215 / 0.07) 1px, transparent 1px),
-            linear-gradient(90deg, oklch(0.74 0.14 215 / 0.07) 1px, transparent 1px)
+            linear-gradient(var(--primary) / 0.07) 1px, transparent 1px),
+            linear-gradient(90deg, var(--primary) / 0.07) 1px, transparent 1px)
           `,
             backgroundSize: "48px 48px",
             maskImage: "linear-gradient(black 40%, transparent)",
@@ -47,12 +47,12 @@ export async function AuthBrandPanel() {
           <AuthSignalCard
             label={t("signalSecurityLabel")}
             value={t("signalSecurityValue")}
-            accentClass="border-amber-500/25 bg-amber-950/18"
+            accentClass="border-primary/20 bg-primary/8"
           />
           <AuthSignalCard
             label={t("signalStackLabel")}
             value={t("signalStackValue")}
-            accentClass="border-sky-500/25 bg-sky-950/18"
+            accentClass="border-cognitive/25 bg-cognitive/10"
           />
           <AuthSignalCard
             label={t("signalFlowLabel")}
@@ -85,7 +85,7 @@ export async function AuthPageLayout({
       tabIndex={-1}
       className="relative flex min-h-screen overflow-hidden outline-none"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,oklch(0.74_0.14_215/0.12),transparent_42%)] lg:hidden" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,color-mix(in_oklch,var(--primary)_%,transparent),transparent_42%)] lg:hidden" />
       <AuthBrandPanel />
       <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-12 sm:px-8">
         <div className="mb-8 flex w-full max-w-md items-center justify-between lg:hidden">
@@ -94,10 +94,10 @@ export async function AuthPageLayout({
         </div>
         <div className="mb-6 w-full max-w-md rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-muted-foreground shadow-[inset_0_1px_0_oklch(1_0_0/0.04)] lg:hidden">
           <div className="flex flex-wrap gap-2 font-mono uppercase tracking-[0.14em]">
-            <span className="rounded-full border border-amber-500/25 bg-amber-950/20 px-2.5 py-1 text-amber-200">
+            <span className="rounded-full border border-primary/20 bg-primary/8 px-2.5 py-1 text-status-warning">
               {t("signalSecurityLabel")}
             </span>
-            <span className="rounded-full border border-sky-500/25 bg-sky-950/20 px-2.5 py-1 text-sky-200">
+            <span className="rounded-full border border-cognitive/25 bg-cognitive/10 px-2.5 py-1 text-cognitive">
               JWT
             </span>
             <span className="rounded-full border border-teal-500/25 bg-teal-950/20 px-2.5 py-1 text-teal-200">

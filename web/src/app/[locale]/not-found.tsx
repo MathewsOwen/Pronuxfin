@@ -22,7 +22,7 @@ export default async function NotFound() {
       <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-16">
         <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.07] terminal-grid-bg" />
         <div className="glass-panel glow-ring relative max-w-lg rounded-3xl border-white/12 px-8 py-12 text-center ring-1 ring-white/[0.04] sm:px-12">
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.32em] text-amber-400/95">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
             {t("errorCode")}
           </p>
           <h1 className="font-heading mt-5 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">

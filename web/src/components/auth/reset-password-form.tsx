@@ -91,7 +91,7 @@ export function ResetPasswordForm() {
     <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
       <CardHeader className="gap-4">
         <div className="flex flex-wrap items-center gap-2">
-          <Badge className="border-amber-500/25 bg-amber-950/25 text-amber-200">
+          <Badge className="border-primary/20 bg-primary/10 text-status-warning">
             <KeyRound className="size-3" />
             {t("signalReset")}
           </Badge>

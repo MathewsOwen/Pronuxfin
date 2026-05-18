@@ -18,11 +18,11 @@ export async function PortfolioEmptyDeskCallout({
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex gap-4">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-emerald-500/25 bg-emerald-950/20">
-            <Wallet className="size-5 text-emerald-300" aria-hidden />
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl border border-status-live/25 bg-status-live/10">
+            <Wallet className="size-5 text-market-up" aria-hidden />
           </span>
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-emerald-300/90">
+            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-market-up/90">
               {t("portfolioEmptyEyebrow")}
             </p>
             <h2

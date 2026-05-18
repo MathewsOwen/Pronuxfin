@@ -66,9 +66,9 @@ export default async function AppCalendarPage() {
       </div>
 
       {routes.length > 0 ? (
-        <p className="rounded-2xl border border-sky-500/25 bg-sky-950/15 px-4 py-3 text-sm text-sky-100">
+        <p className="rounded-2xl border border-cognitive/25 bg-cognitive/8 px-4 py-3 text-sm text-cognitive">
           {t("routeSyncHint")}{" "}
-          <Link href="/rota" className="font-semibold text-sky-200 underline underline-offset-2 hover:text-sky-100">
+          <Link href="/rota" className="font-semibold text-cognitive underline underline-offset-2 hover:text-cognitive">
             {tRoute("macroBannerCta")}
           </Link>
         </p>

@@ -18,8 +18,8 @@ export function AmbientBackdrop() {
         className="absolute inset-0 opacity-[0.35] motion-safe:animate-pulse-soft"
         style={{
           backgroundImage: `
-            linear-gradient(oklch(0.74 0.14 215 / 0.06) 1px, transparent 1px),
-            linear-gradient(90deg, oklch(0.74 0.14 215 / 0.06) 1px, transparent 1px)
+            linear-gradient(var(--primary) / 0.06) 1px, transparent 1px),
+            linear-gradient(90deg, var(--primary) / 0.06) 1px, transparent 1px)
           `,
           backgroundSize: "72px 72px",
           maskImage:
@@ -27,7 +27,7 @@ export function AmbientBackdrop() {
         }}
       />
       <motion.div
-        className="absolute -left-32 top-[18%] size-[420px] rounded-full bg-[radial-gradient(circle,oklch(0.74_0.14_215/0.14),transparent_68%)] blur-3xl motion-reduce:hidden"
+        className="absolute -left-32 top-[18%] size-[420px] rounded-full bg-[radial-gradient(circle,color-mix(in_oklch,var(--primary)_%,transparent),transparent_68%)] blur-3xl motion-reduce:hidden"
         animate={{ x: [0, 28, 0], y: [0, -18, 0] }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />

@@ -71,10 +71,10 @@ export function ProjecaoWealthDesk({
   }
 
   return (
-    <Card className="glass-panel card-shine border-amber-500/20 shadow-none ring-0">
+    <Card className="glass-panel card-shine border-border shadow-none ring-0">
       <CardHeader className="space-y-2">
         <div className="flex items-center gap-2">
-          <Calculator className="size-5 text-amber-400" aria-hidden />
+          <Calculator className="size-5 text-cognitive" aria-hidden />
           <CardTitle className="font-heading">{t("title")}</CardTitle>
         </div>
         <CardDescription>{t("subtitle")}</CardDescription>
@@ -133,7 +133,7 @@ export function ProjecaoWealthDesk({
                     className={cn(
                       "rounded-full border px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors",
                       Math.abs(input.baseAnnualReturnPct - RETURN_PRESETS[id].annualReturnPct) < 0.05
-                        ? "border-amber-500/40 bg-amber-950/30 text-amber-200"
+                        ? "border-primary/30 bg-primary/10 text-status-warning"
                         : "border-white/12 bg-white/[0.03] text-muted-foreground hover:text-foreground",
                     )}
                   >
@@ -179,9 +179,9 @@ export function ProjecaoWealthDesk({
               interest={money(band.totalInterest)}
               accent={
                 band.id === "pessimistic"
-                  ? "border-rose-500/25"
+                  ? "border-status-degraded/25"
                   : band.id === "optimistic"
-                    ? "border-emerald-500/25"
+                    ? "border-status-live/25"
                     : "border-primary/25"
               }
             />
@@ -246,7 +246,7 @@ function KpiCard({
       <p className="text-xs font-mono uppercase tracking-[0.14em] text-muted-foreground">{title}</p>
       <p className="mt-1 text-[10px] text-muted-foreground">{rate}</p>
       <p className="mt-3 font-heading text-xl font-semibold tracking-tight text-foreground">{final}</p>
-      <p className="mt-1 flex items-center gap-1 text-xs text-emerald-300/90">
+      <p className="mt-1 flex items-center gap-1 text-xs text-market-up/90">
         <TrendingUp className="size-3.5" aria-hidden />
         {interest}
       </p>

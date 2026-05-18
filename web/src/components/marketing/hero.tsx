@@ -43,7 +43,7 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.04] terminal-grid-bg" />
 
       <div className="pointer-events-none absolute inset-0 -z-10 md:hidden">
-        <div className="absolute left-1/2 top-0 h-[480px] w-full max-w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,oklch(0.74_0.14_215/0.18),transparent_68%)]" />
+        <div className="absolute left-1/2 top-0 h-[480px] w-full max-w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,color-mix(in_oklch,var(--primary)_%,transparent),transparent_68%)]" />
       </div>
 
       <div className="landing-tech-rail mx-auto mb-10 max-w-6xl rounded-full motion-reduce:hidden" aria-hidden />
@@ -54,9 +54,9 @@ export function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-500/35 bg-amber-950/25 px-4 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-300 shadow-[inset_0_1px_0_oklch(0.88_0.06_85_/_.12)]"
+            className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary"
           >
-            <Cpu className="size-3.5 shrink-0 text-amber-400" aria-hidden />
+            <Cpu className="size-3.5 shrink-0 text-cognitive" aria-hidden />
             {t("badge")}
           </motion.div>
 
@@ -109,7 +109,7 @@ export function Hero() {
               href="#dashboard"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
-                "h-11 border-white/15 bg-white/[0.03] px-7 text-sm backdrop-blur-md transition-colors hover:border-amber-500/35 hover:bg-amber-950/15",
+                "h-11 border-white/15 bg-white/[0.03] px-7 text-sm backdrop-blur-md transition-colors hover:border-cognitive/30 hover:bg-cognitive/8",
               )}
             >
               {t("ctaSecondary")}
@@ -144,7 +144,7 @@ export function Hero() {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + idx * 0.06 }}
-                className="glass-panel card-shine surface-rise group rounded-2xl border-amber-500/10 px-5 py-4 transition-colors duration-300 hover:border-amber-500/25"
+                className="glass-panel card-shine surface-rise group rounded-2xl border-border px-5 py-4 transition-colors duration-300 hover:border-primary/20"
               >
                 <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                   {stat.k}
@@ -163,7 +163,7 @@ export function Hero() {
             transition={{ delay: 0.55, duration: 0.5 }}
             className="mt-8 flex items-start gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground/90"
           >
-            <Binary className="mt-0.5 size-3.5 shrink-0 text-amber-500/70" aria-hidden />
+            <Binary className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/70" aria-hidden />
             {t("ethicsNote")}
           </motion.p>
         </div>

@@ -48,7 +48,7 @@ export function ToolsPreviewSection() {
 
           <div className="glass-panel card-shine rounded-3xl border border-white/12 p-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="rounded-xl border border-amber-500/25 bg-amber-950/20 p-2 text-amber-300">
+              <div className="rounded-xl border border-primary/20 bg-primary/8 p-2 text-status-warning">
                 <CalendarDays className="size-5" />
               </div>
               <div>
@@ -68,7 +68,7 @@ export function ToolsPreviewSection() {
 
         <div className="glass-panel card-shine flex flex-col gap-4 rounded-3xl border border-white/12 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="rounded-xl border border-emerald-500/25 bg-emerald-950/20 p-2 text-emerald-300">
+            <div className="rounded-xl border border-status-live/25 bg-status-live/10 p-2 text-market-up">
               <Wallet className="size-5" />
             </div>
             <div>

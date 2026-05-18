@@ -56,11 +56,11 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           setOpen((o) => !o);
         }}
         className={cn(
-          "flex items-center gap-2 rounded-lg border border-white/12 bg-black/30 px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-foreground backdrop-blur-md transition-colors hover:border-amber-500/35 hover:bg-amber-950/20",
+          "flex items-center gap-2 rounded-lg border border-white/12 bg-black/30 px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-foreground backdrop-blur-md transition-colors hover:border-primary/25 hover:bg-primary/8",
           pending && "opacity-60",
         )}
       >
-        <Globe className="size-3.5 shrink-0 text-amber-400/90" aria-hidden />
+        <Globe className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
         <span className="tabular-nums">{LOCALE_SHORT_LABEL[locale as AppLocale] ?? locale}</span>
         <span className="text-muted-foreground" aria-hidden>
           ▾
@@ -79,7 +79,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                 type="button"
                 className={cn(
                   "flex w-full items-center justify-between px-3 py-2 text-left font-mono text-[11px] uppercase tracking-wide transition-colors hover:bg-white/[0.06]",
-                  loc === locale ? "text-amber-400" : "text-muted-foreground hover:text-foreground",
+                  loc === locale ? "text-cognitive" : "text-muted-foreground hover:text-foreground",
                 )}
                 onClick={() => select(loc)}
               >
