@@ -1,3 +1,8 @@
+import {
+  hasPublicSiteUrlConfigured,
+  publicSiteUrlReadinessDetail,
+} from "@/lib/site-url";
+
 type ReadinessCheck = {
   key: string;
   ok: boolean;
@@ -43,7 +48,7 @@ export async function evaluateProductionReadiness(): Promise<ProductionReadiness
   }
 
   const apiUrl = process.env.API_URL?.trim() ?? "";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "";
+  const siteConfigured = hasPublicSiteUrlConfigured();
 
   const checks: ReadinessCheck[] = [
     {
@@ -53,8 +58,8 @@ export async function evaluateProductionReadiness(): Promise<ProductionReadiness
     },
     {
       key: "site_url_configured",
-      ok: siteUrl.length > 0,
-      detail: siteUrl.length > 0 ? "configured" : "missing NEXT_PUBLIC_SITE_URL",
+      ok: siteConfigured,
+      detail: siteConfigured ? publicSiteUrlReadinessDetail() : "missing NEXT_PUBLIC_SITE_URL",
     },
   ];
 

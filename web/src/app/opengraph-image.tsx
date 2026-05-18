@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { resolvePublicSiteUrl } from "@/lib/site-url";
 
 export const runtime = "nodejs";
 
@@ -8,13 +9,10 @@ export const contentType = "image/png";
 
 export default function OpenGraphImage() {
   let hostLabel = "PRONUXFIN";
-  const raw = process.env.NEXT_PUBLIC_SITE_URL;
-  if (raw) {
-    try {
-      hostLabel = new URL(raw).hostname.replace(/^www\./, "");
-    } catch {
-      /* keep default */
-    }
+  try {
+    hostLabel = new URL(resolvePublicSiteUrl()).hostname.replace(/^www\./, "");
+  } catch {
+    /* keep default */
   }
 
   return new ImageResponse(

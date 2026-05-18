@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { AppLocale } from "@/i18n/routing";
+import { resolvePublicSiteUrl } from "@/lib/site-url";
 
 /** Open Graph `locale` field for known app locales */
 export function openGraphLocaleFor(locale: string): string {
@@ -15,9 +16,8 @@ export const SITE_META_DESCRIPTION =
   "O mercado não espera — você também não deveria. Onde mercados, finanças pessoais e educação se encontram numa mesma mesa: dados em tempo útil, fontes visíveis, IA sob disciplina e linguagem institucional — precisão sem hype, transparência por desenho.";
 
 export function getSiteOrigin(): string {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   try {
-    return new URL(raw).origin;
+    return new URL(resolvePublicSiteUrl()).origin;
   } catch {
     return "http://localhost:3000";
   }
