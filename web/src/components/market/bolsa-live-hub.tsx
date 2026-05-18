@@ -345,7 +345,7 @@ export function BolsaLiveHub() {
 
   const cryptoRows = useMemo(() => payload.crypto ?? EMPTY_QUOTE_ROWS, [payload.crypto]);
   const filteredSectorRows = useMemo(
-    () => filterQuotes(sectorBook.results, equitySearch),
+    () => filterQuotes(sectorBook.results ?? EMPTY_QUOTE_ROWS, equitySearch),
     [sectorBook.results, equitySearch],
   );
   const filteredCryptoRows = useMemo(
@@ -353,7 +353,7 @@ export function BolsaLiveHub() {
     [cryptoRows, cryptoMajorSearch],
   );
   const filteredCryptoSectorRows = useMemo(
-    () => filterQuotes(cryptoSectorBook.results, cryptoSectorSearch),
+    () => filterQuotes(cryptoSectorBook.results ?? EMPTY_QUOTE_ROWS, cryptoSectorSearch),
     [cryptoSectorBook.results, cryptoSectorSearch],
   );
   const orderedSectorRows = useMemo(
@@ -674,7 +674,7 @@ export function BolsaLiveHub() {
             clearLabel={t("searchClear")}
             resultsLabel={t("searchResults", {
               shown: orderedSectorRows.length,
-              total: sectorBook.results.length,
+              total: sectorBook.results?.length ?? 0,
             })}
             sortLabel={t("sortStatus", {
               field: t(`sortFields.${equitySort.key}`),
@@ -939,7 +939,7 @@ export function BolsaLiveHub() {
             clearLabel={t("searchClear")}
             resultsLabel={t("searchResults", {
               shown: orderedCryptoSectorRows.length,
-              total: cryptoSectorBook.results.length,
+              total: cryptoSectorBook.results?.length ?? 0,
             })}
             sortLabel={t("sortStatus", {
               field: t(`sortFields.${cryptoSectorSort.key}`),

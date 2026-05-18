@@ -335,7 +335,7 @@ export async function AssetTerminalPage({
             </CardContent>
           </Card>
 
-          {dossier.region === "intl" && intlFundamentalsHasData(dossier.intlKeyMetricsTtm) ? (
+          {intlFundamentalsHasData(dossier.intlKeyMetricsTtm) ? (
             <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
               <CardHeader>
                 <CardTitle className="font-heading">{t("fundamentalsTitle")}</CardTitle>
@@ -422,7 +422,7 @@ export async function AssetTerminalPage({
         </div>
       </div>
 
-      {dossier.region === "intl" && intlStatementsHasData(dossier.intlAnnualStatements) ? (
+      {intlStatementsHasData(dossier.intlAnnualStatements) ? (
         <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
           <CardHeader className="space-y-3">
             <div className="flex flex-wrap items-start justify-between gap-4">

@@ -61,7 +61,10 @@ export function QuotesStreamProvider({ children }: { children: ReactNode }) {
 export function useQuotesStream(): QuotesPayload {
   const ctx = useContext(QuotesContext);
   if (ctx === undefined) {
-    throw new Error("useQuotesStream deve estar dentro de QuotesStreamProvider");
+    if (process.env.NODE_ENV !== "production") {
+      console.error("useQuotesStream deve estar dentro de QuotesStreamProvider");
+    }
+    return deskBootstrapQuotesPayload();
   }
   return ctx;
 }

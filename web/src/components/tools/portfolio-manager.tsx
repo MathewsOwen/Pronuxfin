@@ -23,7 +23,6 @@ export function PortfolioManager({
   editingExisting = false,
 }: {
   initialSymbol?: string;
-  /** Preço sugerido (ex.: última cotação vinda do terminal do ativo). */
   initialPrice?: number | null;
   initialQuantity?: number | null;
   initialAverageCost?: number | null;
@@ -31,10 +30,10 @@ export function PortfolioManager({
 }) {
   const t = useTranslations("Portfolio");
   const [symbol, setSymbol] = useState(initialSymbol);
-  const [quantity, setQuantity] = useState(
+  const [quantity, setQuantity] = useState(() =>
     initialQuantity != null && Number.isFinite(initialQuantity)
       ? String(initialQuantity)
-      : "100",
+      : "",
   );
   const [averageCost, setAverageCost] = useState(() => {
     if (initialAverageCost != null && Number.isFinite(initialAverageCost)) {
@@ -43,7 +42,7 @@ export function PortfolioManager({
     if (initialPrice != null && Number.isFinite(initialPrice)) {
       return String(initialPrice);
     }
-    return "25";
+    return "";
   });
 
   useEffect(() => {
@@ -57,6 +56,7 @@ export function PortfolioManager({
       setAverageCost(String(initialPrice));
     }
   }, [initialSymbol, initialPrice, initialQuantity, initialAverageCost]);
+
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -64,22 +64,30 @@ export function PortfolioManager({
     e.preventDefault();
     setPending(true);
     setMessage(null);
+    const qty = Number(quantity);
+    const cost = Number(averageCost);
+    if (!symbol.trim() || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(cost) || cost <= 0) {
+      setPending(false);
+      setMessage(t("saveError"));
+      return;
+    }
     const res = await fetch("/api/user/portfolio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         symbol: symbol.trim().toUpperCase(),
-        quantity: Number(quantity),
-        averageCost: Number(averageCost),
+        quantity: qty,
+        averageCost: cost,
       }),
     });
     setPending(false);
     if (!res.ok) {
-      setMessage(t("saveError"));
+      const data = (await res.json().catch(() => ({}))) as { message?: string };
+      setMessage(data.message ?? t("saveError"));
       return;
     }
     setMessage(t("saveSuccess"));
-    window.location.reload();
+    window.location.href = "/carteira";
   }
 
   return (
@@ -102,6 +110,8 @@ export function PortfolioManager({
               placeholder="PETR4"
               className="mt-1.5 border-white/15 bg-black/20 font-mono"
               required
+              readOnly={editingExisting}
+              aria-readonly={editingExisting}
             />
           </div>
           <div>
@@ -112,6 +122,7 @@ export function PortfolioManager({
               step="any"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
+              placeholder="0"
               className="mt-1.5 border-white/15 bg-black/20"
               required
             />
@@ -124,6 +135,7 @@ export function PortfolioManager({
               step="any"
               value={averageCost}
               onChange={(e) => setAverageCost(e.target.value)}
+              placeholder="0"
               className="mt-1.5 border-white/15 bg-black/20"
               required
             />
@@ -134,7 +146,7 @@ export function PortfolioManager({
               disabled={pending}
               className={cn(buttonVariants({ size: "sm" }), pending && "opacity-60")}
             >
-              {pending ? t("saving") : t("saveCta")}
+              {pending ? t("saving") : editingExisting ? t("updateCta") : t("saveCta")}
             </button>
             <Link
               href="/bolsa"
@@ -142,7 +154,16 @@ export function PortfolioManager({
             >
               {t("browseMarket")}
             </Link>
-            {message ? <p className="text-sm text-primary">{message}</p> : null}
+            {message ? (
+              <p
+                className={cn(
+                  "text-sm",
+                  message === t("saveSuccess") ? "text-emerald-400" : "text-rose-400",
+                )}
+              >
+                {message}
+              </p>
+            ) : null}
           </div>
         </form>
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">{t("disclaimer")}</p>
@@ -156,6 +177,7 @@ export function PortfolioRemoveButton({ symbol }: { symbol: string }) {
   const [pending, setPending] = useState(false);
 
   async function remove() {
+    if (!window.confirm(t("removeConfirm", { symbol }))) return;
     setPending(true);
     await fetch("/api/user/portfolio", {
       method: "DELETE",
@@ -174,5 +196,30 @@ export function PortfolioRemoveButton({ symbol }: { symbol: string }) {
     >
       {pending ? t("removing") : t("remove")}
     </button>
+  );
+}
+
+export function PortfolioEditLink({
+  symbol,
+  quantity,
+  averageCost,
+}: {
+  symbol: string;
+  quantity: number;
+  averageCost: number;
+}) {
+  const t = useTranslations("Portfolio");
+  const params = new URLSearchParams({
+    symbol,
+    quantity: String(quantity),
+    averageCost: String(averageCost),
+  });
+  return (
+    <Link
+      href={`/carteira?${params.toString()}`}
+      className="text-xs font-medium text-primary hover:underline"
+    >
+      {t("edit")}
+    </Link>
   );
 }

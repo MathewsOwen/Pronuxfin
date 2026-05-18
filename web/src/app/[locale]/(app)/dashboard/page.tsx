@@ -9,6 +9,7 @@ import {
   Wallet,
   Waves,
 } from "lucide-react";
+import { DashboardAnalyticsSection } from "@/components/dashboard/dashboard-analytics-section";
 import { WatchlistSignalSync } from "@/components/dashboard/watchlist-signal-sync";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -311,138 +312,14 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0 lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-heading">{t("flowTitle")}</CardTitle>
-            <CardDescription>{t("flowSubtitle")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex h-48 items-end gap-2">
-              {[38, 52, 44, 68, 58, 72, 49].map((h, i) => (
-                <div key={i} className="flex h-full flex-1 flex-col justify-end">
-                  <div
-                    className="w-full rounded-t-md bg-gradient-to-t from-primary/25 to-primary shadow-[0_0_20px_oklch(0.74_0.14_215/0.15)] transition-all hover:from-primary/35"
-                    style={{ height: `${h}%` }}
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
-          <CardHeader>
-            <CardTitle className="font-heading">{t("aiTitle")}</CardTitle>
-            <CardDescription>{t("aiSubtitle")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-muted-foreground leading-relaxed">
-            <p>• {t("aiP1")}</p>
-            <p>• {t("aiP2")}</p>
-            <p className="rounded-xl border border-primary/25 bg-primary/10 p-3 text-primary">
-              {t("aiCta")}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
-          <CardHeader>
-            <CardTitle className="font-heading">{t("allocationTitle")}</CardTitle>
-            <CardDescription>{t("allocationSubtitle")}</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-3">
-            {[
-              { label: t("allocationReserve"), value: "28%" },
-              { label: t("allocationIncome"), value: "41%" },
-              { label: t("allocationGrowth"), value: "31%" },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
-              >
-                <p className="text-sm text-muted-foreground">{item.label}</p>
-                <div className="mt-3 flex items-end justify-between gap-3">
-                  <p className="font-heading text-3xl font-semibold tabular-nums tracking-tight">
-                    {item.value}
-                  </p>
-                  <ArrowUpRight className="size-4 text-primary" />
-                </div>
-                <div className="mt-4 h-2 rounded-full bg-white/5">
-                  <div
-                    className="h-2 rounded-full bg-gradient-to-r from-primary/35 via-primary to-amber-400"
-                    style={{ width: item.value }}
-                  />
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
-          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <CardTitle className="font-heading">{t("agendaTitle")}</CardTitle>
-              <CardDescription>
-                {agendaHasLive ? t("agendaSubtitleLive") : t("agendaSubtitle")}
-              </CardDescription>
-            </div>
-            <Link
-              href="/calendario"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "shrink-0")}
-            >
-              <CalendarDays className="size-4" />
-              {t("agendaFullCta")}
-            </Link>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {agendaHasLive
-              ? todayCalendarEvents.map((ev, index) => {
-                  const title = locale.startsWith("pt") ? ev.titlePt : ev.titleEn;
-                  const timeLabel = formatAgendaEventTime(ev.date, ev.timeUtc, locale);
-                  return (
-                    <div
-                      key={ev.id}
-                      className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
-                    >
-                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-semibold text-primary">
-                        {index + 1}
-                      </div>
-                      <div className="min-w-0 flex-1 pt-0.5">
-                        {ev.watchlistSymbol ? (
-                          <Link
-                            href={`/ativo/${encodeURIComponent(ev.watchlistSymbol)}`}
-                            className="text-sm font-medium text-foreground hover:text-primary"
-                          >
-                            {title}
-                          </Link>
-                        ) : (
-                          <p className="text-sm font-medium text-foreground">{title}</p>
-                        )}
-                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                          {timeLabel}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })
-              : agendaFallback.map((item, index) => (
-              <div
-                key={item}
-                className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
-              >
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-semibold text-primary">
-                  {index + 1}
-                </div>
-                <p className="pt-1 text-sm leading-relaxed text-muted-foreground">
-                  {item}
-                </p>
-              </div>
-                ))}
-          </CardContent>
-        </Card>
-      </div>
+      <DashboardAnalyticsSection
+        locale={locale}
+        portfolioSummary={portfolioSummary}
+        assistantHref={assistantHref}
+        agendaHasLive={agendaHasLive}
+        todayCalendarEvents={todayCalendarEvents}
+        agendaFallback={agendaFallback}
+      />
 
       <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
         <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -861,19 +738,6 @@ function attentionLabelKey(level: WatchlistAttentionLevel) {
       return "radarAttentionMedium";
     default:
       return "radarAttentionBaseline";
-  }
-}
-
-function formatAgendaEventTime(date: string, timeUtc: string | null, locale: string) {
-  try {
-    return new Intl.DateTimeFormat(locale, {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      ...(timeUtc ? { hour: "2-digit", minute: "2-digit", timeZone: "UTC" } : {}),
-    }).format(new Date(`${date}T${timeUtc ?? "12:00"}:00Z`));
-  } catch {
-    return date;
   }
 }
 
