@@ -73,9 +73,12 @@ export async function evaluateProductionReadiness(): Promise<ProductionReadiness
     });
   }
 
+  /** Só bloqueia o painel se a URL pública for indeterminável; API/back-end degradam com banner. */
+  const siteCheck = checks.find((c) => c.key === "site_url_configured");
+
   return {
     enabled: true,
-    ok: checks.every((check) => check.ok),
+    ok: siteCheck?.ok ?? true,
     checks,
   };
 }

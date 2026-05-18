@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { EconomicCalendarView } from "@/components/tools/economic-calendar-view";
 import type { AppLocale } from "@/i18n/routing";
@@ -28,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AppCalendarPage() {
   const t = await getTranslations("Tools.calendar");
   const user = await getCurrentUser();
-  if (!user) return null;
+  if (!user) redirect("/login?from=%2Fcalendario");
 
   const [watchlistItems, portfolioPositions] = await Promise.all([
     listUserWatchlist(user.id),

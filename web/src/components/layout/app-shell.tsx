@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { PronuxFinLogo } from "@/components/brand/pronux-fin-logo";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { PageEnter } from "@/components/marketing/page-enter";
+import { QuotesStreamProvider } from "@/components/market/quotes-stream-provider";
 import { SystemDegradationBanner } from "@/components/layout/system-degradation-banner";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -162,6 +163,7 @@ export function AppShell({
   );
 
   return (
+    <QuotesStreamProvider>
     <div className="flex min-h-screen bg-background">
       <aside className="hidden w-[280px] shrink-0 flex-col border-r border-white/10 bg-[linear-gradient(180deg,oklch(0.16_0.02_258),oklch(0.12_0.02_258))] lg:flex">
         <div className="flex h-16 items-center border-b border-white/10 px-6">
@@ -309,6 +311,7 @@ export function AppShell({
         </PageEnter>
       </div>
     </div>
+    </QuotesStreamProvider>
   );
 }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PortfolioManager } from "@/components/tools/portfolio-manager";
 import { PortfolioSummaryPanel } from "@/components/tools/portfolio-summary-panel";
@@ -27,7 +28,7 @@ export default async function CarteiraPage({ searchParams }: CarteiraPageProps) 
   const t = await getTranslations("Portfolio");
   const locale = await getLocale();
   const user = await getCurrentUser();
-  if (!user) return null;
+  if (!user) redirect("/login?from=%2Fcarteira");
 
   const query = await searchParams;
   const initialSymbol = query.symbol?.trim().toUpperCase() ?? "";
