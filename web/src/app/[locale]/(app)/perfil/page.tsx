@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ShieldCheck, UserRound } from "lucide-react";
 import { ProfileSettingsForm } from "@/components/auth/profile-settings-form";
@@ -21,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PerfilPage() {
   const t = await getTranslations("Profile");
   const user = await getCurrentUser();
-  if (!user) return null;
+  if (!user) redirect("/login?from=%2Fperfil");
 
   const displayName = displayNameForUser(user);
   const initials = initialsForUser(user);

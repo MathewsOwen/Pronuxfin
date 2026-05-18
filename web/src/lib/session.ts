@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { sessionUserFromJwt } from "@/lib/auth/jwt-session";
 import { AUTH_COOKIE } from "@/lib/constants";
 
 export async function getSessionToken(): Promise<string | undefined> {
@@ -14,20 +15,30 @@ export type SessionUser = {
 
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const token = await getSessionToken();
-  const apiUrl = process.env.API_URL;
-  if (!token || !apiUrl) return null;
+  if (!token) return null;
 
-  const res = await fetch(`${apiUrl}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
+  const jwtUser = await sessionUserFromJwt(token);
+  const apiUrl = process.env.API_URL?.trim();
+  if (!apiUrl) return jwtUser;
 
-  if (!res.ok) return null;
-  const data = (await res.json()) as SessionUser;
-  return {
-    id: data.id,
-    email: data.email,
-    name: data.name ?? null,
-    isAdmin: Boolean(data.isAdmin),
-  };
+  try {
+    const res = await fetch(`${apiUrl.replace(/\/+$/, "")}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const data = (await res.json()) as SessionUser;
+      return {
+        id: data.id,
+        email: data.email,
+        name: data.name ?? null,
+        isAdmin: Boolean(data.isAdmin),
+      };
+    }
+  } catch {
+    /* API indisponível — mantém sessão via JWT para não derrubar abas públicas */
+  }
+
+  return jwtUser;
 }

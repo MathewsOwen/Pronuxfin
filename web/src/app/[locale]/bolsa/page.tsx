@@ -25,11 +25,7 @@ export default async function BolsaPage() {
   const hub = <BolsaLiveHub />;
 
   if (user) {
-    return (
-      <AuthenticatedPublicChrome user={user} quotesStream>
-        {hub}
-      </AuthenticatedPublicChrome>
-    );
+    return <AuthenticatedPublicChrome user={user}>{hub}</AuthenticatedPublicChrome>;
   }
 
   return (
