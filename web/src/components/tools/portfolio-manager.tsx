@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -44,18 +44,6 @@ export function PortfolioManager({
     }
     return "";
   });
-
-  useEffect(() => {
-    if (initialSymbol) setSymbol(initialSymbol);
-    if (initialQuantity != null && Number.isFinite(initialQuantity)) {
-      setQuantity(String(initialQuantity));
-    }
-    if (initialAverageCost != null && Number.isFinite(initialAverageCost)) {
-      setAverageCost(String(initialAverageCost));
-    } else if (initialPrice != null && Number.isFinite(initialPrice)) {
-      setAverageCost(String(initialPrice));
-    }
-  }, [initialSymbol, initialPrice, initialQuantity, initialAverageCost]);
 
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);

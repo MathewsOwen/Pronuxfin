@@ -4,7 +4,7 @@ import { IsEmail, IsIn, IsOptional } from 'class-validator';
 const AUTH_LOCALES = ['pt-BR', 'en'] as const;
 
 export class ForgotPasswordDto {
-  @Transform(({ value }) =>
+  @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   @IsEmail()

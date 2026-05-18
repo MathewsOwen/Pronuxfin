@@ -35,7 +35,11 @@ export class AuthService {
     }
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     try {
-      const user = await this.users.create({ email, passwordHash, name: name.trim() });
+      const user = await this.users.create({
+        email,
+        passwordHash,
+        name: name.trim(),
+      });
       return this.issueTokens(user.id, user.email);
     } catch (e) {
       if (

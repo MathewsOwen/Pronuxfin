@@ -55,7 +55,6 @@ export function solveExtraMonthlyContribution(
 ): number | null {
   if (monthsRemaining <= 0 || startBalance >= targetAmount) return null;
 
-  const monthlyRate = annualReturnPct / 100 / 12;
   const atBase = projectBalance(
     startBalance,
     baseContribution,
