@@ -33,6 +33,11 @@ PRONUXFIN é uma plataforma de inteligência de mercado com front-end em Next.js
 - `npm run db:down`: derruba a infraestrutura local
 - `npm run build`: build completo do projeto
 - `npm run prisma:migrate`: aplica migrações do backend
+- `npm run validate`: templates `.env`, testes web + typecheck + testes backend
+- `npm run test`: testes do web (Vitest) + backend (Jest/e2e)
+- `npm run smoke`: checks HTTP rápidos (ver `docs/smoke-test.md`)
+- `npm run smoke:strict`: smoke em modo produção (503 = falha)
+- `npm run release:check`: validação do repo + checklist go-live (Fase 5)
 
 ## Setup local
 
@@ -53,6 +58,16 @@ PRONUXFIN é uma plataforma de inteligência de mercado com front-end em Next.js
 
 - Guia do front-end: `web/DEPLOY.md`
 - Checklist completo de GitHub + produção: `docs/github-production-checklist.md` (inclui **Seção 12**: o que tens de fornecer fora do Git — DNS, segredos, SMTP, API pública).
+- **Smoke test** (local e produção): `docs/smoke-test.md` — variáveis em `web/.env.example` e `backend/.env.example`.
+- **Fase 1 — produção confiável:** `docs/phase-1-production.md` (SMTP, CORS, readiness, go-live).
+- **Critérios 10/10 (Fases 0+1):** `docs/phases-0-1.md`
+- **Fase 2 — dados reais (BRAPI/FMP):** `docs/phase-2-market-data.md`
+- **Fase 3 — UX (onboarding, menu, empty states):** `docs/phase-3-ux.md`
+- **Critérios 10/10 (Fases 2+3):** `docs/phases-2-3.md`
+- **Fase 4 — polish (SEO, a11y, performance):** `docs/phase-4-polish.md`
+- **Fase 5 — go-live & confiança:** `docs/phase-5-go-live.md`
+- **Critérios 10/10 (Fases 4+5):** `docs/phases-4-5.md`
+- **Arquitetura:** `ARCHITECTURE.md` · **Segurança:** `SECURITY.md`
 
 ## Estado atual
 

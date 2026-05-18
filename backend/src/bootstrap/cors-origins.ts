@@ -1,0 +1,24 @@
+/** Origens CORS permitidas — `FRONTEND_URL` + lista opcional `FRONTEND_URLS` (vírgula). */
+export function resolveCorsOrigins(): string[] {
+  const raw = [
+    process.env.FRONTEND_URL?.trim() ?? '',
+    ...(process.env.FRONTEND_URLS?.split(/[,;]+/) ?? []),
+  ];
+
+  const origins = new Set<string>();
+  for (const entry of raw) {
+    const value = entry.trim();
+    if (!value) continue;
+    try {
+      origins.add(new URL(value).origin);
+    } catch {
+      origins.add(value.replace(/\/+$/, ''));
+    }
+  }
+
+  if (origins.size === 0) {
+    origins.add('http://localhost:3000');
+  }
+
+  return [...origins];
+}

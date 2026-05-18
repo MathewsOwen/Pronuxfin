@@ -10,7 +10,17 @@
     "build:web": "npm run build --prefix web",
     "build:api": "npm run build --prefix backend",
     "build": "npm run build:api && npm run build:web",
-    "prisma:migrate": "npm run prisma:migrate --prefix backend"
+    "prisma:migrate": "npm run prisma:migrate --prefix backend",
+    "test": "npm run test --prefix web && npm test --prefix backend",
+    "test:web": "npm run test --prefix web",
+    "test:api": "npm test --prefix backend",
+    "validate": "node scripts/verify-env.mjs && npm run test:web && npm run typecheck --prefix web && npm test --prefix backend",
+    "verify:env": "node scripts/verify-env.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:strict": "node scripts/smoke-strict.mjs",
+    "smoke:ps1": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke.ps1",
+    "smoke:sh": "bash scripts/smoke.sh",
+    "release:check": "node scripts/release-readiness.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0"

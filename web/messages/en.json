@@ -223,6 +223,9 @@
       "fmpBadge": "FMP",
       "b3SeasonBadge": "B3 · season",
       "fmpLiveHint": "Earnings dates from Financial Modeling Prep when the API key is active.",
+      "modeCurated": "Macro agenda curated by PRONUXFIN — confirm official dates before trading.",
+      "modeHybrid": "Hybrid agenda: curated macro plus FMP earnings and watchlist windows.",
+      "curatedBadge": "Illustrative",
       "fmpFallbackHint": "No FMP feed in this window — international watchlist tickers use illustrative slots.",
       "b3SeasonHint": "B3 tickers without an FMP date use typical Brazilian reporting-season windows (approx. CVM rule) — confirm on IR/CVM filings.",
       "disclaimer": "Illustrative PRONUXFIN agenda. Official dates (Fed, Copom, CPI, earnings) may change. B3 without FMP: estimated season window; international without FMP: illustrative slot.",
@@ -254,6 +257,7 @@
     "prefillUpdateHint": "Updating {symbol} — adjust quantity or average cost and save.",
     "updateTitle": "Update position",
     "updateSubtitle": "Changes overwrite the simulated position for this ticker.",
+    "emptyTitle": "No positions yet",
     "empty": "No positions yet. Add an asset below or open a symbol in the terminal for reference.",
     "addTitle": "Add or update position",
     "addSubtitle": "One symbol per row — overwrites the previous position if it exists.",
@@ -306,8 +310,93 @@
     "primary": "Open my PRONUXFIN account",
     "secondary": "I already have login"
   },
+  "Legal": {
+    "privacy": {
+      "metaTitle": "Privacy policy",
+      "metaDescription": "How PRONUXFIN handles personal data, sessions, simulated portfolio, and market integrations.",
+      "eyebrow": "Trust",
+      "title": "Privacy policy",
+      "updated": "Last updated: May 2026",
+      "intro": "This policy explains how we process information when you use the public site, create an account, and access the private desk. We do not sell personal data.",
+      "sections": {
+        "scope": {
+          "title": "Scope",
+          "body": "Applies to pronuxfin.com and PRONUXFIN-operated subdomains, including authenticated areas (dashboard, simulated portfolio, alerts, and tools)."
+        },
+        "dataCollected": {
+          "title": "Data we collect",
+          "body": "Account: email, name, and password hash. Usage: watchlist, simulated positions, alert rules, language preference, and encrypted BYOK keys when you provide them. Technical: session logs, approximate IP, and device identifiers for security and rate limiting."
+        },
+        "usage": {
+          "title": "Purposes",
+          "body": "Authenticate, operate the desk, personalize experience, meet legal obligations, and improve reliability. We do not use your data for personalized investment recommendations."
+        },
+        "sharing": {
+          "title": "Sharing",
+          "body": "Infrastructure providers (hosting, database, transactional email) and market APIs receive only what is needed to deliver the service. We do not share portfolio or watchlist data with advertisers."
+        },
+        "retention": {
+          "title": "Retention",
+          "body": "We keep data while the account is active or as required by law. You may request deletion via published contact channels; backups may take up to 30 days to expire."
+        },
+        "rights": {
+          "title": "Your rights",
+          "body": "Depending on your jurisdiction, you may request access, correction, portability, or deletion of personal data, and withdraw consent where applicable."
+        },
+        "contact": {
+          "title": "Contact",
+          "body": "Privacy questions: use the support channel published on the site for your deployment."
+        }
+      }
+    },
+    "terms": {
+      "metaTitle": "Terms of use",
+      "metaDescription": "PRONUXFIN platform terms — education, simulation, and liability limits.",
+      "eyebrow": "Trust",
+      "title": "Terms of use",
+      "updated": "Last updated: May 2026",
+      "intro": "By creating an account or using PRONUXFIN, you agree to these terms. If you disagree, do not use the service.",
+      "sections": {
+        "scope": {
+          "title": "Service",
+          "body": "PRONUXFIN provides market reading infrastructure, educational tools, and a private desk. We are not a broker, bank, or registered investment adviser."
+        },
+        "notAdvice": {
+          "title": "Not advice",
+          "body": "Content, quotes, projections, and AI outputs are informational. Investment decisions are solely yours."
+        },
+        "accounts": {
+          "title": "Account security",
+          "body": "You are responsible for credentials and activity on your account. Notify us of unauthorized use."
+        },
+        "marketData": {
+          "title": "Market data",
+          "body": "Quotes and calendars may be delayed, fail, or come from third parties (BRAPI, CoinGecko, FMP, etc.). Respect those providers' terms."
+        },
+        "ai": {
+          "title": "Artificial intelligence",
+          "body": "AI outputs may be wrong. Do not rely on automated answers for orders or compliance without human review."
+        },
+        "liability": {
+          "title": "Limitation",
+          "body": "To the extent permitted by law, PRONUXFIN is not liable for financial losses, third-party outages, or decisions made using the platform."
+        },
+        "changes": {
+          "title": "Changes",
+          "body": "We may update these terms; continued use after publication means acceptance of the current version."
+        },
+        "contact": {
+          "title": "Contact",
+          "body": "Legal or operational questions: use official channels published on the site."
+        }
+      }
+    }
+  },
   "Footer": {
     "tagline": "PRONUXFIN aspires to the clearest finance desk on the open internet — free public markets with cited sources, ethically engineered product, AI forever subservient to your judgment.",
+    "legal": "Legal",
+    "privacy": "Privacy",
+    "terms": "Terms of use",
     "product": "Product",
     "linksFeatures": "Features",
     "linksMarket": "Live markets",
@@ -363,7 +452,8 @@
     "errorGeneric": "Could not register",
     "signalActivation": "Immediate activation",
     "signalWorkspace": "Dashboard ready to explore",
-    "signalValidation": "Server-validated onboarding"
+    "signalValidation": "Server-validated onboarding",
+    "termsLabel": "I have read and accept the <terms>Terms of use</terms> and <privacy>Privacy policy</privacy>."
   },
   "Auth": {
     "validation": {
@@ -374,6 +464,7 @@
       "passwordDigits": "Include numbers",
       "nameRequired": "Enter your name (at least 2 characters).",
       "nameMax": "Name may be at most 120 characters.",
+      "termsRequired": "Accept the terms and privacy policy to continue.",
       "tokenRequired": "Reset link is invalid or missing",
       "passwordMismatch": "Passwords must match"
     }
@@ -506,7 +597,36 @@
     "sessionValue": "Secure session",
     "publicDeskValue": "Public desk integrated",
     "privateDeskLabel": "Private desk",
-    "adminBadge": "Admin"
+    "adminBadge": "Admin",
+    "navGroupDesk": "Desk",
+    "navGroupMarket": "Market",
+    "navGroupTools": "Tools",
+    "navGroupAccount": "Account",
+    "mobileMenu": "Menu",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
+    "unknownPage": "Private desk",
+    "mobileNavAria": "Quick desk navigation"
+  },
+  "Onboarding": {
+    "eyebrow": "Getting started",
+    "title": "Your private desk in 3 steps",
+    "intro": "PRONUXFIN brings market data, a simulated portfolio, and tools into one flow. This short guide shows where to start — you can dismiss it anytime.",
+    "stepLabel": "Step {current} of {total}",
+    "next": "Next",
+    "back": "Back",
+    "skip": "Don't show again",
+    "dismiss": "Close guide",
+    "stepDot": "Go to step {step}",
+    "step1Title": "Open the market terminal",
+    "step1Lead": "Live quotes, watchlist, and per-asset dossiers — the starting point for what you track.",
+    "step1Cta": "Go to market",
+    "step2Title": "Set up your dashboard",
+    "step2Lead": "Simulated portfolio, alerts, calendar, and wealth GPS show up on the dashboard as you add data.",
+    "step2Cta": "View dashboard",
+    "step3Title": "Use the tools",
+    "step3Lead": "Calculators, economic calendar, and educational comparators live under Tools.",
+    "step3Cta": "Explore tools"
   },
   "AiHub": {
     "pageTitle": "Intelligence hub",
@@ -754,6 +874,9 @@
     "clockDetail": "America/Sao_Paulo · PRONUX aggregated data",
     "stripEyebrow": "PRONUXFIN · ticker tape",
     "stripLive": "Live",
+    "stripBadgeDemo": "Demo",
+    "stripBadgeDegraded": "Unavailable",
+    "stripTickerEmpty": "Waiting for live quotes…",
     "stripHint": "Brazilian equities + crypto (BRL) · ~60s client poll · API without CDN cache ·",
     "stripDemoEquities": "equities demo",
     "stripLiveEquities": "equities brapi",
@@ -762,6 +885,7 @@
     "stripCta": "Full desk",
     "stripLastFetch": "Last API read {time} BRT",
     "stripAwaitingLive": "Receiving first live read…",
+    "stripDegraded": "quotes unavailable — configure BRAPI_TOKEN on Vercel",
     "equitiesBadgeLive": "Equities · live · BRAPI",
     "equitiesBadgePartial": "Equities · live · partial list",
     "equitiesBadgeSandbox": "Equities · simulated",
@@ -1295,6 +1419,9 @@
     "assetRulesTitle": "Per-asset overrides",
     "assetRulesSubtitle": "Pick a watchlist asset to create local exceptions without losing the portfolio default.",
     "assetRulesEmpty": "Save assets to the watchlist to unlock per-asset overrides.",
+    "watchlistEmptyTitle": "Empty watchlist",
+    "watchlistEmptyLead": "Save assets from the market terminal to enable alerts, rules, and radar history.",
+    "watchlistEmptyCta": "Open market",
     "backDashboard": "Back to dashboard",
     "saveDeskCta": "Save portfolio",
     "saveAssetCta": "Save asset",
@@ -1318,11 +1445,13 @@
     "selectedAssetInherited": "No local overrides yet: this asset follows the portfolio governance.",
     "activeTitle": "Active events",
     "activeSubtitle": "Consolidated read of what changed most since the last stored reference.",
+    "activeEmptyTitle": "Nothing urgent right now",
     "activeEmpty": "There are no relevant active events in your watchlist yet.",
     "eventPriority": "Priority {value}",
     "historyTitle": "Recent signal log",
     "historySubtitle": "Latest persisted reads to reconstruct radar context.",
     "historyPriority": "Priority {value}",
+    "historyEmptyTitle": "History building up",
     "historyEmpty": "History is still being built.",
     "attentionHigh": "High attention",
     "attentionMedium": "Monitor",

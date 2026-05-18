@@ -1,3 +1,5 @@
+import { isFmpProviderEnabled } from "@/lib/market/fmp-config";
+
 export type MarketProviderId =
   | "brapi"
   | "coingecko"
@@ -141,6 +143,10 @@ export function getMarketTaskProviders(task: MarketDataTask): MarketProviderId[]
 }
 
 export function isMarketProviderEnabled(id: MarketProviderId): boolean {
+  if (id === "financial_modeling_prep") {
+    return isFmpProviderEnabled();
+  }
+
   const provider = PROVIDERS[id];
   if (!provider.envToggle) return provider.enabledByDefault;
 

@@ -20,6 +20,7 @@ export function EconomicCalendarView({
   watchlistSymbols = [],
   serverEvents,
   fmpAvailable = false,
+  calendarMode = "curated",
   groupByDay = false,
   showWatchlistFilter = false,
 }: {
@@ -29,6 +30,7 @@ export function EconomicCalendarView({
   /** Quando definido (SSR), substitui o merge só-cliente. */
   serverEvents?: EconomicCalendarEvent[];
   fmpAvailable?: boolean;
+  calendarMode?: "live" | "curated" | "hybrid";
   groupByDay?: boolean;
   showWatchlistFilter?: boolean;
 }) {
@@ -82,7 +84,11 @@ export function EconomicCalendarView({
 
   return (
     <div className="space-y-4">
-      {fmpAvailable ? (
+      {calendarMode === "hybrid" ? (
+        <p className="text-xs text-emerald-300/90">{t("modeHybrid")}</p>
+      ) : calendarMode === "curated" ? (
+        <p className="text-xs text-amber-200/90">{t("modeCurated")}</p>
+      ) : fmpAvailable ? (
         <p className="text-xs text-emerald-300/90">{t("fmpLiveHint")}</p>
       ) : loggedIn && watchlistSymbols.length > 0 ? (
         <p className="text-xs text-amber-200/90">{t("fmpFallbackHint")}</p>
@@ -213,6 +219,11 @@ function CalendarEventRow({
         ) : null}
       </div>
       <div className="flex flex-wrap gap-2">
+        {ev.source === "curated" ? (
+          <Badge className="border-white/15 bg-white/5 font-mono text-[10px] uppercase text-muted-foreground">
+            {t("curatedBadge")}
+          </Badge>
+        ) : null}
         {ev.source === "fmp" ? (
           <Badge className="border-emerald-500/30 bg-emerald-950/20 font-mono text-[10px] uppercase text-emerald-200">
             {t("fmpBadge")}

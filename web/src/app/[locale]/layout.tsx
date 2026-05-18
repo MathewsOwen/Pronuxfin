@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { AppMotionRoot } from "@/components/providers/app-motion-root";
 import { SkipLink } from "@/components/layout/skip-link";
 import { OrganizationJsonLd } from "@/components/seo/organization-json-ld";
+import { WebsiteJsonLd } from "@/lib/seo/website-json-ld";
 import { getSiteOrigin } from "@/lib/page-metadata";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
@@ -104,6 +105,11 @@ export default async function LocaleLayout({
     >
       <body className="min-h-full flex flex-col bg-background">
         <OrganizationJsonLd siteUrl={siteOrigin} description={tSeo("siteDescription")} />
+        <WebsiteJsonLd
+          siteUrl={siteOrigin}
+          name="PRONUXFIN"
+          description={tSeo("siteDescription")}
+        />
         <NextIntlClientProvider locale={resolvedLocale} messages={messages}>
           <AppMotionRoot>
             <SkipLink />

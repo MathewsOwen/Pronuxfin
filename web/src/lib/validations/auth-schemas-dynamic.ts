@@ -23,6 +23,7 @@ export function createRegisterSchema(msg: {
   passwordDigits: string;
   nameRequired: string;
   nameMax: string;
+  termsRequired: string;
 }) {
   return z.object({
     name: z
@@ -36,6 +37,9 @@ export function createRegisterSchema(msg: {
       .min(8, msg.passwordMin)
       .regex(/[A-Za-z]/, msg.passwordLetters)
       .regex(/[0-9]/, msg.passwordDigits),
+    acceptTerms: z.boolean().refine((value) => value === true, {
+      message: msg.termsRequired,
+    }),
   });
 }
 

@@ -223,6 +223,9 @@
       "fmpBadge": "FMP",
       "b3SeasonBadge": "B3 · temporada",
       "fmpLiveHint": "Datas de resultados via Financial Modeling Prep quando a chave está ativa.",
+      "modeCurated": "Agenda macro com curadoria PRONUXFIN — confirme datas oficiais antes de operar.",
+      "modeHybrid": "Agenda híbrida: macro curada + resultados (FMP) e janelas da sua watchlist.",
+      "curatedBadge": "Ilustrativo",
       "fmpFallbackHint": "Sem feed FMP nesta janela — tickers internacionais da watchlist usam slots ilustrativos.",
       "b3SeasonHint": "Tickers B3 sem data FMP usam janelas típicas de temporada de resultados (regra CVM aproximada) — confirme no RI/CVM.",
       "disclaimer": "Agenda ilustrativa PRONUXFIN. Datas oficiais (Fed, Copom, IPCA, earnings) podem mudar. B3 sem FMP: janela de temporada estimada; internacional sem FMP: slot ilustrativo.",
@@ -254,6 +257,7 @@
     "prefillUpdateHint": "A atualizar {symbol} — ajuste quantidade ou preço médio e guarde.",
     "updateTitle": "Atualizar posição",
     "updateSubtitle": "Alterações sobrescrevem a posição simulada deste ticker.",
+    "emptyTitle": "Nenhuma posição ainda",
     "empty": "Ainda não há posições. Adicione um ativo abaixo ou abra um papel no terminal e use a watchlist como referência.",
     "addTitle": "Adicionar ou atualizar posição",
     "addSubtitle": "Um símbolo por linha — sobrescreve a posição anterior se já existir.",
@@ -306,8 +310,93 @@
     "primary": "Abrir minha conta PRONUXFIN",
     "secondary": "Já tenho login"
   },
+  "Legal": {
+    "privacy": {
+      "metaTitle": "Política de privacidade",
+      "metaDescription": "Como a PRONUXFIN trata dados pessoais, sessões, carteira simulada e integrações de mercado.",
+      "eyebrow": "Confiança",
+      "title": "Política de privacidade",
+      "updated": "Última atualização: maio de 2026",
+      "intro": "Esta política descreve como tratamos informações quando você usa o site público, cria conta e acessa a mesa privada. Não vendemos dados pessoais.",
+      "sections": {
+        "scope": {
+          "title": "Âmbito",
+          "body": "Aplica-se a pronuxfin.com e subdomínios operados pela PRONUXFIN, incluindo áreas autenticadas (painel, carteira simulada, alertas e ferramentas)."
+        },
+        "dataCollected": {
+          "title": "Dados que coletamos",
+          "body": "Conta: e-mail, nome e hash de senha. Uso: watchlist, posições simuladas, regras de alerta, preferências de idioma e chaves BYOK criptografadas quando você as fornece. Técnicos: logs de sessão, IP aproximado e identificadores de dispositivo para segurança e rate limit."
+        },
+        "usage": {
+          "title": "Finalidades",
+          "body": "Autenticar, operar a mesa, personalizar a experiência, cumprir obrigações legais e melhorar confiabilidade. Não usamos seus dados para recomendação personalizada de investimento."
+        },
+        "sharing": {
+          "title": "Compartilhamento",
+          "body": "Provedores de infraestrutura (hospedagem, banco de dados, e-mail transacional) e APIs de mercado recebem apenas o necessário para prestar o serviço. Não compartilhamos carteira ou watchlist com anunciantes."
+        },
+        "retention": {
+          "title": "Retenção",
+          "body": "Mantemos dados enquanto a conta estiver ativa ou conforme exigido por lei. Você pode solicitar exclusão contactando-nos; backups podem levar até 30 dias para expirar."
+        },
+        "rights": {
+          "title": "Seus direitos",
+          "body": "Conforme a LGPD, você pode solicitar acesso, correção, portabilidade ou eliminação dos dados pessoais, além de revogar consentimentos quando aplicável."
+        },
+        "contact": {
+          "title": "Contacto",
+          "body": "Questões de privacidade: utilize o canal indicado no site ou o e-mail de suporte da instância que você utiliza."
+        }
+      }
+    },
+    "terms": {
+      "metaTitle": "Termos de uso",
+      "metaDescription": "Condições de uso da plataforma PRONUXFIN — educação, simulação e limites de responsabilidade.",
+      "eyebrow": "Confiança",
+      "title": "Termos de uso",
+      "updated": "Última atualização: maio de 2026",
+      "intro": "Ao criar conta ou usar a PRONUXFIN, você concorda com estes termos. Se não concordar, não utilize o serviço.",
+      "sections": {
+        "scope": {
+          "title": "Serviço",
+          "body": "A PRONUXFIN oferece infraestrutura de leitura de mercado, ferramentas educativas e mesa privada. Não somos corretora, banco nem consultoria registrada."
+        },
+        "notAdvice": {
+          "title": "Não é recomendação",
+          "body": "Conteúdos, cotações, projeções e respostas de IA são informativos. Decisões de investimento são exclusivamente suas."
+        },
+        "accounts": {
+          "title": "Conta e segurança",
+          "body": "Você é responsável por credenciais e atividade na conta. Notifique-nos sobre uso não autorizado."
+        },
+        "marketData": {
+          "title": "Dados de mercado",
+          "body": "Cotações e calendários podem atrasar, falhar ou vir de terceiros (BRAPI, CoinGecko, FMP, etc.). Respeite os termos dessas fontes."
+        },
+        "ai": {
+          "title": "Inteligência artificial",
+          "body": "Saídas de IA podem conter erros. Não confie em respostas automáticas para ordens ou compliance sem revisão humana."
+        },
+        "liability": {
+          "title": "Limitação",
+          "body": "Na extensão permitida por lei, a PRONUXFIN não responde por perdas financeiras, indisponibilidade de terceiros ou decisões tomadas com base na plataforma."
+        },
+        "changes": {
+          "title": "Alterações",
+          "body": "Podemos atualizar estes termos; o uso continuado após publicação constitui aceitação da versão vigente."
+        },
+        "contact": {
+          "title": "Contacto",
+          "body": "Dúvidas legais ou operacionais: utilize os canais oficiais publicados no site."
+        }
+      }
+    }
+  },
   "Footer": {
     "tagline": "PRONUXFIN aspira à mesa financeira mais clara da internet: mercados públicos gratuitos com fonte, produto privado com ética de engenharia e IA sempre subserviente ao seu julgamento.",
+    "legal": "Legal",
+    "privacy": "Privacidade",
+    "terms": "Termos de uso",
     "product": "Produto",
     "linksFeatures": "Recursos",
     "linksMarket": "Mercado ao vivo",
@@ -363,7 +452,8 @@
     "errorGeneric": "Erro ao cadastrar",
     "signalActivation": "Ativação imediata",
     "signalWorkspace": "Painel pronto para explorar",
-    "signalValidation": "Cadastro validado no servidor"
+    "signalValidation": "Cadastro validado no servidor",
+    "termsLabel": "Li e aceito os <terms>Termos de uso</terms> e a <privacy>Política de privacidade</privacy>."
   },
   "Auth": {
     "validation": {
@@ -374,6 +464,7 @@
       "passwordDigits": "Inclua números",
       "nameRequired": "Indique o seu nome (mínimo 2 caracteres).",
       "nameMax": "O nome pode ter no máximo 120 caracteres.",
+      "termsRequired": "Aceite os termos e a política de privacidade para continuar.",
       "tokenRequired": "Link de redefinição inválido ou ausente",
       "passwordMismatch": "As senhas precisam coincidir"
     }
@@ -506,7 +597,36 @@
     "sessionValue": "Sessão segura",
     "publicDeskValue": "Fluxo público integrado",
     "privateDeskLabel": "Mesa privada",
-    "adminBadge": "Admin"
+    "adminBadge": "Admin",
+    "navGroupDesk": "Mesa",
+    "navGroupMarket": "Mercado",
+    "navGroupTools": "Ferramentas",
+    "navGroupAccount": "Conta",
+    "mobileMenu": "Menu",
+    "menuOpen": "Abrir menu",
+    "menuClose": "Fechar menu",
+    "unknownPage": "Mesa privada",
+    "mobileNavAria": "Navegação rápida da mesa"
+  },
+  "Onboarding": {
+    "eyebrow": "Primeiros passos",
+    "title": "Sua mesa privada em 3 passos",
+    "intro": "A PRONUXFIN organiza mercado, carteira simulada e ferramentas num só fluxo. Este guia rápido mostra por onde começar — pode dispensar a qualquer momento.",
+    "stepLabel": "Passo {current} de {total}",
+    "next": "Próximo",
+    "back": "Voltar",
+    "skip": "Não mostrar de novo",
+    "dismiss": "Fechar guia",
+    "stepDot": "Ir para o passo {step}",
+    "step1Title": "Abra o terminal de mercado",
+    "step1Lead": "Cotações ao vivo, watchlist e dossiê por ativo — o ponto de partida para monitorar o que importa.",
+    "step1Cta": "Ir para o mercado",
+    "step2Title": "Configure o painel",
+    "step2Lead": "Carteira simulada, alertas, calendário e GPS patrimonial aparecem no painel conforme você registra dados.",
+    "step2Cta": "Ver painel",
+    "step3Title": "Use as ferramentas",
+    "step3Lead": "Calculadoras, calendário econômico e comparadores educativos ficam na área de ferramentas.",
+    "step3Cta": "Explorar ferramentas"
   },
   "AiHub": {
     "pageTitle": "Central de inteligência",
@@ -754,6 +874,9 @@
     "clockDetail": "America/Sao_Paulo · dados agregados PRONUX",
     "stripEyebrow": "PRONUXFIN · ticker tape",
     "stripLive": "Ao vivo",
+    "stripBadgeDemo": "Demo",
+    "stripBadgeDegraded": "Indisponível",
+    "stripTickerEmpty": "Aguardando cotações ao vivo…",
     "stripHint": "Ações BR + cripto (BRL) · cliente ~60s · API sem cache CDN ·",
     "stripDemoEquities": "ações demo",
     "stripLiveEquities": "ações brapi",
@@ -762,6 +885,7 @@
     "stripCta": "Mesa completa",
     "stripLastFetch": "Última leitura API {time} BRT",
     "stripAwaitingLive": "Recebendo primeira leitura ao vivo…",
+    "stripDegraded": "cotações indisponíveis — configure BRAPI_TOKEN na Vercel",
     "equitiesBadgeLive": "Ações · ao vivo · BRAPI",
     "equitiesBadgePartial": "Ações · ao vivo · lista parcial",
     "equitiesBadgeSandbox": "Ações · simulação",
@@ -1295,6 +1419,9 @@
     "assetRulesTitle": "Overrides por ativo",
     "assetRulesSubtitle": "Escolha um ativo da watchlist para criar exceções locais sem perder o padrão da carteira.",
     "assetRulesEmpty": "Guarde ativos na watchlist para liberar overrides por ativo.",
+    "watchlistEmptyTitle": "Watchlist vazia",
+    "watchlistEmptyLead": "Guarde ativos no terminal de mercado para ativar alertas, regras e histórico do radar.",
+    "watchlistEmptyCta": "Abrir mercado",
     "backDashboard": "Voltar ao painel",
     "saveDeskCta": "Salvar carteira",
     "saveAssetCta": "Salvar ativo",
@@ -1318,11 +1445,13 @@
     "selectedAssetInherited": "Sem overrides locais: este ativo segue a governança da carteira.",
     "activeTitle": "Eventos ativos",
     "activeSubtitle": "Leitura consolidada do que mais mudou desde a última referência guardada.",
+    "activeEmptyTitle": "Nada urgente agora",
     "activeEmpty": "Ainda não há eventos ativos relevantes na sua watchlist.",
     "eventPriority": "Prioridade {value}",
     "historyTitle": "Log recente de sinais",
     "historySubtitle": "Últimas leituras persistidas para reconstruir o contexto do radar.",
     "historyPriority": "Prioridade {value}",
+    "historyEmptyTitle": "Histórico em construção",
     "historyEmpty": "O histórico ainda está sendo construído.",
     "attentionHigh": "Alta atenção",
     "attentionMedium": "Monitorar",

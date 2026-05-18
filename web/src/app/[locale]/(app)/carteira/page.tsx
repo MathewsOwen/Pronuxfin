@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { Wallet } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PortfolioManager } from "@/components/tools/portfolio-manager";
 import { PortfolioSummaryPanel } from "@/components/tools/portfolio-summary-panel";
 import type { AppLocale } from "@/i18n/routing";
@@ -81,9 +83,7 @@ export default async function CarteiraPage({ searchParams }: CarteiraPageProps) 
       {summary ? (
         <PortfolioSummaryPanel summary={summary} locale={locale} />
       ) : (
-        <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6 text-sm text-muted-foreground">
-          {t("empty")}
-        </p>
+        <EmptyState icon={Wallet} title={t("emptyTitle")} description={t("empty")} />
       )}
     </div>
   );

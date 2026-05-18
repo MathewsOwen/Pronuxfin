@@ -23,6 +23,9 @@ export type QuoteSnapshot = {
   segment?: "equity" | "crypto";
 };
 
+/** Agregado para UI: live = fontes reais; simulated = demo explícita; degraded = sem cotações. */
+export type MarketDataMode = "live" | "simulated" | "degraded";
+
 export type QuotesPayload = {
   fetchedAt: number;
   results: QuoteSnapshot[];
@@ -33,6 +36,7 @@ export type QuotesPayload = {
   cryptoPartial?: boolean;
   /** Algumas linhas da lista canonical não vieram na última rodada BRAPI. */
   equitiesPartial?: boolean;
+  dataMode?: MarketDataMode;
 };
 
 export type EquityMarketRegion = "br" | "intl";

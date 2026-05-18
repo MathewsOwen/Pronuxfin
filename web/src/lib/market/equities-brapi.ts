@@ -1,6 +1,7 @@
 import { QUOTE_TICKERS, sortQuotesForDesk } from "@/lib/market/indices";
 import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import type { QuoteSnapshot } from "@/lib/market/types";
+import { shouldUseSimulatedMarketData } from "@/lib/market/market-data-policy";
 import { simulatedB3EquitiesForSymbols } from "@/lib/market/equities-sim";
 
 /** Sem token, a BRAPI limita quantidade de símbolos por GET — empacotamos várias chamadas. */
@@ -128,6 +129,14 @@ export async function fetchBrapiQuotesForSymbols(
       }
     }
   } catch {
+    if (!shouldUseSimulatedMarketData()) {
+      return {
+        rows: [],
+        simulated: false,
+        partial: true,
+        warning: "equities_network",
+      };
+    }
     return {
       rows: sortQuotesByCanonicalOrder(
         simulatedB3EquitiesForSymbols(canonical),
@@ -142,6 +151,14 @@ export async function fetchBrapiQuotesForSymbols(
   const sorted = sortQuotesByCanonicalOrder([...merged.values()], canonical);
 
   if (sorted.length === 0) {
+    if (!shouldUseSimulatedMarketData()) {
+      return {
+        rows: [],
+        simulated: false,
+        partial: true,
+        warning: "equities_empty",
+      };
+    }
     return {
       rows: sortQuotesByCanonicalOrder(
         simulatedB3EquitiesForSymbols(canonical),

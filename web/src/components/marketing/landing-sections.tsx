@@ -295,7 +295,7 @@ export function SiteFooter() {
   return (
     <footer className="relative border-t border-white/[0.08] bg-black/25 px-4 py-14 backdrop-blur-sm sm:px-6">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent" />
-      <RevealSection className="mx-auto grid max-w-6xl gap-12 sm:grid-cols-2 lg:grid-cols-4">
+      <RevealSection className="mx-auto grid max-w-6xl gap-12 sm:grid-cols-2 lg:grid-cols-5">
         <RevealBlock className="lg:col-span-2">
           <Link
             href="/"
@@ -345,6 +345,21 @@ export function SiteFooter() {
             className="text-muted-foreground transition-colors hover:text-primary"
           >
             {t("linksEducation")}
+          </Link>
+        </RevealBlock>
+        <RevealBlock className="flex flex-col gap-3 text-sm">
+          <span className="font-medium text-foreground">{t("legal")}</span>
+          <Link
+            href="/privacidade"
+            className="text-muted-foreground transition-colors hover:text-primary"
+          >
+            {t("privacy")}
+          </Link>
+          <Link
+            href="/termos"
+            className="text-muted-foreground transition-colors hover:text-primary"
+          >
+            {t("terms")}
           </Link>
         </RevealBlock>
         <RevealBlock className="flex flex-col gap-3 text-sm">

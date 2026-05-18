@@ -4,6 +4,7 @@ import { fetchBrapiQuotesForSymbols, fetchEquitiesFromBrapi, simulatedEquities }
 import { fetchYahooQuotesForSymbols } from "@/lib/market/equities-yahoo-quote";
 import { sortQuotesForDesk } from "@/lib/market/indices";
 import { simulatedIntlEquitiesForSymbols, simulatedB3EquitiesForSymbols } from "@/lib/market/equities-sim";
+import { resolveMarketProviderFallback } from "@/lib/market/market-data-policy";
 import { rememberWithTtl } from "@/lib/market/market-server-cache";
 import {
   getMarketProviderBudgetWarning,
@@ -23,6 +24,7 @@ import {
   listCryptoSectorAssets,
   type CryptoSectorId,
 } from "@/lib/market/crypto-sector-universe";
+import { resolveQuotesDataMode } from "@/lib/market/market-data-policy";
 import type {
   CryptoSectorBookPayload,
   NewsArticle,
@@ -57,6 +59,12 @@ export async function loadCachedQuotesPayload(): Promise<{
       cryptoSimulated: crypto.simulated,
       cryptoPartial: crypto.partial,
       equitiesPartial: equities.partial && !equities.simulated,
+      dataMode: resolveQuotesDataMode({
+        resultsCount: equities.rows.length,
+        cryptoCount: crypto.rows.length,
+        simulated: equities.simulated,
+        cryptoSimulated: crypto.simulated,
+      }),
     };
 
     return { payload, warnings: dedupeWarnings(warnings) };
@@ -93,13 +101,14 @@ export async function loadCachedSectorQuotesPayload(
             },
           },
           warnings,
-          () => ({
-            rows: simulatedB3EquitiesForSymbols(symbols),
-            simulated: true,
-            partial: false,
-            source: "brapi" as const,
-            warning: "equities_fallback_budget",
-          }),
+          () =>
+            resolveMarketProviderFallback("sector_book_br", () => ({
+              rows: simulatedB3EquitiesForSymbols(symbols),
+              simulated: true,
+              partial: false,
+              source: "brapi" as const,
+              warning: "equities_fallback_budget",
+            })),
         );
 
         const payload: SectorBookPayload = {
@@ -131,13 +140,14 @@ export async function loadCachedSectorQuotesPayload(
           },
         },
         warnings,
-        () => ({
-          rows: simulatedIntlEquitiesForSymbols(symbols),
-          simulated: true,
-          partial: false,
-          source: "yahoo" as const,
-          warning: "intl_fallback_budget",
-        }),
+        () =>
+          resolveMarketProviderFallback("sector_book_intl", () => ({
+            rows: simulatedIntlEquitiesForSymbols(symbols),
+            simulated: true,
+            partial: false,
+            source: "yahoo" as const,
+            warning: "intl_fallback_budget",
+          })),
       );
 
       const payload: SectorBookPayload = {
@@ -182,13 +192,14 @@ export async function loadCachedCryptoSectorQuotesPayload(
           },
         },
         warnings,
-        () => ({
-          rows: simulatedCryptoSectorQuotes(sector),
-          simulated: true,
-          partial: false,
-          warning: "crypto_sector_fallback",
-          source: "coingecko" as const,
-        }),
+        () =>
+          resolveMarketProviderFallback("crypto_sector_book", () => ({
+            rows: simulatedCryptoSectorQuotes(sector),
+            simulated: true,
+            partial: false,
+            warning: "crypto_sector_fallback",
+            source: "coingecko" as const,
+          })),
       );
 
       const payload: CryptoSectorBookPayload = {
@@ -241,12 +252,13 @@ async function loadBrEquitiesSnapshot(warnings: string[]) {
       },
     },
     warnings,
-    () => ({
-      rows: sortQuotesForDesk(simulatedEquities()),
-      simulated: true,
-      partial: false,
-      warning: "equities_fallback_budget",
-    }),
+    () =>
+      resolveMarketProviderFallback("br_equities_snapshot", () => ({
+        rows: sortQuotesForDesk(simulatedEquities()),
+        simulated: true,
+        partial: false,
+        warning: "equities_fallback_budget",
+      })),
   );
 }
 
@@ -265,12 +277,13 @@ async function loadCryptoSnapshot(warnings: string[]) {
       },
     },
     warnings,
-    () => ({
-      rows: simulatedCryptoQuotes(),
-      simulated: true,
-      partial: false,
-      warning: "crypto_fallback",
-    }),
+    () =>
+      resolveMarketProviderFallback("crypto_snapshot", () => ({
+        rows: simulatedCryptoQuotes(),
+        simulated: true,
+        partial: false,
+        warning: "crypto_fallback",
+      })),
   );
 }
 

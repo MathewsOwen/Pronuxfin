@@ -2,10 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { logProductionWarnings } from './bootstrap/log-production-warnings';
+import { resolveCorsOrigins } from './bootstrap/cors-origins';
 import { ThrottlerExceptionPtFilter } from './common/filters/throttler-pt.filter';
 import { createAppValidationPipe } from './common/validation/validation-pipe.factory';
 
 async function bootstrap() {
+  logProductionWarnings();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const trustProxyHop = Number.parseInt(process.env.TRUST_PROXY ?? '0', 10);
   app.set(
@@ -20,8 +23,9 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new ThrottlerExceptionPtFilter());
   app.useGlobalPipes(createAppValidationPipe());
+  const corsOrigins = resolveCorsOrigins();
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+    origin: corsOrigins,
     credentials: true,
   });
   const port = Number(process.env.PORT ?? 4000);

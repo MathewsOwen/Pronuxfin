@@ -4,6 +4,7 @@ import {
   simulatedB3EquitiesForSymbols,
   simulatedIntlEquitiesForSymbols,
 } from "@/lib/market/equities-sim";
+import { shouldUseSimulatedMarketData } from "@/lib/market/market-data-policy";
 import {
   fetchIntlCompanyProfileFromFmp,
   fetchIntlKeyMetricsTtmFromFmp,
@@ -210,15 +211,11 @@ async function fetchBrAssetDossier(symbol: string) {
     noteMarketProviderUsage("brapi");
     return output;
   } catch {
-    const fallback = simulatedB3EquitiesForSymbols([symbol])[0] ?? {
-      symbol,
-      shortName: symbol,
-      currency: "BRL",
-      regularMarketPrice: null,
-      regularMarketChange: null,
-      regularMarketChangePercent: null,
-      segment: "equity" as const,
-    };
+    if (!shouldUseSimulatedMarketData()) {
+      const quote = emptyQuoteSnapshot(symbol, "BRL");
+      return unavailableDossier(quote);
+    }
+    const fallback = simulatedB3EquitiesForSymbols([symbol])[0] ?? emptyQuoteSnapshot(symbol, "BRL");
     return {
       quote: fallback,
       history: buildIndicativeHistory(fallback, "br"),
@@ -289,15 +286,18 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       intlStockPeers,
     };
   } catch {
-    const fallback = simulatedIntlEquitiesForSymbols([symbol])[0] ?? {
-      symbol,
-      shortName: symbol,
-      currency: "USD",
-      regularMarketPrice: null,
-      regularMarketChange: null,
-      regularMarketChangePercent: null,
-      segment: "equity" as const,
-    };
+    if (!shouldUseSimulatedMarketData()) {
+      const quote = emptyQuoteSnapshot(symbol, "USD");
+      return {
+        ...unavailableDossier(quote),
+        profile,
+        intlKeyMetricsTtm,
+        intlAnnualStatements,
+        intlStockPeers,
+      };
+    }
+    const fallback =
+      simulatedIntlEquitiesForSymbols([symbol])[0] ?? emptyQuoteSnapshot(symbol, "USD");
     return {
       quote: fallback,
       history: buildIndicativeHistory(fallback, "intl"),
@@ -309,6 +309,31 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       intlStockPeers,
     };
   }
+}
+
+function emptyQuoteSnapshot(symbol: string, currency: string): QuoteSnapshot {
+  return {
+    symbol,
+    shortName: symbol,
+    currency,
+    regularMarketPrice: null,
+    regularMarketChange: null,
+    regularMarketChangePercent: null,
+    segment: "equity",
+  };
+}
+
+function unavailableDossier(quote: QuoteSnapshot) {
+  return {
+    quote,
+    history: [] as AssetHistoryPoint[],
+    historyMode: "indicative" as const,
+    fields: emptyDetailedFields(),
+    profile: null,
+    intlKeyMetricsTtm: null,
+    intlAnnualStatements: null,
+    intlStockPeers: null,
+  };
 }
 
 function mapBrapiProfile(row: Record<string, unknown>): IntlCompanyProfile | null {

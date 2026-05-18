@@ -43,7 +43,7 @@ export default async function AppCalendarPage() {
     ]),
   ];
 
-  const { events, fmpAvailable } = await loadEconomicCalendar({
+  const { events, fmpAvailable, mode } = await loadEconomicCalendar({
     days: 30,
     watchlistSymbols: deskSymbols,
   });
@@ -79,6 +79,7 @@ export default async function AppCalendarPage() {
         watchlistSymbols={deskSymbols}
         serverEvents={events}
         fmpAvailable={fmpAvailable}
+        calendarMode={mode}
         groupByDay
         showWatchlistFilter
       />
