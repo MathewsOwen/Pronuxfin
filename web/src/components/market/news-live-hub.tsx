@@ -55,8 +55,8 @@ function RegionBadge({ region }: { region?: NewsArticle["region"] }) {
       className={cn(
         "rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
         global
-          ? "bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/25"
-          : "bg-amber-500/15 text-amber-200 ring-1 ring-amber-500/25",
+          ? "bg-status-live/15 text-cognitive ring-1 ring-status-live/25"
+          : "bg-status-warning/15 text-status-warning ring-1 ring-status-warning/25",
       )}
     >
       {global ? t("regionGlobal") : t("regionBr")}
@@ -150,8 +150,8 @@ export function NewsLiveHub({
       <EngagementSoftCta />
 
       {filterUnknown ? (
-        <div className="mb-8 flex flex-wrap items-start gap-3 rounded-2xl border border-rose-500/30 bg-rose-950/25 px-4 py-3 text-sm text-foreground">
-          <XCircle className="mt-0.5 size-5 shrink-0 text-rose-400" aria-hidden />
+        <div className="mb-8 flex flex-wrap items-start gap-3 rounded-2xl border border-status-degraded/30 bg-status-degraded/10 px-4 py-3 text-sm text-foreground">
+          <XCircle className="mt-0.5 size-5 shrink-0 text-market-down" aria-hidden />
           <div className="min-w-0 flex-1">
             <p>{tf("unknownChannel")}</p>
             <p className="mt-1 font-mono text-xs text-muted-foreground">{trimmedFilter}</p>
@@ -180,17 +180,17 @@ export function NewsLiveHub({
         </div>
       ) : null}
 
-      <header className="card-shine relative overflow-hidden rounded-3xl border border-amber-500/20 bg-zinc-950/45 p-8 sm:p-10 surface-rise">
+      <header className="card-shine relative overflow-hidden rounded-3xl border border-border bg-zinc-950/45 p-8 sm:p-10 surface-rise">
         <div className="pointer-events-none absolute inset-0 opacity-[0.055] terminal-grid-bg" />
-        <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-amber-500/12 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-status-warning/12 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-6">
-          <div className="max-w-2xl space-y-4 border-l-[3px] border-amber-400/75 pl-5">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-400/95">
+          <div className="max-w-2xl space-y-4 border-l-[3px] border-primary/40 pl-5">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
               {t("eyebrow")}
             </p>
             <Badge
               variant="outline"
-              className="gap-1 border-amber-500/35 bg-amber-950/25 font-mono text-[10px] uppercase tracking-wider text-amber-200"
+              className="gap-1 border-primary/25 bg-primary/10 font-mono text-[10px] uppercase tracking-wider text-status-warning"
             >
               <Radio className="size-3.5" aria-hidden />
               {t("aggregationBadge")}
@@ -206,12 +206,12 @@ export function NewsLiveHub({
               <NewsSignalCard
                 label={t("syncLabel")}
                 value={syncAge}
-                accentClass="border-amber-500/25 bg-amber-950/18"
+                accentClass="border-primary/20 bg-primary/8"
               />
               <NewsSignalCard
                 label={t("signalSources")}
                 value={String(visibleSourceCount)}
-                accentClass="border-sky-500/25 bg-sky-950/18"
+                accentClass="border-cognitive/25 bg-cognitive/10"
               />
               <NewsSignalCard
                 label={t("signalArticles")}
@@ -220,7 +220,7 @@ export function NewsLiveHub({
               />
             </div>
             <div className="flex flex-wrap gap-2 border-t border-white/[0.08] pt-3">
-              <span className="rounded-full border border-amber-500/30 bg-amber-950/30 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-200">
+              <span className="rounded-full border border-border bg-primary/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-status-warning">
                 {t("signalRegions", { br: visibleBrCount, global: visibleGlobalCount })}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-white/12 bg-white/[0.04] px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -230,7 +230,7 @@ export function NewsLiveHub({
                   : t("filterAll")}
               </span>
               {!payload?.ok ? (
-                <span className="rounded-full border border-amber-500/30 bg-amber-950/30 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-amber-300">
+                <span className="rounded-full border border-border bg-primary/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-status-warning">
                   {payload?.message}
                 </span>
               ) : null}

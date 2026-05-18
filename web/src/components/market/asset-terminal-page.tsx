@@ -125,12 +125,12 @@ export async function AssetTerminalPage({
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {dossier.sector ? (
-                <Badge className="border-amber-500/25 bg-amber-950/20 text-amber-100">
+                <Badge className="border-primary/20 bg-primary/8 text-status-warning">
                   {dossier.sector}
                 </Badge>
               ) : null}
               {dossier.industry ? (
-                <Badge className="border-sky-500/25 bg-sky-950/20 text-sky-100">
+                <Badge className="border-cognitive/25 bg-cognitive/10 text-cognitive">
                   {dossier.industry}
                 </Badge>
               ) : null}
@@ -165,7 +165,7 @@ export async function AssetTerminalPage({
             <div
               className={cn(
                 "mt-2 flex items-center gap-2 text-sm font-semibold",
-                pct == null ? "text-muted-foreground" : up ? "text-emerald-400" : "text-rose-400",
+                pct == null ? "text-muted-foreground" : up ? "text-market-up" : "text-market-down",
               )}
             >
               {pct != null ? (
@@ -204,17 +204,17 @@ export async function AssetTerminalPage({
           value={t("signalRangeValue", {
             value: `${rangeProgress}%`,
           })}
-          tone="border-sky-500/25 bg-sky-950/16"
+          tone="border-cognitive/25 bg-cognitive/10"
         />
         <SignalCard
           label={t("signalVolumeLabel")}
           value={formatCompactNumber(dossier.regularMarketVolume, locale)}
-          tone="border-amber-500/25 bg-amber-950/16"
+          tone="border-primary/20 bg-status-warning/8"
         />
         <SignalCard
           label={t("signalContextLabel")}
           value={dossier.relatedNews.length > 0 ? t("signalContextLinked") : t("signalContextBuilding")}
-          tone="border-emerald-500/25 bg-emerald-950/16"
+          tone="border-status-live/25 bg-status-live/10"
         />
       </div>
 
@@ -263,7 +263,7 @@ export async function AssetTerminalPage({
               <MiniMetric
                 label={t("chartPerformance")}
                 value={formatSignedPercent(chartTrend)}
-                accent={chartTrend >= 0 ? "text-emerald-400" : "text-rose-400"}
+                accent={chartTrend >= 0 ? "text-market-up" : "text-market-down"}
               />
             </div>
           </CardContent>
@@ -638,7 +638,7 @@ export async function AssetTerminalPage({
             />
           </div>
 
-          <div className="rounded-2xl border border-amber-500/15 bg-amber-950/10 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-status-warning/6 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
             {t("termsSubsidiariesNote")}
           </div>
 
@@ -656,7 +656,7 @@ export async function AssetTerminalPage({
             </p>
             <p className="text-xs text-muted-foreground">{t("termsCalendarDisclaimer")}</p>
             {ins.historyDepthLimited ? (
-              <p className="text-xs text-amber-200/90">{t("termsHistoryLimited")}</p>
+              <p className="text-xs text-status-warning/90">{t("termsHistoryLimited")}</p>
             ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
               <MiniMetric
@@ -666,7 +666,7 @@ export async function AssetTerminalPage({
                     ? `${ins.bestCalendarYear.year} · ${formatSignedPercent(ins.bestCalendarYear.returnPct)}`
                     : t("notAvailable")
                 }
-                accent="text-emerald-400"
+                accent="text-market-up"
               />
               <MiniMetric
                 label={t("termsWorstYear")}
@@ -675,7 +675,7 @@ export async function AssetTerminalPage({
                     ? `${ins.worstCalendarYear.year} · ${formatSignedPercent(ins.worstCalendarYear.returnPct)}`
                     : t("notAvailable")
                 }
-                accent="text-rose-400"
+                accent="text-market-down"
               />
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
@@ -695,7 +695,7 @@ export async function AssetTerminalPage({
               {t("termsVolumeYearsTitle")}
             </p>
             {ins.volumeDataPartial ? (
-              <p className="text-xs text-amber-200/90">{t("termsVolumePartial")}</p>
+              <p className="text-xs text-status-warning/90">{t("termsVolumePartial")}</p>
             ) : null}
             {ins.topVolumeYears.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-3">
@@ -726,14 +726,14 @@ export async function AssetTerminalPage({
               move={dossier.bestMove}
               currency={dossier.currency}
               locale={locale}
-              tone="border-emerald-500/20 bg-emerald-950/16"
+              tone="border-status-live/20 bg-status-live/10"
             />
             <MoveCard
               title={t("worstMove")}
               move={dossier.worstMove}
               currency={dossier.currency}
               locale={locale}
-              tone="border-rose-500/20 bg-rose-950/16"
+              tone="border-status-degraded/20 bg-status-degraded/10"
             />
             <StatCard
               label={t("statDayRange")}
@@ -759,7 +759,7 @@ export async function AssetTerminalPage({
               </div>
               <div className="mt-3 h-2 rounded-full bg-white/8">
                 <div
-                  className="h-2 rounded-full bg-gradient-to-r from-primary/35 via-primary to-amber-400"
+                  className="h-2 rounded-full bg-gradient-to-r from-primary/35 via-primary to-cognitive"
                   style={{ width: `${rangeProgress}%` }}
                 />
               </div>
@@ -967,8 +967,8 @@ function MoveCard({
           "font-heading mt-2 text-3xl font-semibold tracking-tight",
           move
             ? up
-              ? "text-emerald-300"
-              : "text-rose-300"
+              ? "text-market-up"
+              : "text-market-down"
             : "text-foreground",
         )}
       >
@@ -1203,8 +1203,8 @@ function PortfolioKpi({
             positive == null
               ? "text-muted-foreground"
               : positive
-                ? "text-emerald-400"
-                : "text-rose-400",
+                ? "text-market-up"
+                : "text-market-down",
           )}
         >
           {delta}

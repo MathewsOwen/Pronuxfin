@@ -254,7 +254,7 @@ export function AssistantChat({
                 key={`${i}-${msg.role}-${msg.text.slice(0, 48)}`}
                 className={
                   msg.role === "user"
-                    ? "ml-auto max-w-[88%] rounded-2xl rounded-br-md bg-gradient-to-br from-primary to-primary/85 px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-[0_8px_32px_oklch(0.74_0.14_215/0.25)] transition-opacity"
+                    ? "ml-auto max-w-[88%] rounded-2xl rounded-br-md bg-gradient-to-br from-primary to-primary/85 px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-[0_8px_32px_color-mix(in_oklch,var(--primary)_%,transparent)] transition-opacity"
                     : "mr-auto max-w-[88%] rounded-2xl rounded-bl-md border border-white/10 bg-black/30 px-4 py-2.5 text-sm leading-relaxed text-muted-foreground backdrop-blur-sm transition-opacity"
                 }
               >

@@ -140,19 +140,19 @@ export function AssistantAiHub() {
       label: tHub("signalCoverageLabel"),
       value: tHub("signalCoverageValue"),
       icon: Activity,
-      tone: "border-sky-500/25 bg-sky-950/16",
+      tone: "border-cognitive/25 bg-cognitive/10",
     },
     {
       label: tHub("signalEngineLabel"),
       value: tHub("signalEngineValue"),
       icon: Sparkles,
-      tone: "border-amber-500/25 bg-amber-950/16",
+      tone: "border-primary/20 bg-status-warning/8",
     },
     {
       label: tHub("signalSecurityLabel"),
       value: tHub("signalSecurityValue"),
       icon: ShieldCheck,
-      tone: "border-emerald-500/25 bg-emerald-950/16",
+      tone: "border-status-live/25 bg-status-live/10",
     },
   ];
   const assistantPrompt = searchParams.get("prompt")?.trim() ?? "";
@@ -339,7 +339,7 @@ export function AssistantAiHub() {
 
                   {id === "tutor" ? (
                     <div className="rounded-xl border border-white/10 bg-black/25 px-3 py-3">
-                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-amber-400/95">
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {tHub("tutorExtra")}
                       </p>
                       <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">

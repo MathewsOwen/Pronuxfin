@@ -15,6 +15,7 @@ import {
   RevealSection,
 } from "@/components/marketing/landing-reveal";
 import { SectionEyebrow } from "@/components/marketing/section-heading";
+import { cn } from "@/lib/utils";
 
 export function TrustStrip() {
   const t = useTranslations("Trust");
@@ -27,7 +28,7 @@ export function TrustStrip() {
   ];
 
   return (
-    <section className="relative border-y border-amber-500/15 bg-zinc-950/40 px-4 py-12 backdrop-blur-sm sm:px-6">
+    <section className="relative border-y border-border bg-zinc-950/40 px-4 py-12 backdrop-blur-sm sm:px-6">
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] terminal-grid-bg" />
 
       <RevealSection className="relative mx-auto flex max-w-6xl flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
@@ -56,7 +57,13 @@ export function TrustStrip() {
               className="surface-rise rounded-2xl border border-white/[0.07] bg-black/25 px-4 py-4 ring-1 ring-white/[0.03]"
             >
               <div className="flex items-center gap-2 text-foreground">
-                <Icon className="size-4 shrink-0 text-amber-400/90" aria-hidden />
+                <Icon
+                  className={cn(
+                    "size-4 shrink-0",
+                    label === t("aiTitle") ? "text-cognitive" : "text-primary/80",
+                  )}
+                  aria-hidden
+                />
                 <span className="text-sm font-semibold">{label}</span>
               </div>
 

@@ -50,7 +50,7 @@ export function HeaderMarketNavDesktop({
 
       <div className="invisible absolute left-1/2 top-full z-[60] w-max min-w-[min(24rem,calc(100vw-4rem))] max-w-2xl -translate-x-1/2 translate-y-1 pt-7 -mt-5 opacity-0 transition-[opacity,transform,visibility] duration-200 ease-out group-hover/navmarket:visible group-hover/navmarket:translate-y-0 group-hover/navmarket:opacity-100">
         <div className="rounded-xl border border-white/[0.12] bg-[oklch(0.11_0.041_262/0.97)] px-5 py-4 shadow-[0_24px_80px_oklch(0_0_0/0.55)] backdrop-blur-xl">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-400/90">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             {t("marketDeskEyebrow")}
           </p>
           <p className="mt-2 max-w-xl text-[12px] leading-relaxed text-muted-foreground">
@@ -127,7 +127,7 @@ export function HeaderMarketNavMobile({
       </Link>
       <div className="grid gap-3 px-3 pb-3 pt-2 sm:grid-cols-2">
         <div>
-          <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-amber-400/90">
+          <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
             {t("marketEquitiesLabel")}
           </p>
           <div className="mt-2 flex flex-col gap-2">
@@ -146,7 +146,7 @@ export function HeaderMarketNavMobile({
         </div>
 
         <div>
-          <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-amber-400/90">
+          <p className="font-mono text-[9px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
             {t("marketCryptoLabel")}
           </p>
           <div className="mt-2 flex flex-col gap-2">

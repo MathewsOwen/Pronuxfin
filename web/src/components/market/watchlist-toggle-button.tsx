@@ -62,7 +62,7 @@ export function WatchlistToggleButton({
         {saved ? <BookmarkCheck className="size-4" /> : <Bookmark className="size-4" />}
         {label}
       </Button>
-      {error ? <p className="text-xs text-rose-300">{error}</p> : null}
+      {error ? <p className="text-xs text-market-down">{error}</p> : null}
     </div>
   );
 }

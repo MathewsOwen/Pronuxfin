@@ -50,7 +50,7 @@ export function ProjecaoMarketPulse() {
     <section className="surface-rise card-shine rounded-2xl border border-white/10 bg-black/25 p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <Activity className="size-5 text-amber-400/90" aria-hidden />
+          <Activity className="size-5 text-muted-foreground" aria-hidden />
           <div>
             <h2 className="font-heading text-lg font-semibold tracking-tight">{t("title")}</h2>
             <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
@@ -68,7 +68,7 @@ export function ProjecaoMarketPulse() {
       </div>
 
       {error ? (
-        <p className="mt-4 text-sm text-rose-300">{t("error")}</p>
+        <p className="mt-4 text-sm text-market-down">{t("error")}</p>
       ) : (
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {rows.map((item) => (
@@ -150,13 +150,13 @@ function PulseCard({
       <p
         className={cn(
           "mt-1 font-mono text-sm font-medium",
-          up ? "text-emerald-400" : "text-rose-400",
+          up ? "text-market-up" : "text-market-down",
         )}
       >
         {change}
       </p>
       {item.quote == null ? (
-        <p className="mt-2 text-[10px] uppercase tracking-wider text-rose-300/90">{noQuoteLabel}</p>
+        <p className="mt-2 text-[10px] uppercase tracking-wider text-market-down/90">{noQuoteLabel}</p>
       ) : null}
     </div>
   );

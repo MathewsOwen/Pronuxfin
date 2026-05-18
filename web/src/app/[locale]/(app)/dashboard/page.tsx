@@ -188,19 +188,19 @@ export default async function DashboardPage() {
       label: t("signalTrustLabel"),
       value: t("signalTrustValue"),
       icon: ShieldCheck,
-      tone: "border-emerald-500/25 bg-emerald-950/16 text-emerald-100",
+      tone: "border-status-live/25 bg-status-live/10 text-status-live",
     },
     {
       label: t("signalDataLabel"),
       value: t("signalDataValue"),
       icon: Waves,
-      tone: "border-sky-500/25 bg-sky-950/16 text-sky-100",
+      tone: "border-cognitive/25 bg-cognitive/10 text-cognitive",
     },
     {
       label: t("signalSimLabel"),
       value: t("signalSimValue"),
       icon: Sparkles,
-      tone: "border-amber-500/25 bg-amber-950/16 text-amber-100",
+      tone: "border-primary/20 bg-status-warning/8 text-status-warning",
     },
   ];
   const agendaFallback = [t("agendaItem1"), t("agendaItem2"), t("agendaItem3")];
@@ -370,17 +370,17 @@ export default async function DashboardPage() {
                 <RadarMetric
                   label={t("radarSummaryHigh")}
                   value={String(radarHighCount)}
-                  accent="text-amber-300"
+                  accent="text-status-warning"
                 />
                 <RadarMetric
                   label={t("radarSummaryLive")}
                   value={String(radarLiveCount)}
-                  accent="text-sky-300"
+                  accent="text-cognitive"
                 />
                 <RadarMetric
                   label={t("radarSummaryNews")}
                   value={String(radarNewsCount)}
-                  accent="text-emerald-300"
+                  accent="text-market-up"
                 />
               </div>
               <div className="space-y-4">
@@ -518,7 +518,7 @@ export default async function DashboardPage() {
                       <RadarMetric
                         label={t("radarMetricMove")}
                         value={formatSignedPercent(move)}
-                        accent={up ? "text-emerald-400" : "text-rose-400"}
+                        accent={up ? "text-market-up" : "text-market-down"}
                       />
                       <RadarMetric
                         label={t("radarMetricVolume")}
@@ -735,9 +735,9 @@ function attentionLabelKey(level: WatchlistAttentionLevel) {
 function attentionBadgeClass(level: WatchlistAttentionLevel) {
   switch (level) {
     case "high":
-      return "border-amber-500/25 bg-amber-950/20 text-amber-100";
+      return "border-primary/20 bg-primary/8 text-status-warning";
     case "medium":
-      return "border-sky-500/25 bg-sky-950/20 text-sky-100";
+      return "border-cognitive/25 bg-cognitive/10 text-cognitive";
     default:
       return "border-white/10 bg-white/[0.04] text-muted-foreground";
   }

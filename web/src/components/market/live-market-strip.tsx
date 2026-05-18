@@ -38,33 +38,33 @@ export function LiveMarketStrip() {
         : "live");
 
   return (
-    <div className="relative z-40 border-b border-amber-500/25 bg-zinc-950/92 backdrop-blur-xl">
+    <div className="relative z-40 border-b border-primary/20 bg-zinc-950/92 backdrop-blur-xl">
       <div className="pointer-events-none absolute inset-0 opacity-[0.055] terminal-grid-bg" />
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-zinc-950 to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-zinc-950 to-transparent" />
-      <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-amber-500/15 px-4 py-2 sm:px-6">
+      <div className="relative flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2 sm:px-6">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
-          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.32em] text-amber-400/95">
+          <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
             {t("stripEyebrow")}
           </span>
-          <span className="hidden h-3 w-px bg-amber-500/30 sm:block" aria-hidden />
+          <span className="hidden h-3 w-px bg-border sm:block" aria-hidden />
           <span
             className={cn(
               "flex items-center gap-2 rounded border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider",
               mode === "live" &&
-                "border-emerald-500/35 bg-emerald-950/40 text-emerald-400",
+                "border-status-live/35 bg-status-live/10 text-status-live",
               mode === "partial" &&
-                "border-amber-500/35 bg-amber-950/40 text-amber-200",
+                "border-status-warning/35 bg-status-warning/10 text-status-warning",
               mode === "degraded" &&
-                "border-rose-500/35 bg-rose-950/40 text-rose-300",
+                "border-status-degraded/35 bg-status-degraded/10 text-status-degraded",
             )}
           >
             <span
               className={cn(
                 "size-1.5 shrink-0 rounded-full",
-                mode === "live" && "bg-emerald-400 shadow-[0_0_8px_oklch(0.72_0.17_155)]",
-                mode === "partial" && "bg-amber-400",
-                mode === "degraded" && "bg-rose-400",
+                mode === "live" && "bg-status-live shadow-[0_0_8px_var(--status-live-glow)]",
+                mode === "partial" && "bg-status-warning",
+                mode === "degraded" && "bg-status-degraded",
               )}
               aria-hidden
             />
@@ -77,27 +77,27 @@ export function LiveMarketStrip() {
           <p className="hidden max-w-xl text-[11px] leading-snug text-muted-foreground lg:block">
             {t("stripHint")}{" "}
             {mode === "degraded" ? (
-              <span className="text-rose-300/95">{t("stripDegraded")}</span>
+              <span className="text-market-down/95">{t("stripDegraded")}</span>
             ) : payload.equitiesPartial || payload.results.length === 0 ? (
-              <span className="text-amber-200/90">{t("stripPartialEquities")}</span>
+              <span className="text-status-warning/90">{t("stripPartialEquities")}</span>
             ) : (
-              <span className="text-emerald-300/90">{t("stripLiveEquities")}</span>
+              <span className="text-market-up/90">{t("stripLiveEquities")}</span>
             )}
             {" · "}
             {payload.cryptoSimulated || (payload.crypto?.length ?? 0) === 0 ? (
-              <span className="text-amber-200/90">{t("stripPartialCrypto")}</span>
+              <span className="text-status-warning/90">{t("stripPartialCrypto")}</span>
             ) : payload.cryptoPartial ? (
-              <span className="text-amber-200/90">{t("cryptoBadgePartial")}</span>
+              <span className="text-status-warning/90">{t("cryptoBadgePartial")}</span>
             ) : (
-              <span className="text-sky-300/90">{t("stripLiveCrypto")}</span>
+              <span className="text-status-live/90">{t("stripLiveCrypto")}</span>
             )}
             <span className="text-foreground/70"> · </span>
             {payload.fetchedAt > 0 ? (
-              <span className="font-medium text-sky-300/90">
+              <span className="font-medium text-status-live/90">
                 {t("stripLastFetch", { time: formatBrtTime(payload.fetchedAt, uiLocale) })}
               </span>
             ) : (
-              <span className="font-medium text-amber-200/90">{t("stripAwaitingLive")}</span>
+              <span className="font-medium text-status-warning/90">{t("stripAwaitingLive")}</span>
             )}
           </p>
           <span className="rounded border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[10px] tabular-nums text-muted-foreground lg:hidden">
@@ -106,7 +106,7 @@ export function LiveMarketStrip() {
         </div>
         <Link
           href="/bolsa"
-          className="ml-auto inline-flex shrink-0 items-center gap-1 font-mono text-[11px] font-medium text-amber-300/95 hover:text-amber-200 hover:underline"
+          className="ml-auto inline-flex shrink-0 items-center gap-1 font-mono text-[11px] font-medium text-primary hover:text-primary/80 hover:underline"
         >
           {t("stripCta")}
           <ChevronRight className="size-3.5" />
@@ -158,7 +158,7 @@ function TickerItem({ quote, uiLocale }: { quote: QuoteSnapshot; uiLocale: strin
       <span
         className={cn(
           "text-[11px] font-semibold",
-          pct == null ? "text-muted-foreground" : up ? "text-emerald-400" : "text-rose-400",
+          pct == null ? "text-muted-foreground" : up ? "text-market-up" : "text-market-down",
         )}
       >
         {pct == null ? "—" : `${up ? "+" : ""}${pct.toFixed(2)}%`}

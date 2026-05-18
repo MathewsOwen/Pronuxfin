@@ -123,13 +123,13 @@ export function AssistantByokCard() {
     const msg = !status.cryptoReady ? t("byokErrorCrypto") : t("byokErrorDb");
 
     return (
-      <Card className="glass-panel card-shine border-amber-500/25 bg-black/15 shadow-none">
+      <Card className="glass-panel card-shine border-primary/20 bg-black/15 shadow-none">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">{t("byokTitle")}</CardTitle>
           <CardDescription>{t("byokLead")}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-amber-200/95">{msg}</p>
+          <p className="text-sm text-status-warning/90">{msg}</p>
         </CardContent>
       </Card>
     );
@@ -152,7 +152,7 @@ export function AssistantByokCard() {
       <CardContent>
         <form onSubmit={(e) => void onSubmit(e)} className="space-y-4">
           {toast ? (
-            <p className="text-xs font-medium text-emerald-400/95" role="status">
+            <p className="text-xs font-medium text-market-up/95" role="status">
               {toast}
             </p>
           ) : null}

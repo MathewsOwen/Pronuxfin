@@ -106,7 +106,7 @@ function quoteBadgeClasses(row: QuoteSnapshot, fallbackCurrency: string) {
   const code = quoteCurrencyCode(row, fallbackCurrency);
   return code === "USD"
     ? "border-teal-500/35 bg-teal-950/35 text-teal-100"
-    : "border-amber-500/35 bg-amber-950/40 text-amber-100";
+    : "border-status-warning/35 bg-status-warning/10 text-status-warning";
 }
 
 function quoteMonogram(row: QuoteSnapshot) {
@@ -408,14 +408,14 @@ export function BolsaLiveHub() {
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <RevealOnce className="relative overflow-hidden rounded-3xl border border-amber-500/20 bg-zinc-950/55 p-8 sm:p-10 surface-rise">
+      <RevealOnce className="relative overflow-hidden rounded-3xl border border-border bg-zinc-950/55 p-8 sm:p-10 surface-rise">
         <div className="pointer-events-none absolute inset-0 opacity-[0.06] terminal-grid-bg" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/35 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
         <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl space-y-4 border-l-[3px] border-amber-400/80 pl-5">
+          <div className="max-w-2xl space-y-4 border-l-[3px] border-primary/40 pl-5">
             <Badge
               variant="outline"
-              className="gap-1 border-amber-500/40 bg-amber-950/30 font-mono text-[10px] uppercase tracking-wider text-amber-300"
+              className="gap-1 border-primary/30 bg-primary/10 font-mono text-[10px] uppercase tracking-wider text-status-warning"
             >
               <Layers className="size-3.5" aria-hidden />
               {t("badgeGlobal")}
@@ -431,7 +431,7 @@ export function BolsaLiveHub() {
               <TelemetryCard
                 label={t("tapeLastUpdated")}
                 value={tapeSyncLabel}
-                accentClass="border-amber-500/25 bg-amber-950/18"
+                accentClass="border-primary/20 bg-primary/8"
               />
               <TelemetryCard
                 label={t("sectorBookLastUpdated")}
@@ -446,37 +446,37 @@ export function BolsaLiveHub() {
             </div>
             <div className="flex flex-wrap gap-2 border-t border-white/[0.08] pt-3">
               {payload.results.length === 0 ? (
-                <span className="rounded border border-rose-500/35 bg-rose-950/40 px-2 py-1 font-medium text-rose-300">
+                <span className="rounded border border-status-degraded/35 bg-status-degraded/10 px-2 py-1 font-medium text-market-down">
                   {tDesk("equitiesBadgeUnavailable")}
                 </span>
               ) : payload.equitiesPartial ? (
-                <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-200">
+                <span className="rounded border border-primary/25 bg-status-warning/10 px-2 py-1 font-medium text-status-warning">
                   {tDesk("equitiesBadgePartial")}
                 </span>
               ) : (
-                <span className="rounded border border-emerald-500/30 bg-emerald-950/25 px-2 py-1 font-medium text-emerald-300">
+                <span className="rounded border border-status-live/30 bg-status-live/10 px-2 py-1 font-medium text-market-up">
                   {tDesk("equitiesBadgeLive")}
                 </span>
               )}
               {(payload.crypto?.length ?? 0) === 0 ? (
-                <span className="rounded border border-rose-500/35 bg-rose-950/40 px-2 py-1 font-medium text-rose-300">
+                <span className="rounded border border-status-degraded/35 bg-status-degraded/10 px-2 py-1 font-medium text-market-down">
                   {tDesk("cryptoBadgeUnavailable")}
                 </span>
               ) : payload.cryptoPartial ? (
-                <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-200">
+                <span className="rounded border border-primary/25 bg-status-warning/10 px-2 py-1 font-medium text-status-warning">
                   {tDesk("cryptoBadgePartial")}
                 </span>
               ) : (
-                <span className="rounded border border-sky-500/30 bg-sky-950/25 px-2 py-1 font-medium text-sky-300">
+                <span className="rounded border border-cognitive/30 bg-cognitive/10 px-2 py-1 font-medium text-cognitive">
                   {tDesk("cryptoBadgeLive")}
                 </span>
               )}
               {sectorBook.results.length === 0 ? (
-                <span className="rounded border border-rose-500/35 bg-rose-950/40 px-2 py-1 font-medium text-rose-300">
+                <span className="rounded border border-status-degraded/35 bg-status-degraded/10 px-2 py-1 font-medium text-market-down">
                   {t("sectorBadgeUnavailable")}
                 </span>
               ) : sectorBook.partial ? (
-                <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-200">
+                <span className="rounded border border-primary/25 bg-status-warning/10 px-2 py-1 font-medium text-status-warning">
                   {t("sectorBadgePartial")}
                 </span>
               ) : (
@@ -485,11 +485,11 @@ export function BolsaLiveHub() {
                 </span>
               )}
               {cryptoSectorBook.results.length === 0 ? (
-                <span className="rounded border border-rose-500/35 bg-rose-950/40 px-2 py-1 font-medium text-rose-300">
+                <span className="rounded border border-status-degraded/35 bg-status-degraded/10 px-2 py-1 font-medium text-market-down">
                   {t("cryptoSectorBadgeUnavailable")}
                 </span>
               ) : cryptoSectorBook.partial ? (
-                <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-200">
+                <span className="rounded border border-primary/25 bg-status-warning/10 px-2 py-1 font-medium text-status-warning">
                   {t("cryptoSectorBadgePartial")}
                 </span>
               ) : (
@@ -512,18 +512,18 @@ export function BolsaLiveHub() {
         </div>
       </RevealOnce>
 
-      <div className="glass-panel mt-8 flex gap-3 rounded-2xl border border-amber-500/25 bg-amber-950/[0.12] p-4 text-xs leading-relaxed text-muted-foreground surface-rise">
-        <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden />
+      <div className="glass-panel mt-8 flex gap-3 rounded-2xl border border-primary/20 bg-status-warning/6 p-4 text-xs leading-relaxed text-muted-foreground surface-rise">
+        <ShieldAlert className="mt-0.5 size-4 shrink-0 text-cognitive" aria-hidden />
         <div className="space-y-2">
           <p>{t("riskDisclaimer")}</p>
-          <p className="border-t border-amber-500/15 pt-2 text-[11px]">{t("sectorDataFoot")}</p>
+          <p className="border-t border-border pt-2 text-[11px]">{t("sectorDataFoot")}</p>
         </div>
       </div>
 
       <section className="mt-8 space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-400/90">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">
               {t("summaryEyebrow")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{t("summaryHint")}</p>
@@ -563,12 +563,12 @@ export function BolsaLiveHub() {
       <section id="indices" className="scroll-mt-28 mt-10 space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.26em] text-amber-400/90">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">
               {t("indicesEyebrow")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{t("indicesHint")}</p>
           </div>
-          <BarChart3 className="size-5 text-amber-500/40" aria-hidden />
+          <BarChart3 className="size-5 text-muted-foreground/40" aria-hidden />
         </div>
         <RevealStaggerList as="div" className="grid gap-3 sm:grid-cols-3">
           {indexRows.map((row) => (
@@ -585,7 +585,7 @@ export function BolsaLiveHub() {
           className="scroll-mt-28 flex flex-col gap-3 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6"
         >
           <div>
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-amber-200/85">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
               {t("sectorBookEyebrow")}
             </span>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -595,7 +595,7 @@ export function BolsaLiveHub() {
               })}
             </p>
           </div>
-          <RefreshCw className="size-4 shrink-0 text-amber-400/70 max-sm:hidden" aria-hidden />
+          <RefreshCw className="size-4 shrink-0 text-muted-foreground/80 max-sm:hidden" aria-hidden />
         </div>
 
         <div className="flex flex-col gap-4 border-b border-white/[0.06] px-4 py-4 sm:px-6">
@@ -611,8 +611,8 @@ export function BolsaLiveHub() {
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-mono text-[11px] transition-colors",
                   region === "br"
-                    ? "border-amber-500/55 bg-amber-950/50 text-amber-100"
-                    : "border-white/15 bg-transparent text-muted-foreground hover:border-amber-500/35 hover:text-foreground",
+                    ? "border-primary/35 bg-status-warning/12 text-status-warning"
+                    : "border-white/15 bg-transparent text-muted-foreground hover:border-primary/25 hover:text-foreground",
                 )}
               >
                 <MapPin className="size-3.5" aria-hidden />
@@ -647,7 +647,7 @@ export function BolsaLiveHub() {
                     "rounded-full border px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors",
                     sector === id
                       ? region === "br"
-                        ? "border-amber-500/50 bg-amber-950/55 text-amber-100"
+                        ? "border-primary/30 bg-status-warning/14 text-status-warning"
                         : "border-teal-500/45 bg-teal-950/40 text-teal-100"
                       : "border-white/12 bg-transparent text-muted-foreground hover:border-white/22 hover:text-foreground",
                   )}
@@ -686,7 +686,7 @@ export function BolsaLiveHub() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-left text-sm">
             <thead>
-              <tr className="sticky top-0 z-20 border-b border-white/10 bg-zinc-950/95 text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-200/85 backdrop-blur-md">
+              <tr className="sticky top-0 z-20 border-b border-white/10 bg-zinc-950/95 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground backdrop-blur-md">
                 <SortableHeader
                   label={t("thTicker")}
                   sortKey="symbol"
@@ -761,15 +761,15 @@ export function BolsaLiveHub() {
         />
       </RevealOnce>
 
-      <RevealOnce className="card-shine mt-10 overflow-hidden rounded-2xl border border-sky-500/15 bg-[linear-gradient(180deg,oklch(0.16_0.055_250/0.65),oklch(0.11_0.04_262/0.72))] shadow-[inset_0_1px_0_oklch(0.55_0.18_250_/_.08)] surface-rise">
+      <RevealOnce className="card-shine mt-10 overflow-hidden rounded-2xl border border-cognitive/15 bg-[linear-gradient(180deg,oklch(0.16_0.055_250/0.65),oklch(0.11_0.04_262/0.72))] shadow-[inset_0_1px_0_oklch(0.55_0.18_250_/_.08)] surface-rise">
         <div
           id="crypto-major-tape"
           className="scroll-mt-28 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6"
         >
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-200/85">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-cognitive/85">
             {t("cryptoMajorsTitle")}
           </span>
-          <RefreshCw className="size-4 text-sky-400/70" aria-hidden />
+          <RefreshCw className="size-4 text-cognitive/70" aria-hidden />
         </div>
         <div className="border-b border-white/[0.06] px-4 py-2.5 sm:px-6">
           <p className="text-[11px] leading-relaxed text-muted-foreground">{t("cryptoMajorsLead")}</p>
@@ -795,7 +795,7 @@ export function BolsaLiveHub() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[680px] text-left text-sm">
             <thead>
-              <tr className="sticky top-0 z-20 border-b border-white/10 bg-zinc-950/95 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-200/85 backdrop-blur-md">
+              <tr className="sticky top-0 z-20 border-b border-white/10 bg-zinc-950/95 text-[10px] font-semibold uppercase tracking-[0.18em] text-cognitive/85 backdrop-blur-md">
                 <SortableHeader
                   label={t("thPair")}
                   sortKey="symbol"
@@ -874,7 +874,7 @@ export function BolsaLiveHub() {
             href="https://www.coingecko.com/"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-sky-400 underline-offset-2 hover:underline"
+            className="font-medium text-cognitive underline-offset-2 hover:underline"
           >
             CoinGecko
           </a>
@@ -1052,7 +1052,7 @@ const IndexProxyCard = memo(function IndexProxyCard({
   const priceLabel = formatQuoteMoney(row.regularMarketPrice, row, locale, "BRL");
 
   return (
-    <div className="surface-rise rounded-xl border border-amber-500/20 bg-zinc-950/60 px-4 py-3 font-mono shadow-inner">
+    <div className="surface-rise rounded-xl border border-border bg-zinc-950/60 px-4 py-3 font-mono shadow-inner">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-foreground">
         {row.symbol}
       </p>
@@ -1066,7 +1066,7 @@ const IndexProxyCard = memo(function IndexProxyCard({
         <span
           className={cn(
             "text-xs font-semibold",
-            pct == null ? "text-muted-foreground" : up ? "text-emerald-400" : "text-rose-400",
+            pct == null ? "text-muted-foreground" : up ? "text-market-up" : "text-market-down",
           )}
         >
           {pct == null ? "—" : `${up ? "+" : ""}${pct.toFixed(2)}%`}
@@ -1283,7 +1283,7 @@ function SummaryCard({
   return (
     <div className="card-shine h-full rounded-2xl border border-white/10 bg-[linear-gradient(180deg,oklch(0.16_0.048_262/0.72),oklch(0.11_0.038_262/0.82))] p-4 shadow-[inset_0_1px_0_oklch(1_0_0/0.04)]">
       <div className="flex items-center justify-between gap-3">
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-200/85">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           {title}
         </p>
         <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
@@ -1324,8 +1324,8 @@ function SummaryCard({
                   row.regularMarketChangePercent == null
                     ? "text-muted-foreground"
                     : row.regularMarketChangePercent >= 0
-                      ? "text-emerald-400"
-                      : "text-rose-400",
+                      ? "text-market-up"
+                      : "text-market-down",
                 )}
               >
                 {row.regularMarketChangePercent == null
@@ -1413,8 +1413,8 @@ const QuoteRow = memo(
       <tr
         className={cn(
           "surface-rise-row border-b border-white/[0.06] transition-colors duration-500 odd:bg-white/[0.02] hover:bg-white/[0.05]",
-          flashDir === "up" && "bg-emerald-500/15",
-          flashDir === "down" && "bg-rose-500/12",
+          flashDir === "up" && "bg-market-up/15",
+          flashDir === "down" && "bg-market-down/12",
         )}
       >
         <td className="px-4 py-2.5 font-heading text-[13px] font-semibold sm:px-6">
@@ -1456,7 +1456,7 @@ const QuoteRow = memo(
           <span
             className={cn(
               "inline-flex items-center gap-1 font-semibold",
-              ch == null ? "text-muted-foreground" : up ? "text-emerald-400" : "text-rose-400",
+              ch == null ? "text-muted-foreground" : up ? "text-market-up" : "text-market-down",
             )}
           >
             {ch != null ? (
@@ -1474,7 +1474,7 @@ const QuoteRow = memo(
             title={cur}
             className={cn(
               "inline-block font-semibold",
-              pct == null ? "text-muted-foreground" : up ? "text-emerald-400" : "text-rose-400",
+              pct == null ? "text-muted-foreground" : up ? "text-market-up" : "text-market-down",
             )}
           >
             {pct == null ? "—" : `${up ? "+" : ""}${pct.toFixed(2)}%`}

@@ -41,14 +41,14 @@ export function PortfolioClearAllButton({ positionCount }: { positionCount: numb
         onClick={() => void clearAll()}
         className={cn(
           buttonVariants({ variant: "ghost", size: "sm" }),
-          "text-muted-foreground hover:text-rose-400",
+          "text-muted-foreground hover:text-market-down",
           pending && "opacity-60",
         )}
       >
         {pending ? t("clearingAll") : t("clearAllCta")}
       </button>
       {error ? (
-        <p className="text-xs text-rose-400" role="alert">
+        <p className="text-xs text-market-down" role="alert">
           {error}
         </p>
       ) : null}

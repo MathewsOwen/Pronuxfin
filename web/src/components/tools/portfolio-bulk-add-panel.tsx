@@ -241,8 +241,8 @@ export function PortfolioBulkAddPanel({
     <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
       <CardHeader>
         <div className="flex items-start gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-sky-500/25 bg-sky-950/20">
-            <Layers className="size-4 text-sky-300" aria-hidden />
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-cognitive/25 bg-cognitive/10">
+            <Layers className="size-4 text-cognitive" aria-hidden />
           </span>
           <div>
             <CardTitle className="font-heading">{t("bulkTitle")}</CardTitle>
@@ -376,7 +376,7 @@ export function PortfolioBulkAddPanel({
                         <button
                           type="button"
                           onClick={() => removeRow(row.symbol)}
-                          className="text-xs text-muted-foreground hover:text-rose-400"
+                          className="text-xs text-muted-foreground hover:text-market-down"
                         >
                           {t("bulkRemoveRow")}
                         </button>
@@ -396,7 +396,7 @@ export function PortfolioBulkAddPanel({
             role={messageTone === "error" ? "alert" : "status"}
             className={cn(
               "text-sm",
-              messageTone === "success" ? "text-emerald-400" : "text-rose-400",
+              messageTone === "success" ? "text-market-up" : "text-market-down",
             )}
           >
             {message}

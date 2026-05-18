@@ -133,7 +133,7 @@ export function AppShell({
                     {displayName || user.email}
                   </p>
                   {user.isAdmin ? (
-                    <span className="shrink-0 rounded-full border border-amber-400/35 bg-amber-400/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+                    <span className="shrink-0 rounded-full border border-primary/25 bg-status-warning/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-status-warning">
                       {t("adminBadge")}
                     </span>
                   ) : null}
@@ -187,7 +187,7 @@ export function AppShell({
                     {displayName || user.email}
                   </p>
                   {user.isAdmin ? (
-                    <span className="shrink-0 rounded-full border border-amber-400/35 bg-amber-400/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+                    <span className="shrink-0 rounded-full border border-primary/25 bg-status-warning/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-status-warning">
                       {t("adminBadge")}
                     </span>
                   ) : null}
@@ -211,7 +211,7 @@ export function AppShell({
 
           <PageEnter
             id={MAIN_CONTENT_ID}
-            className="flex-1 bg-[radial-gradient(circle_at_top,oklch(0.74_0.14_215/0.08),transparent_34%)] p-4 outline-none sm:p-6 lg:p-8"
+            className="flex-1 bg-[radial-gradient(circle_at_top,color-mix(in_oklch,var(--primary)_%,transparent),transparent_34%)] p-4 outline-none sm:p-6 lg:p-8"
             aria-hidden={open}
             inert={open}
           >

@@ -195,8 +195,8 @@ function PortfolioLiveMarketPanelInner({
             className={cn(
               "gap-1 border",
               activeMode === "live" && !lookupSimulated
-                ? "border-emerald-500/30 bg-emerald-950/25 text-emerald-200"
-                : "border-amber-500/30 bg-amber-950/25 text-amber-200",
+                ? "border-status-live/30 bg-status-live/10 text-status-live"
+                : "border-border bg-primary/10 text-status-warning",
             )}
           >
             <Radio className="size-3" aria-hidden />
@@ -247,8 +247,8 @@ function PortfolioLiveMarketPanelInner({
                     className={cn(
                       "text-xs",
                       (quote.regularMarketChangePercent ?? 0) >= 0
-                        ? "text-emerald-400"
-                        : "text-rose-400",
+                        ? "text-market-up"
+                        : "text-market-down",
                     )}
                   >
                     {pct(quote.regularMarketChangePercent)}
@@ -272,8 +272,8 @@ function PortfolioLiveMarketPanelInner({
               className={cn(
                 "text-sm tabular-nums",
                 (activeQuote.regularMarketChangePercent ?? 0) >= 0
-                  ? "text-emerald-400"
-                  : "text-rose-400",
+                  ? "text-market-up"
+                  : "text-market-down",
               )}
             >
               {pct(activeQuote.regularMarketChangePercent)} {t("liveDayMove")}
@@ -317,7 +317,7 @@ function PortfolioLiveMarketPanelInner({
       ) : null}
 
       {lookupError ? (
-        <p className="mt-3 text-xs text-amber-300" role="status">
+        <p className="mt-3 text-xs text-status-warning" role="status">
           {lookupError}
         </p>
       ) : null}

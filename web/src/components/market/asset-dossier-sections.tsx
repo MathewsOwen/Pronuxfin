@@ -370,7 +370,7 @@ export function DossierCalendarYearsSection({
                 <td
                   className={cn(
                     "px-3 py-2.5 font-semibold",
-                    row.returnPct >= 0 ? "text-emerald-400" : "text-rose-400",
+                    row.returnPct >= 0 ? "text-market-up" : "text-market-down",
                   )}
                 >
                   {formatSignedPercent(row.returnPct)}
@@ -405,7 +405,7 @@ export function DossierRiskMetricsSection({
         <Metric
           label={labels.riskMaxDrawdown}
           value={formatSignedPercent(stats.maxDrawdownPct)}
-          accent="text-rose-400"
+          accent="text-market-down"
         />
         <Metric
           label={labels.riskVolatility}
@@ -468,7 +468,7 @@ function Metric({
 
 function accentForPct(value: number | null | undefined) {
   if (value == null || !Number.isFinite(value)) return undefined;
-  return value >= 0 ? "text-emerald-400" : "text-rose-400";
+  return value >= 0 ? "text-market-up" : "text-market-down";
 }
 
 function formatMoney(value: number | null | undefined, currency: string, locale: string) {

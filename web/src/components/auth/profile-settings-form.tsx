@@ -84,7 +84,7 @@ export function ProfileSettingsForm({
     return (
       <form
         onSubmit={(e) => void handleSubmit(e)}
-        className="rounded-2xl border border-amber-500/30 bg-amber-950/15 px-5 py-4"
+        className="rounded-2xl border border-border bg-status-warning/8 px-5 py-4"
       >
         <p className="font-medium text-foreground">{t("nameRequiredTitle")}</p>
         <p className="mt-1 text-sm text-muted-foreground">{t("nameRequiredLead")}</p>
@@ -126,7 +126,7 @@ export function ProfileSettingsForm({
           ) : null}
           {nameField}
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
-          {saved ? <p className="text-xs text-emerald-400">{t("nameSaved")}</p> : null}
+          {saved ? <p className="text-xs text-market-up">{t("nameSaved")}</p> : null}
         </CardContent>
         <CardFooter className="border-t border-white/10 pt-6">
           <button

@@ -71,13 +71,13 @@ export async function PortfolioSummaryPanel({
             title={t("gainersTitle")}
             icon={TrendingUp}
             items={summary.gainers}
-            tone="text-emerald-400"
+            tone="text-market-up"
           />
           <Movers
             title={t("losersTitle")}
             icon={TrendingDown}
             items={summary.losers}
-            tone="text-rose-400"
+            tone="text-market-down"
           />
         </div>
 
@@ -116,7 +116,7 @@ export async function PortfolioSummaryPanel({
                     <td
                       className={cn(
                         "px-4 py-3 tabular-nums",
-                        (row.dayPnlPercent ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400",
+                        (row.dayPnlPercent ?? 0) >= 0 ? "text-market-up" : "text-market-down",
                       )}
                     >
                       {pct(row.dayPnlPercent)}
@@ -124,7 +124,7 @@ export async function PortfolioSummaryPanel({
                     <td
                       className={cn(
                         "px-4 py-3 tabular-nums",
-                        (row.totalPnl ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400",
+                        (row.totalPnl ?? 0) >= 0 ? "text-market-up" : "text-market-down",
                       )}
                     >
                       {row.totalPnl != null
@@ -176,8 +176,8 @@ function Kpi({
             positive === undefined
               ? "text-muted-foreground"
               : positive
-                ? "text-emerald-400"
-                : "text-rose-400",
+                ? "text-market-up"
+                : "text-market-down",
           )}
         >
           {delta}

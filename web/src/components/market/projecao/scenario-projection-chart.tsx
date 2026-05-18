@@ -10,9 +10,9 @@ import {
 import type { ScenarioBandSeries } from "@/lib/projecao/scenario-projection";
 
 const BAND_COLORS: Record<ScenarioBandSeries["id"], { stroke: string; dot: string }> = {
-  pessimistic: { stroke: "oklch(0.68 0.18 15)", dot: "oklch(0.74 0.16 15)" },
-  base: { stroke: "oklch(0.74 0.12 215)", dot: "oklch(0.78 0.1 215)" },
-  optimistic: { stroke: "oklch(0.72 0.14 155)", dot: "oklch(0.78 0.12 155)" },
+  pessimistic: { stroke: "var(--market-down)", dot: "var(--market-down)" },
+  base: { stroke: "var(--primary)", dot: "var(--primary)" },
+  optimistic: { stroke: "var(--market-up)", dot: "var(--market-up)" },
 };
 
 export function ScenarioProjectionChart({
@@ -101,8 +101,8 @@ export function ScenarioProjectionChart({
 
           <defs>
             <linearGradient id={`${gradientId}-base`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="oklch(0.74 0.12 215 / 0.35)" />
-              <stop offset="100%" stopColor="oklch(0.74 0.12 215 / 0.02)" />
+              <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.02" />
             </linearGradient>
           </defs>
 

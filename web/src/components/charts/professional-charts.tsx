@@ -34,28 +34,28 @@ type ProfessionalChartProps = {
 
 const ACCENTS = {
   emerald: {
-    stroke: "oklch(0.72 0.14 155)",
-    fillTop: "oklch(0.72 0.14 155 / 0.42)",
-    fillBottom: "oklch(0.72 0.14 155 / 0.02)",
-    dot: "oklch(0.78 0.12 155)",
+    stroke: "var(--market-up)",
+    fillTop: "color-mix(in oklch, var(--market-up) 42%, transparent)",
+    fillBottom: "color-mix(in oklch, var(--market-up) 2%, transparent)",
+    dot: "var(--market-up)",
   },
   primary: {
-    stroke: "oklch(0.74 0.12 215)",
-    fillTop: "oklch(0.74 0.12 215 / 0.38)",
-    fillBottom: "oklch(0.74 0.12 215 / 0.02)",
-    dot: "oklch(0.78 0.1 215)",
+    stroke: "var(--primary)",
+    fillTop: "color-mix(in oklch, var(--primary) 38%, transparent)",
+    fillBottom: "color-mix(in oklch, var(--primary) 2%, transparent)",
+    dot: "var(--primary)",
   },
   sky: {
-    stroke: "oklch(0.72 0.11 230)",
-    fillTop: "oklch(0.72 0.11 230 / 0.35)",
-    fillBottom: "oklch(0.72 0.11 230 / 0.02)",
-    dot: "oklch(0.78 0.09 230)",
+    stroke: "var(--cognitive)",
+    fillTop: "color-mix(in oklch, var(--cognitive) 35%, transparent)",
+    fillBottom: "color-mix(in oklch, var(--cognitive) 2%, transparent)",
+    dot: "var(--cognitive)",
   },
   rose: {
-    stroke: "oklch(0.68 0.18 15)",
-    fillTop: "oklch(0.68 0.18 15 / 0.38)",
-    fillBottom: "oklch(0.68 0.18 15 / 0.02)",
-    dot: "oklch(0.74 0.16 15)",
+    stroke: "var(--market-down)",
+    fillTop: "color-mix(in oklch, var(--market-down) 38%, transparent)",
+    fillBottom: "color-mix(in oklch, var(--market-down) 2%, transparent)",
+    dot: "var(--market-down)",
   },
 } as const;
 

@@ -53,7 +53,7 @@ export function InstitutionalRibbon() {
             return (
               <NestStaggerLi key={item.title} className="min-w-0">
                 <article className="surface-rise h-full rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 ring-1 ring-white/[0.03]">
-                  <Icon className="size-5 text-amber-400/90" aria-hidden />
+                  <Icon className="size-5 text-muted-foreground" aria-hidden />
                   <p className="font-heading mt-3 text-base font-semibold tracking-tight text-foreground">
                     {item.title}
                   </p>

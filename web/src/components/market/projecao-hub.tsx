@@ -22,11 +22,11 @@ export function ProjecaoHub({ loggedIn = false }: { loggedIn?: boolean }) {
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <header className="surface-rise card-shine relative overflow-hidden rounded-3xl border border-amber-500/20 bg-zinc-950/55 p-8 sm:p-10">
+      <header className="surface-rise card-shine relative overflow-hidden rounded-3xl border border-border bg-zinc-950/55 p-8 sm:p-10">
         <div className="pointer-events-none absolute inset-0 opacity-[0.06] terminal-grid-bg" />
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/35 to-transparent" />
-        <div className="relative max-w-3xl space-y-4 border-l-[3px] border-amber-400/80 pl-5">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-400/95">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
+        <div className="relative max-w-3xl space-y-4 border-l-[3px] border-primary/40 pl-5">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
             {t("eyebrow")}
           </p>
           <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl md:text-[2.75rem] md:leading-[1.12]">
@@ -38,9 +38,9 @@ export function ProjecaoHub({ loggedIn = false }: { loggedIn?: boolean }) {
         </div>
       </header>
 
-      <div className="glass-panel card-shine mt-8 rounded-2xl border border-rose-500/25 bg-rose-950/[0.14] p-4 text-xs leading-relaxed text-muted-foreground">
+      <div className="glass-panel card-shine mt-8 rounded-2xl border border-status-degraded/25 bg-status-degraded/10 p-4 text-xs leading-relaxed text-muted-foreground">
         <div className="flex gap-3">
-          <Scale className="mt-0.5 size-4 shrink-0 text-rose-400" aria-hidden />
+          <Scale className="mt-0.5 size-4 shrink-0 text-market-down" aria-hidden />
           <div className="space-y-2">
             <p className="font-medium text-foreground">{t("warnTitle")}</p>
             <p>{t("warnBody")}</p>

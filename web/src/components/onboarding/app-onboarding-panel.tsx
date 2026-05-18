@@ -38,7 +38,7 @@ export function AppOnboardingPanel({ userId }: { userId: string }) {
 
   return (
     <section
-      className="relative overflow-hidden rounded-[1.75rem] border border-primary/25 bg-[linear-gradient(135deg,oklch(0.74_0.14_215/0.12),oklch(0.16_0.03_258))] px-5 py-6 md:px-7"
+      className="relative overflow-hidden rounded-[1.75rem] border border-primary/25 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_%,transparent),oklch(0.16_0.03_258))] px-5 py-6 md:px-7"
       aria-labelledby="app-onboarding-title"
     >
       <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-primary/20 blur-3xl" />

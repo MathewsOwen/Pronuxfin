@@ -94,7 +94,7 @@ export function DossierDividendsPanel({
   return (
     <Card
       id={NAV_ID}
-      className="glass-panel card-shine scroll-mt-24 border-emerald-500/20 shadow-none ring-0"
+      className="glass-panel card-shine scroll-mt-24 border-status-live/20 shadow-none ring-0"
     >
       <CardHeader className="space-y-4">
         <div>
@@ -120,13 +120,13 @@ export function DossierDividendsPanel({
       <CardContent className="space-y-6">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {insights.trailing12mTotal != null ? (
-            <Kpi label={labels.dividendsTtmTotal} value={money(insights.trailing12mTotal)} accent="text-emerald-400" />
+            <Kpi label={labels.dividendsTtmTotal} value={money(insights.trailing12mTotal)} accent="text-market-up" />
           ) : null}
           {insights.trailing12mYield != null ? (
             <Kpi
               label={labels.dividendsTtmYield}
               value={formatPct(insights.trailing12mYield, locale)}
-              accent="text-emerald-300"
+              accent="text-market-up"
             />
           ) : null}
           {insights.dividendYieldSnapshot != null ? (
@@ -140,7 +140,7 @@ export function DossierDividendsPanel({
         </div>
 
         {insights.nextPayment ? (
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/15 px-4 py-3 text-sm">
+          <div className="rounded-2xl border border-status-live/20 bg-status-live/8 px-4 py-3 text-sm">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
               {labels.dividendsNextPayment}
             </p>
@@ -209,7 +209,7 @@ export function DossierDividendsPanel({
                         {event.label ?? event.type}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-right font-semibold text-emerald-300">
+                    <td className="px-3 py-2.5 text-right font-semibold text-market-up">
                       {money(event.amount)}
                     </td>
                   </tr>

@@ -46,19 +46,19 @@ const RULE_META: Record<
 > = {
   large_move: {
     icon: Flame,
-    tone: "border-amber-500/25 bg-amber-950/16 text-amber-100",
+    tone: "border-primary/20 bg-status-warning/8 text-status-warning",
   },
   news_flow: {
     icon: BellRing,
-    tone: "border-sky-500/25 bg-sky-950/16 text-sky-100",
+    tone: "border-cognitive/25 bg-cognitive/10 text-cognitive",
   },
   range_extreme: {
     icon: Waves,
-    tone: "border-emerald-500/25 bg-emerald-950/16 text-emerald-100",
+    tone: "border-status-live/25 bg-status-live/10 text-status-live",
   },
   priority_shift: {
     icon: Siren,
-    tone: "border-rose-500/25 bg-rose-950/16 text-rose-100",
+    tone: "border-status-degraded/25 bg-status-degraded/10 text-status-degraded",
   },
 };
 
@@ -660,9 +660,9 @@ function attentionKey(level: "high" | "medium" | "baseline") {
 function attentionBadgeClass(level: "high" | "medium" | "baseline") {
   switch (level) {
     case "high":
-      return "border-amber-500/25 bg-amber-950/20 text-amber-100";
+      return "border-primary/20 bg-primary/8 text-status-warning";
     case "medium":
-      return "border-sky-500/25 bg-sky-950/20 text-sky-100";
+      return "border-cognitive/25 bg-cognitive/10 text-cognitive";
     default:
       return "border-white/10 bg-white/[0.04] text-muted-foreground";
   }

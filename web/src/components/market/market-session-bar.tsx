@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 
 const phaseAccent: Record<CashDeskPhase, string> = {
   weekend: "border-l-zinc-500/70 bg-zinc-950/80",
-  pre: "border-l-amber-400/90 bg-amber-950/25",
-  regular: "border-l-emerald-400/90 bg-emerald-950/20",
-  post: "border-l-sky-400/80 bg-sky-950/20",
+  pre: "border-l-status-warning bg-primary/10",
+  regular: "border-l-status-live bg-status-live/10",
+  post: "border-l-cognitive/50 bg-cognitive/10",
 };
 
 export function MarketSessionBar() {
@@ -71,7 +71,7 @@ export function MarketSessionBar() {
       <div className="pointer-events-none absolute inset-0 opacity-[0.06] terminal-grid-bg" />
       <div className="relative mx-auto flex max-w-6xl flex-col gap-2 px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-2">
         <div className="min-w-0">
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-400/95">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
             {t("sessionEyebrow")}
           </p>
           <p className="font-heading mt-1 text-sm font-semibold tracking-tight text-foreground">

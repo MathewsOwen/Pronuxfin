@@ -33,7 +33,7 @@ export function ProjecaoMacroNewsRail() {
     <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Newspaper className="size-5 text-sky-400/90" aria-hidden />
+          <Newspaper className="size-5 text-cognitive/90" aria-hidden />
           <h3 className="font-heading text-base font-semibold">{t("title")}</h3>
         </div>
         <Link href="/noticias" className="font-mono text-[10px] uppercase tracking-wider text-primary hover:underline">
@@ -42,7 +42,7 @@ export function ProjecaoMacroNewsRail() {
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{t("subtitle")}</p>
       {error ? (
-        <p className="mt-4 text-sm text-rose-300">{t("error")}</p>
+        <p className="mt-4 text-sm text-market-down">{t("error")}</p>
       ) : articles.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">{t("loading")}</p>
       ) : (
