@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -155,29 +156,14 @@ export function PrivateComparatorPage({
         </CardHeader>
         <CardContent className="space-y-4">
           {watchlistItems.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] px-6 py-8 text-center">
-              <Bookmark className="mx-auto size-10 text-muted-foreground" />
-              <p className="mt-4 text-lg font-semibold tracking-tight text-foreground">
-                {t("emptyTitle")}
-              </p>
-              <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                {t("emptyLead")}
-              </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-3">
-                <Link
-                  href="/bolsa"
-                  className={cn(buttonVariants({ size: "lg" }), "glow-ring")}
-                >
-                  {t("emptyCtaMarket")}
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className={buttonVariants({ variant: "outline", size: "lg" })}
-                >
-                  {t("emptyCtaDashboard")}
-                </Link>
-              </div>
-            </div>
+            <EmptyState icon={Bookmark} title={t("emptyTitle")} description={t("emptyLead")}>
+              <Link href="/bolsa" className={cn(buttonVariants({ size: "lg" }), "glow-ring")}>
+                {t("emptyCtaMarket")}
+              </Link>
+              <Link href="/dashboard" className={buttonVariants({ variant: "outline", size: "lg" })}>
+                {t("emptyCtaDashboard")}
+              </Link>
+            </EmptyState>
           ) : (
             <>
               {mutationError ? (
@@ -292,15 +278,11 @@ export function PrivateComparatorPage({
         </CardHeader>
         <CardContent>
           {dossiers.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] px-6 py-8 text-center">
-              <BarChart3 className="mx-auto size-10 text-muted-foreground" />
-              <p className="mt-4 text-lg font-semibold tracking-tight text-foreground">
-                {t("comparisonEmptyTitle")}
-              </p>
-              <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                {t("comparisonEmptyLead")}
-              </p>
-            </div>
+            <EmptyState
+              icon={BarChart3}
+              title={t("comparisonEmptyTitle")}
+              description={t("comparisonEmptyLead")}
+            />
           ) : (
             <div className="grid gap-4 xl:grid-cols-4 md:grid-cols-2">
               {dossiers.map((dossier) => {

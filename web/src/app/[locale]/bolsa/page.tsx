@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AuthenticatedPublicChrome } from "@/components/layout/authenticated-public-chrome";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
-import { BolsaLiveHub } from "@/components/market/bolsa-live-hub";
+import { BolsaHubLoader } from "@/components/market/bolsa-hub-loader";
 import type { AppLocale } from "@/i18n/routing";
 import { marketingMetadata } from "@/lib/page-metadata";
 import { getCurrentUser } from "@/lib/session";
@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function BolsaPage() {
   const user = await getCurrentUser();
-  const hub = <BolsaLiveHub />;
+  const hub = <BolsaHubLoader />;
 
   if (user) {
     return <AuthenticatedPublicChrome user={user}>{hub}</AuthenticatedPublicChrome>;

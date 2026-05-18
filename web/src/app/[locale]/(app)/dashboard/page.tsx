@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { DashboardAnalyticsSection } from "@/components/dashboard/dashboard-analytics-section";
 import { WatchlistSignalSync } from "@/components/dashboard/watchlist-signal-sync";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ import { formatRelativeTime } from "@/lib/market/time";
 import { privateAppMetadata } from "@/lib/page-metadata";
 import { getCurrentUser } from "@/lib/session";
 import { CompleteNameCard } from "@/components/auth/complete-name-card";
+import { AppOnboardingPanel } from "@/components/onboarding/app-onboarding-panel";
 import { displayNameForUser, userNeedsName } from "@/lib/user-display";
 import {
   buildWatchlistAlertCenter,
@@ -204,6 +206,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      {user ? <AppOnboardingPanel userId={user.id} /> : null}
       <WatchlistSignalSync
         items={radarItems.map((item) => ({
           symbol: item.dossier.symbol,
@@ -458,29 +461,14 @@ export default async function DashboardPage() {
             </div>
           ) : null}
           {radarItems.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.03] px-6 py-8 text-center">
-              <Bookmark className="mx-auto size-10 text-muted-foreground" />
-              <p className="mt-4 text-lg font-semibold tracking-tight text-foreground">
-                {t("radarEmptyTitle")}
-              </p>
-              <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                {t("radarEmptyLead")}
-              </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-3">
-                <Link
-                  href="/bolsa"
-                  className={cn(buttonVariants({ size: "lg" }), "glow-ring")}
-                >
-                  {t("radarEmptyMarket")}
-                </Link>
-                <Link
-                  href="/compare"
-                  className={buttonVariants({ variant: "outline", size: "lg" })}
-                >
-                  {t("radarEmptyCompare")}
-                </Link>
-              </div>
-            </div>
+            <EmptyState icon={Bookmark} title={t("radarEmptyTitle")} description={t("radarEmptyLead")}>
+              <Link href="/bolsa" className={cn(buttonVariants({ size: "lg" }), "glow-ring")}>
+                {t("radarEmptyMarket")}
+              </Link>
+              <Link href="/compare" className={buttonVariants({ variant: "outline", size: "lg" })}>
+                {t("radarEmptyCompare")}
+              </Link>
+            </EmptyState>
           ) : (
             <div className="grid gap-4 xl:grid-cols-3 md:grid-cols-2">
               {radarItems.map(({ dossier, signal }) => {

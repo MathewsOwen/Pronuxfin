@@ -141,6 +141,7 @@ function expandRecurringForDate(d: Date): EconomicCalendarEvent[] {
       region: tpl.region,
       impact: tpl.impact,
       category: tpl.category,
+      source: "curated",
     });
   }
   return out;

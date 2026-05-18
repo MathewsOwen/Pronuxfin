@@ -12,9 +12,12 @@ function isB3Symbol(symbol: string) {
   return /\d$/.test(symbol.trim());
 }
 
+export type EconomicCalendarMode = "live" | "curated" | "hybrid";
+
 export type LoadedEconomicCalendar = {
   events: EconomicCalendarEvent[];
   fmpAvailable: boolean;
+  mode: EconomicCalendarMode;
 };
 
 export async function loadEconomicCalendar(options: {
@@ -69,5 +72,9 @@ export async function loadEconomicCalendar(options: {
     events = events.slice(0, options.limit);
   }
 
-  return { events, fmpAvailable: fmp.available };
+  const fmpLiveCount = fmp.events.filter((e) => e.source === "fmp").length;
+  const mode: EconomicCalendarMode =
+    fmp.available && fmpLiveCount > 0 ? "hybrid" : "curated";
+
+  return { events, fmpAvailable: fmp.available, mode };
 }

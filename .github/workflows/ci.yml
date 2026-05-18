@@ -11,7 +11,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify .env.example templates (Fase 0)
+        run: node scripts/verify-env.mjs
+
   web:
+    needs: quality-gates
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,6 +53,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Unit tests
+        run: npm run test
+
       - name: Build
         env:
           API_URL: http://127.0.0.1:5999
@@ -50,6 +66,7 @@ jobs:
         run: npm run build
 
   backend:
+    needs: quality-gates
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -107,6 +124,7 @@ jobs:
         run: npm run build
 
   backend-docker:
+    needs: quality-gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -115,6 +133,7 @@ jobs:
         run: docker build -t pronuxfin-api:ci ./backend
 
   npm-audit-root:
+    needs: quality-gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

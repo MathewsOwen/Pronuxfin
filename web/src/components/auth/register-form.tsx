@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,7 @@ export function RegisterForm() {
         passwordDigits: tVal("passwordDigits"),
         nameRequired: tVal("nameRequired"),
         nameMax: tVal("nameMax"),
+        termsRequired: tVal("termsRequired"),
       }),
     [tVal],
   );
@@ -52,7 +53,7 @@ export function RegisterForm() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", name: "" },
+    defaultValues: { email: "", password: "", name: "", acceptTerms: false },
   });
 
   const onSubmit = async (data: RegisterValues) => {
@@ -163,6 +164,37 @@ export function RegisterForm() {
               <p className="text-xs text-muted-foreground">{t("passwordHint")}</p>
             )}
           </div>
+          <div className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+            <input
+              id="acceptTerms"
+              type="checkbox"
+              className="mt-1 size-4 shrink-0 rounded border-white/20 accent-primary"
+              aria-invalid={!!errors.acceptTerms}
+              aria-describedby={errors.acceptTerms ? "acceptTerms-error" : undefined}
+              {...register("acceptTerms", {
+                setValueAs: (value) => value === true || value === "on",
+              })}
+            />
+            <Label htmlFor="acceptTerms" className="text-sm leading-relaxed text-muted-foreground">
+              {t.rich("termsLabel", {
+                terms: (chunks) => (
+                  <Link href="/termos" className="text-primary hover:underline">
+                    {chunks}
+                  </Link>
+                ),
+                privacy: (chunks) => (
+                  <Link href="/privacidade" className="text-primary hover:underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </Label>
+          </div>
+          {errors.acceptTerms ? (
+            <p id="acceptTerms-error" className="text-xs text-destructive" role="alert">
+              {errors.acceptTerms.message}
+            </p>
+          ) : null}
         </CardContent>
         <CardFooter className="flex flex-col gap-4 border-t border-white/10 bg-transparent">
           <button

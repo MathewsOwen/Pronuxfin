@@ -30,6 +30,12 @@ export function absoluteUrl(pathname: string): string {
   return `${origin}${normalized}`;
 }
 
+/** OG/Twitter image gerada em `app/opengraph-image.tsx`. */
+export function defaultOpenGraphImages(): NonNullable<Metadata["openGraph"]>["images"] {
+  const url = absoluteUrl("/opengraph-image");
+  return [{ url, width: 1200, height: 630, alt: "PRONUXFIN" }];
+}
+
 /**
  * Canonical absoluto + og:url.
  * Com `localePrefix: "never"`, todos os idiomas compartilham a mesma URL; usar vários
@@ -87,11 +93,13 @@ export function marketingMetadata(opts: {
       siteName: "PRONUXFIN",
       locale,
       type: "website",
+      images: defaultOpenGraphImages(),
     },
     twitter: {
       card: "summary_large_image",
       title: ogTitle,
       description: ogDescription,
+      images: [absoluteUrl("/opengraph-image")],
     },
   });
 }

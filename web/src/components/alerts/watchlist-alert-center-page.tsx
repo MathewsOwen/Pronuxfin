@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -272,6 +273,18 @@ export function WatchlistAlertCenterPage({
           </Link>
         </div>
       </header>
+
+      {watchlistItems.length === 0 ? (
+        <EmptyState
+          icon={BellRing}
+          title={t("watchlistEmptyTitle")}
+          description={t("watchlistEmptyLead")}
+        >
+          <Link href="/bolsa" className={buttonVariants({ size: "lg" })}>
+            {t("watchlistEmptyCta")}
+          </Link>
+        </EmptyState>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
         <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
@@ -554,7 +567,12 @@ export function WatchlistAlertCenterPage({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">{t("activeEmpty")}</p>
+                <EmptyState
+                  compact
+                  icon={BellRing}
+                  title={t("activeEmptyTitle")}
+                  description={t("activeEmpty")}
+                />
               )}
             </CardContent>
           </Card>
@@ -602,7 +620,12 @@ export function WatchlistAlertCenterPage({
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">{t("historyEmpty")}</p>
+                <EmptyState
+                  compact
+                  icon={Waves}
+                  title={t("historyEmptyTitle")}
+                  description={t("historyEmpty")}
+                />
               )}
             </CardContent>
           </Card>

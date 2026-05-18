@@ -28,7 +28,14 @@ export function LiveMarketStrip() {
     ...sortQuotesForDesk(payload.results ?? []),
     ...(payload.crypto ?? []),
   ];
-  const duplex = [...rows, ...rows];
+  const duplex = rows.length > 0 ? [...rows, ...rows] : [];
+  const mode =
+    payload.dataMode ??
+    (payload.simulated || payload.cryptoSimulated
+      ? "simulated"
+      : rows.length === 0
+        ? "degraded"
+        : "live");
 
   return (
     <div className="relative z-40 border-b border-amber-500/25 bg-zinc-950/92 backdrop-blur-xl">
@@ -41,16 +48,37 @@ export function LiveMarketStrip() {
             {t("stripEyebrow")}
           </span>
           <span className="hidden h-3 w-px bg-amber-500/30 sm:block" aria-hidden />
-          <span className="flex items-center gap-2 rounded border border-emerald-500/35 bg-emerald-950/40 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-400">
+          <span
+            className={cn(
+              "flex items-center gap-2 rounded border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider",
+              mode === "live" &&
+                "border-emerald-500/35 bg-emerald-950/40 text-emerald-400",
+              mode === "simulated" &&
+                "border-amber-500/35 bg-amber-950/40 text-amber-300",
+              mode === "degraded" &&
+                "border-rose-500/35 bg-rose-950/40 text-rose-300",
+            )}
+          >
             <span
-              className="size-1.5 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_8px_oklch(0.72_0.17_155)]"
+              className={cn(
+                "size-1.5 shrink-0 rounded-full",
+                mode === "live" && "bg-emerald-400 shadow-[0_0_8px_oklch(0.72_0.17_155)]",
+                mode === "simulated" && "bg-amber-400",
+                mode === "degraded" && "bg-rose-400",
+              )}
               aria-hidden
             />
-            {t("stripLive")}
+            {mode === "live"
+              ? t("stripLive")
+              : mode === "simulated"
+                ? t("stripBadgeDemo")
+                : t("stripBadgeDegraded")}
           </span>
           <p className="hidden max-w-xl text-[11px] leading-snug text-muted-foreground lg:block">
             {t("stripHint")}{" "}
-            {payload.simulated ? (
+            {mode === "degraded" ? (
+              <span className="text-rose-300/95">{t("stripDegraded")}</span>
+            ) : payload.simulated ? (
               <span className="text-amber-400/95">{t("stripDemoEquities")}</span>
             ) : (
               <span className="text-amber-200/80">{t("stripLiveEquities")}</span>
@@ -85,11 +113,17 @@ export function LiveMarketStrip() {
         </Link>
       </div>
       <div className="ticker-hover-pause relative overflow-hidden py-2">
-        <div className="flex w-max gap-12 px-8 animate-marquee-fin motion-reduce:w-full motion-reduce:max-w-6xl motion-reduce:flex-wrap motion-reduce:justify-center">
-          {duplex.map((q, idx) => (
-            <TickerItem key={`${q.symbol}-${idx}`} quote={q} uiLocale={uiLocale} />
-          ))}
-        </div>
+        {duplex.length > 0 ? (
+          <div className="flex w-max gap-12 px-8 animate-marquee-fin motion-reduce:w-full motion-reduce:max-w-6xl motion-reduce:flex-wrap motion-reduce:justify-center">
+            {duplex.map((q, idx) => (
+              <TickerItem key={`${q.symbol}-${idx}`} quote={q} uiLocale={uiLocale} />
+            ))}
+          </div>
+        ) : (
+          <p className="px-6 py-1 text-center font-mono text-[11px] text-muted-foreground">
+            {t("stripTickerEmpty")}
+          </p>
+        )}
       </div>
     </div>
   );

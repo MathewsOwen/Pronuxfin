@@ -1,8 +1,21 @@
+import { isFmpProviderEnabled } from "@/lib/market/fmp-config";
 import {
   canUseMarketProvider,
   noteMarketProviderUsage,
 } from "@/lib/market/market-provider-budget";
 import type { IntlAnnualStatementsSnapshot, IntlKeyMetricsTtm } from "@/lib/market/types";
+
+function fmpApiKey(): string {
+  return (
+    process.env.FMP_API_KEY?.trim() ||
+    process.env.FINANCIAL_MODELING_PREP_API_KEY?.trim() ||
+    ""
+  );
+}
+
+function fmpReady(): boolean {
+  return isFmpProviderEnabled() && canUseMarketProvider("financial_modeling_prep");
+}
 
 type FmpProfileRow = {
   companyName?: string;
@@ -40,17 +53,9 @@ export type IntlCompanyProfile = {
 export async function fetchIntlCompanyProfileFromFmp(
   symbol: string,
 ): Promise<IntlCompanyProfile | null> {
-  const toggle = process.env.MARKET_PROVIDER_FMP_ENABLED?.trim().toLowerCase();
-  if (toggle === "0" || toggle === "false" || toggle === "no" || toggle === "off") {
-    return null;
-  }
-
-  const apiKey =
-    process.env.FMP_API_KEY?.trim() ||
-    process.env.FINANCIAL_MODELING_PREP_API_KEY?.trim() ||
-    "";
+  if (!fmpReady()) return null;
+  const apiKey = fmpApiKey();
   if (!apiKey) return null;
-  if (!canUseMarketProvider("financial_modeling_prep")) return null;
 
   try {
     const url = `https://financialmodelingprep.com/api/v3/profile/${encodeURIComponent(
@@ -82,17 +87,9 @@ export async function fetchIntlCompanyProfileFromFmp(
 
 /** Pares setoriais (tickers) — não confundir com filiais ou grupo controlador. */
 export async function fetchIntlStockPeersFromFmp(symbol: string): Promise<string[] | null> {
-  const toggle = process.env.MARKET_PROVIDER_FMP_ENABLED?.trim().toLowerCase();
-  if (toggle === "0" || toggle === "false" || toggle === "no" || toggle === "off") {
-    return null;
-  }
-
-  const apiKey =
-    process.env.FMP_API_KEY?.trim() ||
-    process.env.FINANCIAL_MODELING_PREP_API_KEY?.trim() ||
-    "";
+  if (!fmpReady()) return null;
+  const apiKey = fmpApiKey();
   if (!apiKey) return null;
-  if (!canUseMarketProvider("financial_modeling_prep")) return null;
 
   try {
     const url = `https://financialmodelingprep.com/api/v4/stock_peers?symbol=${encodeURIComponent(
@@ -140,17 +137,9 @@ function fmpReadNumber(value: unknown): number | null {
 export async function fetchIntlKeyMetricsTtmFromFmp(
   symbol: string,
 ): Promise<IntlKeyMetricsTtm | null> {
-  const toggle = process.env.MARKET_PROVIDER_FMP_ENABLED?.trim().toLowerCase();
-  if (toggle === "0" || toggle === "false" || toggle === "no" || toggle === "off") {
-    return null;
-  }
-
-  const apiKey =
-    process.env.FMP_API_KEY?.trim() ||
-    process.env.FINANCIAL_MODELING_PREP_API_KEY?.trim() ||
-    "";
+  if (!fmpReady()) return null;
+  const apiKey = fmpApiKey();
   if (!apiKey) return null;
-  if (!canUseMarketProvider("financial_modeling_prep")) return null;
 
   try {
     const url = `https://financialmodelingprep.com/api/v3/key-metrics-ttm/${encodeURIComponent(
@@ -266,17 +255,9 @@ async function fmpFetchAnnualRow(
 export async function fetchIntlLatestAnnualStatementsFromFmp(
   symbol: string,
 ): Promise<IntlAnnualStatementsSnapshot | null> {
-  const toggle = process.env.MARKET_PROVIDER_FMP_ENABLED?.trim().toLowerCase();
-  if (toggle === "0" || toggle === "false" || toggle === "no" || toggle === "off") {
-    return null;
-  }
-
-  const apiKey =
-    process.env.FMP_API_KEY?.trim() ||
-    process.env.FINANCIAL_MODELING_PREP_API_KEY?.trim() ||
-    "";
+  if (!fmpReady()) return null;
+  const apiKey = fmpApiKey();
   if (!apiKey) return null;
-  if (!canUseMarketProvider("financial_modeling_prep")) return null;
 
   try {
     const [income, balance, cf] = await Promise.all([

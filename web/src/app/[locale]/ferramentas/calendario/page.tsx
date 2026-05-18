@@ -26,7 +26,7 @@ export default async function EconomicCalendarPage() {
   const user = await getCurrentUser();
   if (user) redirect("/calendario");
 
-  const { events, fmpAvailable } = await loadEconomicCalendar({
+  const { events, fmpAvailable, mode } = await loadEconomicCalendar({
     days: 14,
     watchlistSymbols: [],
   });
@@ -43,6 +43,7 @@ export default async function EconomicCalendarPage() {
             watchlistSymbols={[]}
             serverEvents={events}
             fmpAvailable={fmpAvailable}
+            calendarMode={mode}
           />
         </div>
       </div>

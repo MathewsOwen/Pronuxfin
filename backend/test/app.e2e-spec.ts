@@ -4,9 +4,10 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { initE2eApp } from './e2e-app';
+import { closeE2eApp } from './e2e-lifecycle';
 
 describe('Health (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication<App> | undefined;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -17,7 +18,7 @@ describe('Health (e2e)', () => {
   });
 
   it('/health (summary)', () => {
-    return request(app.getHttpServer())
+    return request(app!.getHttpServer())
       .get('/health')
       .expect(200)
       .expect((res) => {
@@ -31,11 +32,16 @@ describe('Health (e2e)', () => {
           live: '/health/live',
           ready: '/health/ready',
         });
+        expect(body.capabilities).toMatchObject({
+          password_reset: expect.any(Boolean),
+          password_reset_mode: expect.stringMatching(/^(smtp|dev_log|unavailable)$/),
+          frontend_url_configured: expect.any(Boolean),
+        });
       });
   });
 
   it('/health/live (GET)', () => {
-    return request(app.getHttpServer())
+    return request(app!.getHttpServer())
       .get('/health/live')
       .expect(200)
       .expect((res: { body: { ok?: boolean; check?: string } }) => {
@@ -45,7 +51,7 @@ describe('Health (e2e)', () => {
   });
 
   it('/health/ready (GET)', () => {
-    return request(app.getHttpServer())
+    return request(app!.getHttpServer())
       .get('/health/ready')
       .expect(200)
       .expect((res: { body: { ok?: boolean; database?: string } }) => {
@@ -55,6 +61,7 @@ describe('Health (e2e)', () => {
   });
 
   afterEach(async () => {
-    await app.close();
+    await closeE2eApp(app);
+    app = undefined;
   });
 });

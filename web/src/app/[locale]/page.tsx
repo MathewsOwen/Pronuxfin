@@ -1,13 +1,6 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import {
-  BenefitsSection,
-  CtaSection,
-  DashboardMockSection,
-  FeaturesSection,
-  IaSection,
-} from "@/components/marketing/landing-sections";
-import { ToolsPreviewSection } from "@/components/marketing/tools-preview-section";
+import { HomeBelowFold } from "@/components/marketing/home-below-fold";
 import { Hero } from "@/components/marketing/hero";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { CryptoCoverageSection } from "@/components/marketing/crypto-coverage-section";
@@ -37,12 +30,7 @@ export default function HomePage() {
       <TrustStrip />
       <InstitutionalRibbon />
       <CryptoCoverageSection />
-      <IaSection />
-      <BenefitsSection />
-      <FeaturesSection />
-      <ToolsPreviewSection />
-      <DashboardMockSection />
-      <CtaSection />
+      <HomeBelowFold />
     </MarketingShell>
   );
 }

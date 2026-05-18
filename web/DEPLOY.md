@@ -51,10 +51,11 @@
 
 ## Antes de abrir para utilizadores reais
 
-1. Validar `API_URL` apontando para a API pública correta
-2. Confirmar que `JWT_SECRET` e configurações de auth estão coerentes entre front e backend
-3. Confirmar que o banco real já recebeu as migrações
-4. Testar login, dashboard, watchlist, comparador, alertas e reset de senha
+1. Copiar variáveis de `web/.env.example` para a Vercel (e `.env.local` em dev)
+2. Validar `API_URL` apontando para a API pública correta
+3. Confirmar que `JWT_SECRET` e configurações de auth estão coerentes entre front e backend
+4. Confirmar que o banco real já recebeu as migrações
+5. Executar o smoke test: `docs/smoke-test.md` (`npm run smoke` na raiz ou `./scripts/smoke.sh`)
 
 ## APIs “mais rápidas” neste projeto
 

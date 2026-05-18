@@ -1,3 +1,4 @@
+import { isFmpProviderEnabled } from "@/lib/market/fmp-config";
 import {
   canUseMarketProvider,
   noteMarketProviderUsage,
@@ -18,15 +19,7 @@ type FmpEarningRow = {
 const FMP_EARNINGS_TTL_MS = 15 * 60_000;
 
 function fmpEnabled() {
-  const toggle = process.env.MARKET_PROVIDER_FMP_ENABLED?.trim().toLowerCase();
-  if (toggle === "0" || toggle === "false" || toggle === "no" || toggle === "off") {
-    return false;
-  }
-  const apiKey =
-    process.env.FMP_API_KEY?.trim() ||
-    process.env.FINANCIAL_MODELING_PREP_API_KEY?.trim() ||
-    "";
-  return Boolean(apiKey) && canUseMarketProvider("financial_modeling_prep");
+  return isFmpProviderEnabled() && canUseMarketProvider("financial_modeling_prep");
 }
 
 function padDate(d: Date) {

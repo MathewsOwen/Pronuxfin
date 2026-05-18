@@ -1,25 +1,15 @@
 import type { MetadataRoute } from "next";
+import { PUBLIC_SITEMAP_PATHS } from "@/lib/seo/public-routes";
 import { resolvePublicSiteUrl } from "@/lib/site-url";
-
-const PUBLIC_PATHS = [
-  "",
-  "/bolsa",
-  "/noticias",
-  "/projecao",
-  "/login",
-  "/register",
-  "/forgot-password",
-] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = resolvePublicSiteUrl().replace(/\/$/, "");
-
   const now = new Date();
 
-  return PUBLIC_PATHS.map((path) => ({
+  return PUBLIC_SITEMAP_PATHS.map(({ path, priority, changeFrequency }) => ({
     url: `${base}${path || "/"}`,
     lastModified: now,
-    changeFrequency: "weekly",
-    priority: path === "" ? 1 : 0.75,
+    changeFrequency,
+    priority,
   }));
 }

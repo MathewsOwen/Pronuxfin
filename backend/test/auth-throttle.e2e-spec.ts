@@ -4,13 +4,14 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { initE2eApp } from './e2e-app';
+import { closeE2eApp } from './e2e-lifecycle';
 
 /**
  * Cobre `@Throttle` no AuthController sem depender de credenciais válidas:
  * primeiro passa pela guarda → depois a validação retorna 400.
  */
 describe('Auth throttling (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication<App> | undefined;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -21,15 +22,16 @@ describe('Auth throttling (e2e)', () => {
   });
 
   afterAll(async () => {
-    await app.close();
+    await closeE2eApp(app);
+    app = undefined;
   });
 
   it('GET /health continua acessível', () => {
-    return request(app.getHttpServer()).get('/health').expect(HttpStatus.OK);
+    return request(app!.getHttpServer()).get('/health').expect(HttpStatus.OK);
   });
 
   it('POST /auth/login retorna 429 após o limite no intervalo', async () => {
-    const server = app.getHttpServer();
+    const server = app!.getHttpServer();
     const body = { email: 'nao-e-email', password: 'x' };
 
     for (let i = 0; i < 25; i++) {
@@ -47,7 +49,7 @@ describe('Auth throttling (e2e)', () => {
   });
 
   it('POST /auth/register retorna 429 após o limite no intervalo', async () => {
-    const server = app.getHttpServer();
+    const server = app!.getHttpServer();
     const body = { email: 'invalido', password: '12345678' };
 
     for (let i = 0; i < 15; i++) {
@@ -65,7 +67,7 @@ describe('Auth throttling (e2e)', () => {
   });
 
   it('POST /auth/forgot-password retorna 429 após o limite no intervalo', async () => {
-    const server = app.getHttpServer();
+    const server = app!.getHttpServer();
     const body = { email: 'invalido' };
 
     for (let i = 0; i < 8; i++) {
@@ -83,7 +85,7 @@ describe('Auth throttling (e2e)', () => {
   });
 
   it('POST /auth/reset-password retorna 429 após o limite no intervalo', async () => {
-    const server = app.getHttpServer();
+    const server = app!.getHttpServer();
     const body = { token: '', password: '12345678' };
 
     for (let i = 0; i < 12; i++) {

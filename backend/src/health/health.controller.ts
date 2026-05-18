@@ -1,12 +1,18 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
+import { AuthMailerService } from '../auth/auth-mailer.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 const SERVICE = 'pronuxfin-api';
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+    private readonly mailer: AuthMailerService,
+  ) {}
 
   /**
    * Visão geral operacional (sem consultar a DB — barato para dashboards manuais).
@@ -14,6 +20,9 @@ export class HealthController {
    */
   @Get()
   summary() {
+    const passwordReset = this.mailer.getPasswordResetDeliveryStatus();
+    const frontendUrl = this.config.get<string>('FRONTEND_URL')?.trim() ?? '';
+
     return {
       ok: true as const,
       service: SERVICE,
@@ -22,6 +31,11 @@ export class HealthController {
       endpoints: {
         live: '/health/live',
         ready: '/health/ready',
+      },
+      capabilities: {
+        password_reset: passwordReset.available,
+        password_reset_mode: passwordReset.mode,
+        frontend_url_configured: frontendUrl.length > 0,
       },
     };
   }

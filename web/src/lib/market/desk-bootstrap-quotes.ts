@@ -46,11 +46,27 @@ function deskBootstrapEquities(): QuoteSnapshot[] {
 
 /** `fetchedAt: 0` = ainda não houve leitura da API nesta sessão. */
 export function deskBootstrapQuotesPayload(): QuotesPayload {
+  const allowSim =
+    process.env.NEXT_PUBLIC_MARKET_ALLOW_SIMULATION === "1" ||
+    process.env.NODE_ENV !== "production";
+
+  if (!allowSim) {
+    return {
+      fetchedAt: 0,
+      results: [],
+      crypto: [],
+      simulated: false,
+      cryptoSimulated: false,
+      dataMode: "degraded",
+    };
+  }
+
   return {
     fetchedAt: 0,
     results: sortQuotesForDesk(deskBootstrapEquities()),
     crypto: BOOT_CRYPTO,
     simulated: true,
     cryptoSimulated: true,
+    dataMode: "simulated",
   };
 }

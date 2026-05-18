@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import nodemailer, { type Transporter } from 'nodemailer';
+import {
+  resolvePasswordResetDeliveryStatus,
+  type PasswordResetDeliveryStatus,
+} from './auth-mailer.capabilities';
 
 type ResetMailPayload = {
   email: string;
@@ -20,7 +24,14 @@ export class AuthMailerService {
   }
 
   canSendPasswordReset(): boolean {
-    return this.isSmtpReady() || this.canUseDevLogFallback();
+    return this.getPasswordResetDeliveryStatus().available;
+  }
+
+  getPasswordResetDeliveryStatus(): PasswordResetDeliveryStatus {
+    return resolvePasswordResetDeliveryStatus({
+      smtpReady: this.isSmtpReady(),
+      devLogFallback: this.canUseDevLogFallback(),
+    });
   }
 
   async sendPasswordResetEmail(payload: ResetMailPayload): Promise<void> {

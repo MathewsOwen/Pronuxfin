@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useSequentialInterval } from "@/hooks/use-sequential-interval";
 import { deskBootstrapQuotesPayload } from "@/lib/market/desk-bootstrap-quotes";
-import { liveDeskFallbackPayload } from "@/lib/market/quotes-client-fallback";
+import { resolveClientQuotesFallback } from "@/lib/market/quotes-client-fallback";
 import type { QuotesPayload } from "@/lib/market/types";
 import { PUBLIC_DESK_QUOTES_POLL_MS } from "@/lib/market/quotes-poll-interval";
 
@@ -29,13 +29,13 @@ export function QuotesStreamProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/quotes", { cache: "no-store" });
       if (!res.ok) {
-        setPayload(liveDeskFallbackPayload());
+        setPayload(resolveClientQuotesFallback());
         return;
       }
       const data = (await res.json()) as QuotesPayload & { warnings?: string[] };
       setPayload(data);
     } catch {
-      setPayload(liveDeskFallbackPayload());
+      setPayload(resolveClientQuotesFallback());
     }
   }, []);
 

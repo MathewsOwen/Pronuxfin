@@ -4,6 +4,8 @@
 export function classifyDegradedReason(reason?: string): string {
   if (!reason?.trim()) return "unknown";
   if (reason.includes("API_URL")) return "frontend_api_url_missing";
+  if (reason.includes("JWT_SECRET")) return "frontend_jwt_misconfigured";
+  if (reason.includes("DATABASE_URL")) return "frontend_database_misconfigured";
   if (reason.includes("indisponível") || reason.includes("inicialização")) {
     return "backend_not_ready_or_warming";
   }
