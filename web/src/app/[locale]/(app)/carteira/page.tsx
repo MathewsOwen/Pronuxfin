@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { PortfolioBulkAddPanel } from "@/components/tools/portfolio-bulk-add-panel";
 import { PortfolioClearAllButton } from "@/components/tools/portfolio-clear-all-button";
 import { PortfolioEmptyHero } from "@/components/tools/portfolio-empty-hero";
 import { PortfolioManager } from "@/components/tools/portfolio-manager";
@@ -10,6 +11,7 @@ import type { AppLocale } from "@/i18n/routing";
 import { privateAppMetadata } from "@/lib/page-metadata";
 import { getCurrentUser } from "@/lib/session";
 import { listUserPortfolioPositions } from "@/lib/user-portfolio/load";
+import { listUserWatchlist } from "@/lib/user-watchlist/load";
 import { buildPortfolioSummary } from "@/lib/user-portfolio/snapshot";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -58,8 +60,13 @@ export default async function CarteiraPage({ searchParams }: CarteiraPageProps) 
       ? Number(costRaw)
       : null;
 
-  const positions = await listUserPortfolioPositions(user.id);
+  const [positions, watchlistItems] = await Promise.all([
+    listUserPortfolioPositions(user.id),
+    listUserWatchlist(user.id),
+  ]);
   const isEmpty = positions.length === 0;
+  const existingSymbols = positions.map((p) => p.symbol);
+  const watchlistSymbols = watchlistItems.map((w) => w.symbol);
   const editingExisting =
     initialSymbol.length > 0 &&
     positions.some((p) => p.symbol === initialSymbol);
@@ -85,6 +92,11 @@ export default async function CarteiraPage({ searchParams }: CarteiraPageProps) 
       </div>
 
       {isEmpty ? <PortfolioEmptyHero /> : null}
+
+      <PortfolioBulkAddPanel
+        watchlistSymbols={watchlistSymbols}
+        existingSymbols={existingSymbols}
+      />
 
       <PortfolioManager
         key={`${initialSymbol}|${initialQuantity ?? ""}|${initialAverageCost ?? ""}|${editingExisting}|${isEmpty}`}

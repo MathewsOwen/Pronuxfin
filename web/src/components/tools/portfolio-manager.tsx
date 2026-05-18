@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -53,6 +53,14 @@ export function PortfolioManager({
   const [message, setMessage] = useState<string | null>(null);
   const [messageTone, setMessageTone] = useState<"success" | "error">("error");
   const [pending, setPending] = useState(false);
+
+  const handleSelectSymbol = useCallback((quote: QuoteSnapshot) => {
+    setSymbol(quote.symbol);
+  }, []);
+
+  const handleUseLivePrice = useCallback((price: number) => {
+    setAverageCost(String(price));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -112,12 +120,8 @@ export function PortfolioManager({
       <CardContent>
         <PortfolioLiveMarketPanel
           symbol={symbol}
-          onSelectSymbol={(quote: QuoteSnapshot) => {
-            setSymbol(quote.symbol);
-          }}
-          onUseLivePrice={(price) => {
-            setAverageCost(String(price));
-          }}
+          onSelectSymbol={handleSelectSymbol}
+          onUseLivePrice={handleUseLivePrice}
         />
         <form onSubmit={(e) => void handleSubmit(e)} className="grid gap-4 sm:grid-cols-3">
           <div>
