@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { rolesForEmail } from './platform-admin.util';
 
-export type JwtPayload = { sub: string; email: string };
+/** `roles` opcional para tokens antigos; allowlist em env aplica-se sempre ao e-mail. */
+export type JwtPayload = { sub: string; email: string; roles?: string[] };
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(config: ConfigService) {
+  constructor(private readonly config: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -16,6 +18,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   validate(payload: JwtPayload) {
-    return { userId: payload.sub, email: payload.email };
+    const roles = rolesForEmail(payload.email, this.config);
+    return { userId: payload.sub, email: payload.email, roles };
   }
 }

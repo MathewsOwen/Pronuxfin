@@ -13,6 +13,8 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const MAX_WATCHLIST_ITEMS = 50;
+
 const unauthorized = NextResponse.json(
   { ok: false as const, message: "Sessão necessária." },
   { status: 401 },
@@ -41,6 +43,24 @@ export async function POST(req: Request) {
   if (!parsed.ok) return parsed.response;
 
   const symbol = parsed.symbol;
+
+  const existing = await prisma.userWatchlistItem.findUnique({
+    where: { userId_symbol: { userId, symbol } },
+    select: { symbol: true },
+  });
+  if (!existing) {
+    const count = await prisma.userWatchlistItem.count({ where: { userId } });
+    if (count >= MAX_WATCHLIST_ITEMS) {
+      return NextResponse.json(
+        {
+          ok: false as const,
+          message: `Limite de ${MAX_WATCHLIST_ITEMS} ativos na watchlist.`,
+        },
+        { status: 400 },
+      );
+    }
+  }
+
   try {
     await prisma.userWatchlistItem.upsert({
       where: {

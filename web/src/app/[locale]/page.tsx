@@ -7,6 +7,7 @@ import {
   FeaturesSection,
   IaSection,
 } from "@/components/marketing/landing-sections";
+import { ToolsPreviewSection } from "@/components/marketing/tools-preview-section";
 import { Hero } from "@/components/marketing/hero";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { CryptoCoverageSection } from "@/components/marketing/crypto-coverage-section";
@@ -39,6 +40,7 @@ export default function HomePage() {
       <IaSection />
       <BenefitsSection />
       <FeaturesSection />
+      <ToolsPreviewSection />
       <DashboardMockSection />
       <CtaSection />
     </MarketingShell>

@@ -1,3 +1,4 @@
+import { computeAssetDossierHistoricalInsights } from "@/lib/market/asset-dossier-historical-insights";
 import { getAssetReferenceProfile } from "@/lib/market/asset-reference-profiles";
 import {
   simulatedB3EquitiesForSymbols,
@@ -5,6 +6,9 @@ import {
 } from "@/lib/market/equities-sim";
 import {
   fetchIntlCompanyProfileFromFmp,
+  fetchIntlKeyMetricsTtmFromFmp,
+  fetchIntlLatestAnnualStatementsFromFmp,
+  fetchIntlStockPeersFromFmp,
   type IntlCompanyProfile,
 } from "@/lib/market/financial-modeling-prep";
 import { loadCachedAggregatedNews } from "@/lib/market/market-data-gateway";
@@ -18,6 +22,8 @@ import type {
   AssetDossier,
   AssetHistoryPoint,
   AssetMoveSnapshot,
+  IntlAnnualStatementsSnapshot,
+  IntlKeyMetricsTtm,
   NewsArticle,
   QuoteSnapshot,
 } from "@/lib/market/types";
@@ -51,6 +57,9 @@ type MarketDossierSnapshot = {
   historyMode: "live" | "indicative";
   fields: DetailedQuoteFields;
   profile: IntlCompanyProfile | null;
+  intlKeyMetricsTtm: IntlKeyMetricsTtm | null;
+  intlAnnualStatements: IntlAnnualStatementsSnapshot | null;
+  intlStockPeers: string[] | null;
 };
 
 const DOSSIER_TTL_MS = 5 * 60_000;
@@ -59,7 +68,7 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
   const symbol = normalizeSymbol(symbolInput);
   if (!symbol) return null;
 
-  return rememberWithTtl(`asset-dossier:${symbol}:v2`, DOSSIER_TTL_MS, async () => {
+  return rememberWithTtl(`asset-dossier:${symbol}:v6`, DOSSIER_TTL_MS, async () => {
     const region = detectAssetRegion(symbol);
     const [market, articles] = await Promise.all([
       region === "br" ? fetchBrAssetDossier(symbol) : fetchIntlAssetDossier(symbol),
@@ -81,6 +90,7 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       reference?.aliases,
     );
     const relatedNews = pickRelatedNews(articles, keywords).slice(0, 6);
+    const historicalInsights = computeAssetDossierHistoricalInsights(market.history);
 
     return {
       symbol,
@@ -100,6 +110,9 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       ipoDate: market.profile?.ipoDate ?? null,
       sector: reference?.sector ?? market.profile?.sector ?? inferredSector,
       industry: reference?.industry ?? market.profile?.industry ?? null,
+      ceoName: market.profile?.ceoName ?? null,
+      fullTimeEmployees: market.profile?.fullTimeEmployees ?? null,
+      intlStockPeers: region === "intl" ? market.intlStockPeers : null,
       summary:
         reference?.summary ??
         market.profile?.summary ??
@@ -107,6 +120,7 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
           companyName,
           reference?.sector ?? market.profile?.sector ?? inferredSector,
           region,
+          market.quote,
         ),
       keywords,
       sourceLabel: region === "br" ? "BRAPI" : market.profile?.sourceLabel ?? "Yahoo Finance + PRONUX model",
@@ -124,6 +138,9 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       bestMove: computeExtremeMove(market.history, "best"),
       worstMove: computeExtremeMove(market.history, "worst"),
       relatedNews,
+      intlKeyMetricsTtm: market.intlKeyMetricsTtm,
+      intlAnnualStatements: market.intlAnnualStatements,
+      historicalInsights,
     };
   });
 }
@@ -142,7 +159,7 @@ async function fetchBrAssetDossier(symbol: string) {
   const base = token
     ? `https://brapi.dev/api/quote/${symbol}?token=${encodeURIComponent(token)}`
     : `https://brapi.dev/api/quote/${symbol}`;
-  const url = `${base}&range=3mo&interval=1d`;
+  const url = `${base}&range=10y&interval=1d`;
 
   try {
     if (!canUseMarketProvider("brapi")) {
@@ -180,6 +197,9 @@ async function fetchBrAssetDossier(symbol: string) {
         earningsPerShare: readNumber(row.earningsPerShare),
       },
       profile: null,
+      intlKeyMetricsTtm: null,
+      intlAnnualStatements: null,
+      intlStockPeers: null,
     };
     noteMarketProviderUsage("brapi");
     return output;
@@ -199,12 +219,20 @@ async function fetchBrAssetDossier(symbol: string) {
       historyMode: "indicative" as const,
       fields: emptyDetailedFields(),
       profile: null,
+      intlKeyMetricsTtm: null,
+      intlAnnualStatements: null,
+      intlStockPeers: null,
     };
   }
 }
 
 async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnapshot> {
-  const profile = await fetchIntlCompanyProfileFromFmp(symbol);
+  const [profile, intlKeyMetricsTtm, intlAnnualStatements, intlStockPeers] = await Promise.all([
+    fetchIntlCompanyProfileFromFmp(symbol),
+    fetchIntlKeyMetricsTtmFromFmp(symbol),
+    fetchIntlLatestAnnualStatementsFromFmp(symbol),
+    fetchIntlStockPeersFromFmp(symbol),
+  ]);
 
   try {
     if (!canUseMarketProvider("yahoo")) {
@@ -231,7 +259,7 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
     if (!row) throw new Error("yahoo_empty");
 
     const quote = mapYahooQuote(row);
-    const liveHistory = await fetchYahooChartHistory(symbol);
+    const liveHistory = await fetchYahooChartHistory(symbol, "10y");
     noteMarketProviderUsage("yahoo");
     return {
       quote,
@@ -250,6 +278,9 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
         earningsPerShare: readNumber(row.epsTrailingTwelveMonths),
       },
       profile,
+      intlKeyMetricsTtm,
+      intlAnnualStatements,
+      intlStockPeers,
     };
   } catch {
     const fallback = simulatedIntlEquitiesForSymbols([symbol])[0] ?? {
@@ -267,6 +298,9 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       historyMode: "indicative" as const,
       fields: emptyDetailedFields(),
       profile,
+      intlKeyMetricsTtm,
+      intlAnnualStatements,
+      intlStockPeers,
     };
   }
 }
@@ -334,10 +368,13 @@ function mapBrapiHistory(rows: BrapiHistoryRow[]): AssetHistoryPoint[] {
   return output;
 }
 
-async function fetchYahooChartHistory(symbol: string): Promise<AssetHistoryPoint[]> {
+async function fetchYahooChartHistory(
+  symbol: string,
+  range: string = "10y",
+): Promise<AssetHistoryPoint[]> {
   try {
     const res = await fetch(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=3mo&interval=1d`,
+      `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${encodeURIComponent(range)}&interval=1d`,
       {
         headers: {
           Accept: "application/json",
@@ -500,15 +537,44 @@ function buildFallbackSummary(
   name: string,
   sector: string | null,
   region: "br" | "intl",
+  quote?: QuoteSnapshot,
 ) {
   const scope =
     region === "br"
       ? "na cobertura institucional do mercado brasileiro"
       : "na cobertura internacional da PRONUXFIN";
-  if (!sector) {
-    return `${name} integra a mesa aprofundada de ativos da PRONUXFIN, com foco em contexto de mercado, movimentos recentes e leitura operacional ${scope}.`;
+  const body = !sector
+    ? `${name} integra a mesa aprofundada de ativos da PRONUXFIN, com foco em contexto de mercado, movimentos recentes e leitura operacional ${scope}.`
+    : `${name} aparece na camada aprofundada de ativos da PRONUXFIN como representante de ${sector.toLowerCase()}, combinando contexto operacional, movimentos recentes e monitoramento ${scope}.`;
+
+  const cur = quote?.currency ?? (region === "br" ? "BRL" : "USD");
+  const iso = /^[A-Z]{3}$/i.test(cur) ? cur.toUpperCase() : region === "br" ? "BRL" : "USD";
+  const px = quote?.regularMarketPrice;
+  const chg = quote?.regularMarketChangePercent;
+  if (px == null || !Number.isFinite(px)) return body;
+
+  const loc = region === "br" ? "pt-BR" : "en-US";
+  const formatted = new Intl.NumberFormat(loc, {
+    style: "currency",
+    currency: iso,
+    maximumFractionDigits: 2,
+  }).format(px);
+
+  let priceBit: string;
+  if (chg != null && Number.isFinite(chg)) {
+    const sign = chg > 0 ? "+" : "";
+    priceBit =
+      region === "br"
+        ? `Cotação recente na mesa: ${formatted} (${sign}${chg.toFixed(2)}% nesta leitura).`
+        : `Latest desk quote: ${formatted} (${sign}${chg.toFixed(2)}% this read).`;
+  } else {
+    priceBit =
+      region === "br"
+        ? `Última cotação registada na mesa: ${formatted}.`
+        : `Latest desk quote on file: ${formatted}.`;
   }
-  return `${name} aparece na camada aprofundada de ativos da PRONUXFIN como representante de ${sector.toLowerCase()}, combinando contexto operacional, movimentos recentes e monitoramento ${scope}.`;
+
+  return `${body} ${priceBit}`;
 }
 
 function extractCountry(headquarters?: string) {

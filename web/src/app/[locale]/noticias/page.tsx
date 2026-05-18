@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { AuthenticatedPublicChrome } from "@/components/layout/authenticated-public-chrome";
 import { NewsLiveHub } from "@/components/market/news-live-hub";
 import type { AppLocale } from "@/i18n/routing";
 import { marketingMetadata } from "@/lib/page-metadata";
+import { getCurrentUser } from "@/lib/session";
 
 type NoticiasPageProps = {
   searchParams?: Promise<{ fonte?: string | string[] }>;
@@ -29,9 +31,16 @@ export default async function NoticiasPage({ searchParams }: NoticiasPageProps) 
   if (typeof raw === "string") channel = raw.trim() || null;
   else if (Array.isArray(raw) && typeof raw[0] === "string") channel = raw[0].trim() || null;
 
+  const user = await getCurrentUser();
+  const hub = <NewsLiveHub channelFilter={channel} />;
+
+  if (user) {
+    return <AuthenticatedPublicChrome user={user}>{hub}</AuthenticatedPublicChrome>;
+  }
+
   return (
     <MarketingShell ticker>
-      <NewsLiveHub channelFilter={channel} />
+      {hub}
     </MarketingShell>
   );
 }

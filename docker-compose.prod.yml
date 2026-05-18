@@ -25,6 +25,9 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no ficheiro .env}
       FRONTEND_URL: ${FRONTEND_URL:-http://127.0.0.1:3000}
+      PLATFORM_ADMIN_EMAILS: ${PLATFORM_ADMIN_EMAILS:-}
+      SMTP_URL: ${SMTP_URL:-}
+      SMTP_FROM: ${SMTP_FROM:-}
       # SKIP_PRISMA_MIGRATE=1 — apenas emergência (schema já aplicado à mão)
       SKIP_PRISMA_MIGRATE: ${SKIP_PRISMA_MIGRATE:-0}
     depends_on:

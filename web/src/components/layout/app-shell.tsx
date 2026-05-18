@@ -1,45 +1,51 @@
 "use client";
 
+import * as Sentry from "@sentry/nextjs";
 import {
   BellRing,
   BookOpen,
   BrainCircuit,
+  CalendarDays,
   ChartSpline,
   LayoutDashboard,
   LogOut,
   Menu,
+  Navigation,
   Newspaper,
+  UserRound,
   Scale,
   TrendingUp,
+  Wallet,
+  Wrench,
   X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PronuxFinLogo } from "@/components/brand/pronux-fin-logo";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { PageEnter } from "@/components/marketing/page-enter";
+import { SystemDegradationBanner } from "@/components/layout/system-degradation-banner";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Link, usePathname } from "@/i18n/navigation";
 import { MAIN_CONTENT_ID } from "@/lib/content-anchor";
 import { useRouter } from "next/navigation";
+import {
+  classifyDegradedReason,
+  degradedStatusFingerprint,
+  recoveredStatusFingerprint,
+} from "@/lib/sentry/platform-status-fingerprint";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/lib/session";
-
-function initialsFromEmail(email: string) {
-  const local = email.split("@")[0] ?? "?";
-  const parts = local.split(/[._-]+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0]!.slice(0, 1) + parts[1]!.slice(0, 1)).toUpperCase();
-  }
-  return local.slice(0, 2).toUpperCase() || "PF";
-}
+import { displayNameForUser, initialsForUser } from "@/lib/user-display";
 
 export function AppShell({
   user,
+  degradedReason,
   children,
 }: {
   user: SessionUser;
+  degradedReason?: string;
   children: React.ReactNode;
 }) {
   const t = useTranslations("AppShell");
@@ -47,7 +53,9 @@ export function AppShell({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const initials = initialsFromEmail(user.email);
+  const prevDegradedRef = useRef<boolean | null>(null);
+  const displayName = displayNameForUser(user);
+  const initials = initialsForUser(user);
 
   useEffect(() => {
     if (!open) return;
@@ -58,8 +66,41 @@ export function AppShell({
     };
   }, [open]);
 
+  useEffect(() => {
+    const degraded = Boolean(degradedReason);
+    const prev = prevDegradedRef.current;
+    prevDegradedRef.current = degraded;
+
+    if (prev === degraded) return;
+
+    if (degraded) {
+      Sentry.withScope((scope) => {
+        scope.setLevel("warning");
+        scope.setTag("platform.status", "degraded");
+        scope.setTag("platform.degraded_bucket", classifyDegradedReason(degradedReason));
+        scope.setFingerprint(degradedStatusFingerprint(degradedReason));
+        if (degradedReason) scope.setExtra("degraded_reason", degradedReason);
+        Sentry.captureMessage("platform_status_degraded");
+      });
+      return;
+    }
+
+    if (prev) {
+      Sentry.withScope((scope) => {
+        scope.setLevel("info");
+        scope.setTag("platform.status", "recovered");
+        scope.setFingerprint(recoveredStatusFingerprint());
+        Sentry.captureMessage("platform_status_recovered");
+      });
+    }
+  }, [degradedReason]);
+
   const links = [
     { href: "/dashboard", label: t("panel"), icon: LayoutDashboard },
+    { href: "/carteira", label: t("portfolio"), icon: Wallet },
+    { href: "/calendario", label: t("calendar"), icon: CalendarDays },
+    { href: "/rota", label: t("route"), icon: Navigation },
+    { href: "/ferramentas", label: t("tools"), icon: Wrench },
     { href: "/bolsa", label: t("market"), icon: TrendingUp },
     { href: "/projecao", label: t("projecao"), icon: ChartSpline },
     { href: "/noticias", label: t("news"), icon: Newspaper },
@@ -67,6 +108,7 @@ export function AppShell({
     { href: "/compare", label: t("compare"), icon: Scale },
     { href: "/alerts", label: t("alerts"), icon: BellRing },
     { href: "/education", label: t("education"), icon: BookOpen },
+    { href: "/perfil", label: t("profile"), icon: UserRound },
   ];
   const activeLink =
     links.find(({ href }) => pathname === href || pathname.startsWith(`${href}/`)) ??
@@ -132,7 +174,11 @@ export function AppShell({
           </Link>
         </div>
         <div className="border-b border-white/10 px-4 py-4">
-          <div className="flex items-center gap-3">
+          <Link
+            href="/perfil"
+            className="flex items-center gap-3 rounded-xl px-1 py-1 transition-colors hover:bg-white/[0.04]"
+            aria-label={t("profileLinkAria")}
+          >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/35 to-primary/5 text-xs font-bold tracking-wide text-primary ring-2 ring-primary/25">
               {initials}
             </div>
@@ -140,9 +186,19 @@ export function AppShell({
               <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 {t("accountLabel")}
               </p>
-              <p className="truncate text-sm font-medium leading-tight">{user.email}</p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                <p className="truncate text-sm font-medium leading-tight">
+                  {displayName || user.email}
+                </p>
+                {user.isAdmin ? (
+                  <span className="shrink-0 rounded-full border border-amber-400/35 bg-amber-400/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+                    {t("adminBadge")}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">{user.email}</p>
             </div>
-          </div>
+          </Link>
         </div>
         <div className="px-4 pt-4">
           <div className="glass-panel card-shine rounded-2xl border border-white/10 px-4 py-4 shadow-none ring-0">
@@ -162,6 +218,7 @@ export function AppShell({
       </aside>
 
       <div className="flex min-h-screen flex-1 flex-col">
+        {degradedReason ? <SystemDegradationBanner reason={degradedReason} /> : null}
         <header className="hidden items-center justify-between gap-6 border-b border-white/10 bg-background/80 px-6 py-4 backdrop-blur-md lg:flex">
           <div className="min-w-0">
             <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -175,14 +232,28 @@ export function AppShell({
             <ShellPill>{t("sessionValue")}</ShellPill>
             <ShellPill>{t("publicDeskValue")}</ShellPill>
             <LanguageSwitcher />
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-right">
+            <Link
+              href="/perfil"
+              className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2 text-right transition-colors hover:bg-white/[0.06]"
+              aria-label={t("profileLinkAria")}
+            >
               <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                 {t("accountLabel")}
               </p>
-              <p className="max-w-[220px] truncate text-sm font-medium text-foreground">
+              <div className="mt-0.5 flex flex-wrap items-center justify-end gap-2">
+                <p className="max-w-[220px] truncate text-sm font-medium text-foreground">
+                  {displayName || user.email}
+                </p>
+                {user.isAdmin ? (
+                  <span className="shrink-0 rounded-full border border-amber-400/35 bg-amber-400/10 px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide text-amber-200">
+                    {t("adminBadge")}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-0.5 max-w-[280px] truncate text-right text-xs text-muted-foreground">
                 {user.email}
               </p>
-            </div>
+            </Link>
           </div>
         </header>
         <header className="flex h-14 items-center justify-between gap-3 border-b border-white/10 bg-background/80 px-4 backdrop-blur-md lg:hidden">
@@ -216,7 +287,15 @@ export function AppShell({
               <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-[11px] font-bold text-primary">
                 {initials}
               </div>
-              <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <p className="truncate text-xs font-medium text-foreground">{displayName}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{user.email}</p>
+              {user.isAdmin ? (
+                <span className="w-fit rounded-full border border-amber-400/35 bg-amber-400/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide text-amber-200">
+                  {t("adminBadge")}
+                </span>
+              ) : null}
+            </div>
             </div>
             {AsideNav}
           </div>

@@ -7,14 +7,23 @@ import {
   Globe2,
   Landmark,
   Newspaper,
+  Scale,
   ShieldCheck,
   TrendingDown,
   TrendingUp,
+  UserRound,
+  Users,
+  Wallet,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { formatRelativeTime } from "@/lib/market/time";
-import type { AssetDossier, AssetHistoryPoint } from "@/lib/market/types";
+import type {
+  AssetDossier,
+  AssetHistoryPoint,
+  IntlAnnualStatementsSnapshot,
+  IntlKeyMetricsTtm,
+} from "@/lib/market/types";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { WatchlistToggleButton } from "@/components/market/watchlist-toggle-button";
@@ -25,18 +34,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { buildPortfolioHref } from "@/lib/market/portfolio-links";
+import type { UserPortfolioPositionView } from "@/lib/user-portfolio/load";
+import type { PortfolioPositionSnapshot } from "@/lib/user-portfolio/snapshot";
 import { cn } from "@/lib/utils";
 
 export async function AssetTerminalPage({
   dossier,
   locale,
   watchlisted,
+  portfolioPosition = null,
+  portfolioSnapshot = null,
 }: {
   dossier: AssetDossier;
   locale: string;
   watchlisted: boolean;
+  portfolioPosition?: UserPortfolioPositionView | null;
+  portfolioSnapshot?: PortfolioPositionSnapshot | null;
 }) {
   const t = await getTranslations("AssetTerminal");
+  const ins = dossier.historicalInsights;
   const price = dossier.quote.regularMarketPrice;
   const pct = dossier.quote.regularMarketChangePercent;
   const up = pct != null && pct >= 0;
@@ -48,6 +65,8 @@ export async function AssetTerminalPage({
   const chartTrend = computeChartTrend(dossier.history);
   const assistantHref = buildAssistantAssetHref(dossier);
   const compareHref = buildCompareAssetHref(dossier);
+  const portfolioHref = buildPortfolioAssetHref(dossier, portfolioPosition);
+  const hasPortfolioPosition = portfolioPosition != null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -98,6 +117,13 @@ export async function AssetTerminalPage({
             <div className="mt-5 flex flex-wrap gap-3">
               <WatchlistToggleButton symbol={dossier.symbol} initialSaved={watchlisted} />
               <Link
+                href={portfolioHref}
+                className={buttonVariants({ variant: "outline", size: "lg" })}
+              >
+                <Wallet className="size-4" />
+                {hasPortfolioPosition ? t("portfolioUpdateCta") : t("portfolioCta")}
+              </Link>
+              <Link
                 href={compareHref}
                 className={buttonVariants({ variant: "outline", size: "lg" })}
               >
@@ -132,6 +158,14 @@ export async function AssetTerminalPage({
           </div>
         </div>
       </header>
+
+      {portfolioSnapshot ? (
+        <TerminalPortfolioStrip
+          snapshot={portfolioSnapshot}
+          locale={locale}
+          portfolioHref={portfolioHref}
+        />
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
         <SignalCard
@@ -248,6 +282,26 @@ export async function AssetTerminalPage({
                   )
                 }
               />
+              {(dossier.region === "intl" || dossier.ceoName) ? (
+                <ProfileRow
+                  icon={UserRound}
+                  label={t("profileCeo")}
+                  value={dossier.ceoName ?? t("notAvailable")}
+                />
+              ) : null}
+              {(dossier.region === "intl" || dossier.fullTimeEmployees != null) ? (
+                <ProfileRow
+                  icon={Users}
+                  label={t("profileEmployees")}
+                  value={
+                    dossier.fullTimeEmployees != null && Number.isFinite(dossier.fullTimeEmployees)
+                      ? new Intl.NumberFormat(locale, {
+                          maximumFractionDigits: 0,
+                        }).format(dossier.fullTimeEmployees)
+                      : t("notAvailable")
+                  }
+                />
+              ) : null}
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-muted-foreground">
                 {t("profileCoverage", {
                   source: dossier.sourceLabel,
@@ -280,8 +334,341 @@ export async function AssetTerminalPage({
               />
             </CardContent>
           </Card>
+
+          {dossier.region === "intl" && intlFundamentalsHasData(dossier.intlKeyMetricsTtm) ? (
+            <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
+              <CardHeader>
+                <CardTitle className="font-heading">{t("fundamentalsTitle")}</CardTitle>
+                <CardDescription>{t("fundamentalsSubtitle")}</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3 sm:grid-cols-2">
+                <MiniMetric
+                  label={t("fundDividendYield")}
+                  value={formatPercentFromMaybeDecimal(
+                    dossier.intlKeyMetricsTtm!.dividendYield,
+                    locale,
+                  )}
+                />
+                <MiniMetric
+                  label={t("fundPeTtm")}
+                  value={formatMultiple(dossier.intlKeyMetricsTtm!.peRatio)}
+                />
+                <MiniMetric
+                  label={t("fundMarketCapTtm")}
+                  value={formatCompactMoney(
+                    dossier.intlKeyMetricsTtm!.marketCap,
+                    dossier.currency,
+                    locale,
+                  )}
+                />
+                <MiniMetric
+                  label={t("fundEnterpriseValue")}
+                  value={formatCompactMoney(
+                    dossier.intlKeyMetricsTtm!.enterpriseValue,
+                    dossier.currency,
+                    locale,
+                  )}
+                />
+                <MiniMetric
+                  label={t("fundRevenuePerShare")}
+                  value={formatMoney(
+                    dossier.intlKeyMetricsTtm!.revenuePerShare,
+                    dossier.currency,
+                    locale,
+                  )}
+                />
+                <MiniMetric
+                  label={t("fundNetIncomePerShare")}
+                  value={formatMoney(
+                    dossier.intlKeyMetricsTtm!.netIncomePerShare,
+                    dossier.currency,
+                    locale,
+                  )}
+                />
+                <MiniMetric
+                  label={t("fundOcfPerShare")}
+                  value={formatMoney(
+                    dossier.intlKeyMetricsTtm!.operatingCashFlowPerShare,
+                    dossier.currency,
+                    locale,
+                  )}
+                />
+                <MiniMetric
+                  label={t("fundFcfPerShare")}
+                  value={formatMoney(
+                    dossier.intlKeyMetricsTtm!.freeCashFlowPerShare,
+                    dossier.currency,
+                    locale,
+                  )}
+                />
+                <MiniMetric
+                  label={t("fundRoe")}
+                  value={formatPercentFromMaybeDecimal(dossier.intlKeyMetricsTtm!.roe, locale)}
+                />
+                <MiniMetric
+                  label={t("fundDebtToEquity")}
+                  value={formatRatioPlain(dossier.intlKeyMetricsTtm!.debtToEquity)}
+                />
+                <MiniMetric
+                  label={t("fundCurrentRatio")}
+                  value={formatRatioPlain(dossier.intlKeyMetricsTtm!.currentRatio)}
+                />
+              </CardContent>
+              <div className="border-t border-white/10 px-6 pb-4 text-xs text-muted-foreground">
+                {t("fundSource", { source: dossier.intlKeyMetricsTtm!.sourceLabel })}
+              </div>
+            </Card>
+          ) : null}
         </div>
       </div>
+
+      {dossier.region === "intl" && intlStatementsHasData(dossier.intlAnnualStatements) ? (
+        <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
+          <CardHeader className="space-y-3">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="rounded-xl border border-primary/25 bg-primary/10 p-2.5 text-primary">
+                  <Scale className="size-5 shrink-0" aria-hidden />
+                </div>
+                <div className="min-w-0">
+                  <CardTitle className="font-heading">{t("statementsTitle")}</CardTitle>
+                  <CardDescription className="mt-2 max-w-3xl leading-relaxed">
+                    {t("statementsSubtitle")}
+                  </CardDescription>
+                </div>
+              </div>
+              {dossier.intlAnnualStatements?.periodLabel ? (
+                <Badge className="shrink-0 border-white/15 bg-white/[0.06] font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {dossier.intlAnnualStatements.periodLabel}
+                </Badge>
+              ) : null}
+            </div>
+          </CardHeader>
+          <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <MiniMetric
+              label={t("stmtRevenue")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.revenue,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtGrossProfit")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.grossProfit,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtOperatingIncome")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.operatingIncome,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtNetIncome")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.netIncome,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtTotalAssets")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.totalAssets,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtTotalDebt")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.totalDebt,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtTotalEquity")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.totalEquity,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtCash")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.cashAndEquivalents,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtOperatingCf")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.operatingCashFlow,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtCapex")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.capex,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+            <MiniMetric
+              label={t("stmtFreeCashFlow")}
+              value={formatCompactMoney(
+                dossier.intlAnnualStatements!.freeCashFlow,
+                dossier.intlAnnualStatements!.reportedCurrency ?? dossier.currency,
+                locale,
+              )}
+            />
+          </CardContent>
+          <div className="space-y-2 border-t border-white/10 px-6 py-4 text-xs leading-relaxed text-muted-foreground">
+            <p>{t("statementsDisclaimer")}</p>
+            <p className="font-mono text-[10px] uppercase tracking-wider opacity-90">
+              {t("fundSource", { source: dossier.intlAnnualStatements!.sourceLabel })}
+            </p>
+          </div>
+        </Card>
+      ) : null}
+
+      <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
+        <CardHeader>
+          <CardTitle className="font-heading">{t("termsTitle")}</CardTitle>
+          <CardDescription>{t("termsSubtitle")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <p className="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">
+              {t("termsActivityLead")}
+            </p>
+            <p className="text-sm leading-relaxed text-foreground/95">{dossier.summary}</p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <MiniMetric label={t("profileSector")} value={dossier.sector ?? t("notAvailable")} />
+            <MiniMetric label={t("profileIndustry")} value={dossier.industry ?? t("notAvailable")} />
+            <MiniMetric label={t("profileExchange")} value={dossier.exchange ?? t("notAvailable")} />
+            <MiniMetric label={t("profileCountry")} value={dossier.country ?? t("notAvailable")} />
+            <MiniMetric
+              label={t("profileHeadquarters")}
+              value={dossier.headquarters ?? t("notAvailable")}
+            />
+            <MiniMetric
+              label={t("profileIpo")}
+              value={
+                dossier.ipoDate
+                  ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
+                      new Date(dossier.ipoDate),
+                    )
+                  : t("notAvailable")
+              }
+            />
+          </div>
+
+          <div className="rounded-2xl border border-amber-500/15 bg-amber-950/10 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+            {t("termsSubsidiariesNote")}
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">
+              {t("termsPeersTitle")}
+            </p>
+            <p className="text-xs text-muted-foreground">{t("termsPeersDisclaimer")}</p>
+            {dossier.intlStockPeers && dossier.intlStockPeers.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {dossier.intlStockPeers.map((peer) => (
+                  <Link
+                    key={peer}
+                    href={`/ativo/${encodeURIComponent(peer)}`}
+                    className={cn(
+                      buttonVariants({ variant: "outline", size: "sm" }),
+                      "rounded-full border-white/15 bg-white/[0.04] font-mono text-xs",
+                    )}
+                  >
+                    {peer}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("termsPeersEmpty")}</p>
+            )}
+          </div>
+
+          <div className="space-y-3 border-t border-white/10 pt-6">
+            <p className="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">
+              {t("termsCalendarTitle")}
+            </p>
+            <p className="text-xs text-muted-foreground">{t("termsCalendarDisclaimer")}</p>
+            {ins.historyDepthLimited ? (
+              <p className="text-xs text-amber-200/90">{t("termsHistoryLimited")}</p>
+            ) : null}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <MiniMetric
+                label={t("termsBestYear")}
+                value={
+                  ins.bestCalendarYear
+                    ? `${ins.bestCalendarYear.year} · ${formatSignedPercent(ins.bestCalendarYear.returnPct)}`
+                    : t("notAvailable")
+                }
+                accent="text-emerald-400"
+              />
+              <MiniMetric
+                label={t("termsWorstYear")}
+                value={
+                  ins.worstCalendarYear
+                    ? `${ins.worstCalendarYear.year} · ${formatSignedPercent(ins.worstCalendarYear.returnPct)}`
+                    : t("notAvailable")
+                }
+                accent="text-rose-400"
+              />
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                {t("termsNegativeYears")}
+              </p>
+              <p className="mt-2 font-mono text-sm text-foreground">
+                {ins.negativeReturnYears.length > 0
+                  ? ins.negativeReturnYears.join(", ")
+                  : t("termsNegativeYearsNone")}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 border-t border-white/10 pt-6">
+            <p className="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">
+              {t("termsVolumeYearsTitle")}
+            </p>
+            {ins.volumeDataPartial ? (
+              <p className="text-xs text-amber-200/90">{t("termsVolumePartial")}</p>
+            ) : null}
+            {ins.topVolumeYears.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-3">
+                {ins.topVolumeYears.map((row, index) => (
+                  <MiniMetric
+                    key={row.year}
+                    label={`${row.year} · #${index + 1}`}
+                    value={formatCompactNumber(row.totalVolume, locale)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t("notAvailable")}</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
@@ -404,6 +791,57 @@ export async function AssetTerminalPage({
       </div>
     </div>
   );
+}
+
+function intlStatementsHasData(m: IntlAnnualStatementsSnapshot | null) {
+  if (!m) return false;
+  const nums = [
+    m.revenue,
+    m.grossProfit,
+    m.operatingIncome,
+    m.netIncome,
+    m.totalAssets,
+    m.totalDebt,
+    m.totalEquity,
+    m.cashAndEquivalents,
+    m.operatingCashFlow,
+    m.capex,
+    m.freeCashFlow,
+  ];
+  return nums.some((v) => v != null && Number.isFinite(v));
+}
+
+function intlFundamentalsHasData(m: IntlKeyMetricsTtm | null) {
+  if (!m) return false;
+  const nums = [
+    m.dividendYield,
+    m.peRatio,
+    m.marketCap,
+    m.enterpriseValue,
+    m.revenuePerShare,
+    m.netIncomePerShare,
+    m.operatingCashFlowPerShare,
+    m.freeCashFlowPerShare,
+    m.roe,
+    m.debtToEquity,
+    m.currentRatio,
+  ];
+  return nums.some((v) => v != null && Number.isFinite(v));
+}
+
+function formatPercentFromMaybeDecimal(value: number | null | undefined, locale: string) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  const abs = Math.abs(value);
+  const fraction = abs <= 1 ? value : value / 100;
+  return new Intl.NumberFormat(locale, {
+    style: "percent",
+    maximumFractionDigits: 2,
+  }).format(fraction);
+}
+
+function formatRatioPlain(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return value.toFixed(2);
 }
 
 function SignalCard({
@@ -680,6 +1118,111 @@ function buildCompareAssetHref(dossier: AssetDossier) {
     symbols: dossier.symbol,
   });
   return `/compare?${params.toString()}`;
+}
+
+function buildPortfolioAssetHref(
+  dossier: AssetDossier,
+  position?: UserPortfolioPositionView | null,
+) {
+  return buildPortfolioHref(dossier.symbol, {
+    price: dossier.quote.regularMarketPrice,
+    quantity: position?.quantity ?? null,
+    averageCost: position?.averageCost ?? null,
+  });
+}
+
+async function TerminalPortfolioStrip({
+  snapshot,
+  locale,
+  portfolioHref,
+}: {
+  snapshot: PortfolioPositionSnapshot;
+  locale: string;
+  portfolioHref: string;
+}) {
+  const t = await getTranslations("AssetTerminal");
+  const { position } = snapshot;
+  const currency = position.currency;
+  const totalUp = (snapshot.totalPnl ?? 0) >= 0;
+  const dayUp = (snapshot.dayPnl ?? 0) >= 0;
+
+  return (
+    <Card className="glass-panel border-primary/25 bg-primary/[0.06] shadow-none ring-0">
+      <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <CardTitle className="font-heading text-lg">{t("portfolioPositionTitle")}</CardTitle>
+          <CardDescription>{t("portfolioPositionDisclaimer")}</CardDescription>
+        </div>
+        <Link href={portfolioHref} className={buttonVariants({ variant: "outline", size: "sm" })}>
+          <Wallet className="size-4" />
+          {t("portfolioUpdateCta")}
+        </Link>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <PortfolioKpi
+            label={t("portfolioPositionQty")}
+            value={new Intl.NumberFormat(locale, { maximumFractionDigits: 4 }).format(
+              position.quantity,
+            )}
+          />
+          <PortfolioKpi
+            label={t("portfolioPositionCost")}
+            value={formatMoney(position.averageCost, currency, locale)}
+          />
+          <PortfolioKpi
+            label={t("portfolioPositionValue")}
+            value={formatMoney(snapshot.marketValue, currency, locale)}
+          />
+          <PortfolioKpi
+            label={t("portfolioPositionPnl")}
+            value={formatMoney(snapshot.totalPnl, currency, locale)}
+            delta={formatSignedPercent(snapshot.totalPnlPercent)}
+            positive={totalUp}
+          />
+          <PortfolioKpi
+            label={t("portfolioPositionDayPnl")}
+            value={formatMoney(snapshot.dayPnl, currency, locale)}
+            delta={formatSignedPercent(snapshot.dayPnlPercent)}
+            positive={dayUp}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PortfolioKpi({
+  label,
+  value,
+  delta,
+  positive,
+}: {
+  label: string;
+  value: string;
+  delta?: string;
+  positive?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="font-heading mt-1 text-lg font-semibold text-foreground">{value}</p>
+      {delta ? (
+        <p
+          className={cn(
+            "mt-0.5 text-xs font-semibold",
+            positive == null
+              ? "text-muted-foreground"
+              : positive
+                ? "text-emerald-400"
+                : "text-rose-400",
+          )}
+        >
+          {delta}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function formatWebsiteLabel(value: string) {

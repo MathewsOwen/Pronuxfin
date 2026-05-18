@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 
 /** Tamanho máx. aceite — protege contra POST volumoso. */
 const MAX_BYTES = 100_000;
@@ -8,6 +9,9 @@ const MAX_BYTES = 100_000;
  * Saida vai para stdout (Vercel / Node) onde o relatório aparece concatenado aos logs estruturados.
  */
 export async function POST(req: Request): Promise<Response> {
+  const limited = await rateLimitResponse("csp-report", 30, 60_000);
+  if (limited) return limited;
+
   const len = Number(req.headers.get("content-length") ?? "0");
   if (Number.isFinite(len) && len > MAX_BYTES) {
     return NextResponse.json({ ok: false, error: "payload_too_large" }, { status: 413 });

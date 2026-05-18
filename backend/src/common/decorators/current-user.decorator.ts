@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 
-export type RequestUser = { userId: string; email: string };
+export type RequestUser = { userId: string; email: string; roles: string[] };
 
 export const CurrentUser = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): RequestUser => {

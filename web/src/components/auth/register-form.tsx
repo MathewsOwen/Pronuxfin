@@ -40,6 +40,8 @@ export function RegisterForm() {
         passwordMin: tVal("passwordMin"),
         passwordLetters: tVal("passwordLetters"),
         passwordDigits: tVal("passwordDigits"),
+        nameRequired: tVal("nameRequired"),
+        nameMax: tVal("nameMax"),
       }),
     [tVal],
   );
@@ -58,7 +60,7 @@ export function RegisterForm() {
     const payload = {
       email: data.email,
       password: data.password,
-      ...(data.name?.trim() ? { name: data.name.trim() } : {}),
+      name: data.name.trim(),
     };
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -115,10 +117,14 @@ export function RegisterForm() {
             </p>
           ) : null}
           <div className="grid gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-            <Label htmlFor="name">{t("name")}</Label>
+            <Label htmlFor="name">
+              {t("name")} <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="name"
               autoComplete="name"
+              required
+              aria-required
               aria-invalid={!!errors.name}
               className="h-10 border-white/10 bg-black/25"
               {...register("name")}

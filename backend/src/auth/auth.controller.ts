@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
@@ -10,11 +11,15 @@ import {
   CurrentUser,
   type RequestUser,
 } from '../common/decorators/current-user.decorator';
+import { PLATFORM_ADMIN_ROLE } from './platform-admin.util';
 
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly users: UsersService,
+  ) {}
 
   /** Alinhado ao rate limit da rota Next `/api/auth/register` (15 / 5 min). */
   @Throttle({ default: { limit: 15, ttl: 300_000 } })
@@ -47,7 +52,13 @@ export class AuthController {
   @SkipThrottle()
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  me(@CurrentUser() user: RequestUser) {
-    return { id: user.userId, email: user.email };
+  async me(@CurrentUser() user: RequestUser) {
+    const record = await this.users.findById(user.userId);
+    return {
+      id: user.userId,
+      email: user.email,
+      name: record?.name ?? null,
+      isAdmin: user.roles.includes(PLATFORM_ADMIN_ROLE),
+    };
   }
 }

@@ -1,6 +1,6 @@
+import type { PrismaClient } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import { prisma } from "@/lib/prisma";
 import {
   DEFAULT_WATCHLIST_ALERT_RULES,
   normalizeAlertRuleScope,
@@ -8,6 +8,9 @@ import {
   type WatchlistAlertRule,
   type WatchlistAlertRuleType,
 } from "@/lib/user-watchlist/alerts";
+import { prisma } from "@/lib/prisma";
+
+type RulesDb = Pick<PrismaClient, "$queryRaw" | "$executeRaw">;
 
 export async function listUserWatchlistAlertRules(
   userId: string,
@@ -55,10 +58,31 @@ export async function upsertUserWatchlistAlertRule(
   userId: string,
   input: WatchlistAlertRule,
 ): Promise<void> {
+  await upsertUserWatchlistAlertRuleWithDb(prisma, userId, input);
+}
+
+/** Atualiza várias regras numa única transação — evita estado a meio em falhas. */
+export async function upsertManyUserWatchlistAlertRules(
+  userId: string,
+  inputs: WatchlistAlertRule[],
+): Promise<void> {
+  if (inputs.length === 0) return;
+  await prisma.$transaction(async (tx) => {
+    for (const input of inputs) {
+      await upsertUserWatchlistAlertRuleWithDb(tx, userId, input);
+    }
+  });
+}
+
+async function upsertUserWatchlistAlertRuleWithDb(
+  db: RulesDb,
+  userId: string,
+  input: WatchlistAlertRule,
+): Promise<void> {
   const symbol = normalizeAlertRuleScope(input.symbol);
   const ruleType = normalizeRuleType(input.ruleType);
 
-  const existing = await prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+  const existing = await db.$queryRaw<Array<{ id: string }>>(Prisma.sql`
     SELECT "id"
     FROM "UserWatchlistAlertRule"
     WHERE "userId" = ${userId}
@@ -68,7 +92,7 @@ export async function upsertUserWatchlistAlertRule(
   `);
 
   if (existing[0]?.id) {
-    await prisma.$executeRaw(Prisma.sql`
+    await db.$executeRaw(Prisma.sql`
       UPDATE "UserWatchlistAlertRule"
       SET "threshold" = ${input.threshold},
           "enabled" = ${input.enabled},
@@ -78,7 +102,7 @@ export async function upsertUserWatchlistAlertRule(
     return;
   }
 
-  await prisma.$executeRaw(Prisma.sql`
+  await db.$executeRaw(Prisma.sql`
     INSERT INTO "UserWatchlistAlertRule"
       ("id", "userId", "symbol", "ruleType", "threshold", "enabled", "createdAt", "updatedAt")
     VALUES

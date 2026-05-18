@@ -1,6 +1,6 @@
 # Deploy PRONUXFIN (frontend Next.js)
 
-> Para a visao completa de GitHub + banco + backend + smoke test de producao, consulte `docs/github-production-checklist.md` na raiz.
+> Para a visão completa de GitHub + banco + backend + smoke test de produção, consulte `docs/github-production-checklist.md` na raiz. **Lista curta só das tuas ações (chaves, Vercel, FMP, IA):** `docs/PRONUXFIN_OPERATOR_CHECKLIST.md`.
 
 ## Por que não abria no PC?
 
@@ -21,16 +21,19 @@
 1. Suba o código para um repositório **GitHub**.
 2. Em [vercel.com](https://vercel.com), **Add New Project** → importe o repo.
 3. Configure **Root Directory** = `web` (obrigatório: o Next vive em `web/` e as rotas públicas estão em `src/app/[locale]/`; sem isto verá 404 na home).
-4. Variáveis de ambiente (Production):
+4. Variáveis de ambiente (Production) — copie de `web/.env.example` o bloco comentado «Produção»:
 
    | Nome | Valor |
    |------|--------|
    | `JWT_SECRET` | Mesmo segredo forte do backend (≥32 caracteres) |
-   | `NEXT_PUBLIC_SITE_URL` | `https://seu-dominio.vercel.app` ou seu domínio final |
-   | `API_URL` | URL pública do NestJS (ex.: Railway/Render). Sem isso, login/registro quebram. |
-   | `BRAPI_TOKEN` | (opcional) Token [brapi.dev](https://brapi.dev) para cotações mais estáveis |
+   | `NEXT_PUBLIC_SITE_URL` | `https://www.pronuxfin.com.br` (ou URL Vercel até o DNS estar pronto) |
+   | `API_URL` | URL HTTPS pública do NestJS (ex.: `https://api.pronuxfin.com.br`). Sem isto, login/registo quebram. |
+   | `BRAPI_TOKEN` | (opcional) Token [brapi.dev](https://brapi.dev) para cotações B3 mais estáveis |
+   | `FMP_API_KEY` ou `FINANCIAL_MODELING_PREP_API_KEY` | (opcional) Dossiês internacionais mais ricos |
 
-5. Se o front usar recursos autenticados com Prisma no ambiente Next, configure tambem:
+   Admin no painel: define-se no **backend** (`PLATFORM_ADMIN_EMAILS` em `backend/.env` ou env do host), não na Vercel.
+
+5. Se o front usar recursos autenticados com Prisma no ambiente Next, configure também:
 
    - `DATABASE_URL`
    - `AI_KEYS_ENCRYPTION_KEY`
@@ -41,17 +44,16 @@
 
 1. Crie um projeto na Vercel e copie **Org ID** e **Project ID** (Settings → General).
 2. Gere um **Token** em Vercel → Account Settings → Tokens.
-3. No GitHub do repo: **Settings → Secrets → Actions** e adicione:
-   - `VERCEL_TOKEN`
-   - `VERCEL_ORG_ID`
-   - `VERCEL_PROJECT_ID`
-4. Cada push relevante na branch `main` dispara `.github/workflows/deploy-web-vercel.yml`.
+3. No GitHub do repo:
+   - **Settings → Secrets and variables → Actions → Variables**: crie `ENABLE_VERCEL_CLI_DEPLOY` = `true` (sem isto o job de deploy **não corre** — o workflow está desligado por defeito).
+   - **Secrets**: adicione `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (IDs em Vercel → projeto → Settings → General; token em Account Settings → Tokens).
+4. Com a variável e os secrets definidos, cada push relevante na branch `main` dispara `.github/workflows/deploy-web-vercel.yml`.
 
-## Antes de abrir para usuarios reais
+## Antes de abrir para utilizadores reais
 
-1. Validar `API_URL` apontando para a API publica correta
-2. Confirmar que `JWT_SECRET` e configuracoes de auth estao coerentes entre front e backend
-3. Confirmar que o banco real ja recebeu as migracoes
+1. Validar `API_URL` apontando para a API pública correta
+2. Confirmar que `JWT_SECRET` e configurações de auth estão coerentes entre front e backend
+3. Confirmar que o banco real já recebeu as migrações
 4. Testar login, dashboard, watchlist, comparador, alertas e reset de senha
 
 ## APIs “mais rápidas” neste projeto

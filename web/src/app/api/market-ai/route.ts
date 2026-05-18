@@ -12,8 +12,10 @@ import {
   describeAudienceTone,
   describeChannelFocus,
 } from "@/lib/assistant/market-ai-personas";
+import { runMarketAiEnsembleParallel } from "@/lib/market/market-ai-ensemble";
 import { runMarketEngine } from "@/lib/market/market-ai-dispatch";
 import type { MarketAiEngineId } from "@/lib/market/market-ai-providers";
+import { resolveMarketAiEngineTryOrder } from "@/lib/market/market-ai-engine-pick";
 import {
   listEnginesForUser,
   MARKET_AI_ENGINE_ZOD,
@@ -25,6 +27,7 @@ import {
   summarizeQuotesForAi,
 } from "@/lib/market/market-ai-context";
 import { loadDecryptedAiKeys } from "@/lib/user-ai-keys/load";
+import { allowWithinWindow } from "@/lib/security/simple-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +36,8 @@ const bodySchema = z.object({
   audience: z.enum(["pf", "institution"]).default("pf"),
   channel: z.enum(AI_CHANNEL_IDS_ZOD).default("tutor"),
   engine: z.enum(MARKET_AI_ENGINE_ZOD).optional(),
+  /** Vários motores em paralelo (custo maior) — só com ≥2 motores configurados. */
+  ensemble: z.boolean().optional(),
   locale: z.enum(["pt-BR", "en"]).optional(),
   messages: z
     .array(
@@ -52,6 +57,7 @@ const HTTP_MSG: Record<
     session401: string;
     body400: string;
     json400: string;
+    rate429: string;
   }
 > = {
   "pt-BR": {
@@ -61,6 +67,7 @@ const HTTP_MSG: Record<
     body400:
       "Formato inválido: envie JSON com messages[], opcionalmente audience, channel, engine e locale.",
     json400: "JSON inválido no corpo.",
+    rate429: "Muitos pedidos à IA de mercado. Aguarde um minuto e tente de novo.",
   },
   en: {
     jwt503: "Cannot authenticate users — JWT_SECRET is missing on this server.",
@@ -68,6 +75,7 @@ const HTTP_MSG: Record<
     body400:
       "Invalid payload: JSON must include messages[], optional audience, channel, engine, locale.",
     json400: "Invalid JSON payload.",
+    rate429: "Too many market AI requests. Wait a minute and try again.",
   },
 };
 
@@ -213,11 +221,28 @@ export async function POST(req: Request) {
   }));
 
   const userId = await getSessionUserId();
+  if (
+    userId &&
+    !allowWithinWindow(`market-ai:user:${userId}`, 12, 60_000)
+  ) {
+    return NextResponse.json(
+      {
+        ok: false as const,
+        code: "MARKET_AI_RATE_LIMITED",
+        message: HTTP_MSG[locale].rate429,
+      },
+      { status: 429 },
+    );
+  }
   const configured = await listEnginesForUser(userId);
-  const chosen: MarketAiEngineId | null =
-    parsed.engine && configured.includes(parsed.engine)
-      ? parsed.engine
-      : (configured[0] ?? null);
+  const lastUser =
+    [...clipped].reverse().find((m) => m.role === "user")?.content ?? "";
+  const tryOrder = resolveMarketAiEngineTryOrder({
+    available: configured,
+    channel: parsed.channel,
+    lastUserMessage: lastUser,
+    explicit: parsed.engine,
+  });
 
   const keyMaterial = userId ? await loadDecryptedAiKeys(userId) : null;
   const keyOverrides = keyMaterial
@@ -227,10 +252,47 @@ export async function POST(req: Request) {
       }
     : null;
 
+  const ensembleAllowed = process.env.MARKET_AI_ENSEMBLE_DISABLED?.trim() !== "1";
+  const ensembleRequested =
+    Boolean(parsed.ensemble) &&
+    ensembleAllowed &&
+    !parsed.engine &&
+    configured.length >= 2;
+  const ensembleMaxEngines = Math.min(
+    5,
+    Math.max(2, Number.parseInt(process.env.MARKET_AI_ENSEMBLE_MAX_ENGINES ?? "3", 10) || 3),
+  );
+  const enginesStableOrder = (["openai", "gemini", "ollama"] as const).filter(
+    (id): id is MarketAiEngineId => configured.includes(id),
+  );
+
   try {
-    if (chosen) {
+    if (ensembleRequested) {
+      const panel = await runMarketAiEnsembleParallel({
+        engines: enginesStableOrder,
+        maxEngines: ensembleMaxEngines,
+        locale,
+        system: systemPrompt,
+        messages: apiMessages,
+        keyOverrides,
+      });
+      if (panel) {
+        return NextResponse.json({
+          ok: true as const,
+          demo: false as const,
+          reply: panel.reply,
+          ensemble: true as const,
+          segments: panel.segments.map((s) => ({
+            engine: s.engine,
+            provider: s.provider,
+          })),
+        });
+      }
+    }
+
+    for (const engineId of tryOrder) {
       const out = await runMarketEngine(
-        chosen,
+        engineId,
         {
           system: systemPrompt,
           messages: apiMessages,
@@ -243,17 +305,14 @@ export async function POST(req: Request) {
           demo: false as const,
           reply: out.text,
           provider: out.provider,
+          engine: engineId,
         });
       }
     }
 
-    const lastUser =
-      [...clipped].reverse().find((m) => m.role === "user")?.content ?? "";
     const reply = demoMarketReply(lastUser, marketBlock, locale);
     return NextResponse.json({ ok: true as const, demo: true as const, reply });
   } catch {
-    const lastUser =
-      [...clipped].reverse().find((m) => m.role === "user")?.content ?? "";
     const reply = `${demoMarketReply(lastUser, marketBlock, locale)}\n\n(${remoteModelFailureSuffix(locale)})`;
 
     return NextResponse.json({

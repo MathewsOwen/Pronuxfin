@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { jsonPayloadHeaders } from "@/lib/auth/forward-request-headers";
 import { normalizeUpstreamAuthError } from "@/lib/auth/upstream-auth-error";
 import { attachRequestId } from "@/lib/http/request-id";
+import { readRequestJson } from "@/lib/http/read-json-body";
 import {
   authRateLimitedResponse,
   getRateLimitClientKey,
@@ -35,11 +36,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const body = await req.json();
+  const parsedBody = await readRequestJson(req);
+  if (!parsedBody.ok) {
+    return attachRequestId(req, parsedBody.response);
+  }
+
   const res = await fetch(`${apiUrl}/auth/reset-password`, {
     method: "POST",
     headers: jsonPayloadHeaders(req),
-    body: JSON.stringify(body),
+    body: JSON.stringify(parsedBody.value),
   });
 
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;

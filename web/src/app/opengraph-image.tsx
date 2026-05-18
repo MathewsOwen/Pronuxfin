@@ -55,7 +55,7 @@ export default function OpenGraphImage() {
               boxShadow: "0 0 18px rgba(56, 189, 248, 0.65)",
             }}
           />
-          Cognitive markets stack
+          Cognitive markets desk
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -101,7 +101,7 @@ export default function OpenGraphImage() {
         >
           <span>{hostLabel}</span>
           <span style={{ fontFamily: "ui-monospace, monospace", fontSize: 13 }}>
-            Next.js · NestJS · PostgreSQL
+            Dados em tempo real · alertas · IA com limites explícitos
           </span>
         </div>
       </div>

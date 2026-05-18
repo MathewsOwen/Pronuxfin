@@ -75,6 +75,66 @@ export type AssetMoveSnapshot = {
   close: number;
 };
 
+/** Retorno aproximado por ano civil a partir da série de fechamentos (primeiro vs último pregão do ano na janela). */
+export type CalendarYearReturn = {
+  year: number;
+  returnPct: number;
+};
+
+/** Volume agregado por ano civil na janela (soma dos volumes diários quando existirem). */
+export type CalendarYearVolume = {
+  year: number;
+  totalVolume: number;
+};
+
+/** Leituras derivadas do histórico de cotações — não substituem demonstrações financeiras nem filings. */
+export type AssetDossierHistoricalInsights = {
+  /** Série curta para inferências multi-ano (ex.: só indicativa ou poucos anos). */
+  historyDepthLimited: boolean;
+  calendarYearReturns: CalendarYearReturn[];
+  bestCalendarYear: CalendarYearReturn | null;
+  worstCalendarYear: CalendarYearReturn | null;
+  /** Anos civis com retorno negativo na janela (mais recentes primeiro). */
+  negativeReturnYears: number[];
+  topVolumeYears: CalendarYearVolume[];
+  /** Alguns pregões sem volume na série. */
+  volumeDataPartial: boolean;
+};
+
+/** Métricas TTM (trailing twelve months) via FMP — só preenchido para ativos internacionais quando a API devolve dados. */
+export type IntlKeyMetricsTtm = {
+  sourceLabel: string;
+  dividendYield: number | null;
+  peRatio: number | null;
+  marketCap: number | null;
+  enterpriseValue: number | null;
+  revenuePerShare: number | null;
+  netIncomePerShare: number | null;
+  operatingCashFlowPerShare: number | null;
+  freeCashFlowPerShare: number | null;
+  roe: number | null;
+  debtToEquity: number | null;
+  currentRatio: number | null;
+};
+
+/** Último exercício anual consolidado (FMP) — exterior. Valores como reportados pela fonte. */
+export type IntlAnnualStatementsSnapshot = {
+  sourceLabel: string;
+  periodLabel: string | null;
+  reportedCurrency: string | null;
+  revenue: number | null;
+  grossProfit: number | null;
+  operatingIncome: number | null;
+  netIncome: number | null;
+  totalAssets: number | null;
+  totalDebt: number | null;
+  totalEquity: number | null;
+  cashAndEquivalents: number | null;
+  operatingCashFlow: number | null;
+  capex: number | null;
+  freeCashFlow: number | null;
+};
+
 export type AssetDossier = {
   symbol: string;
   region: EquityMarketRegion;
@@ -90,6 +150,12 @@ export type AssetDossier = {
   ipoDate: string | null;
   sector: string | null;
   industry: string | null;
+  /** Exterior (FMP): CEO reportado no perfil, quando existir. */
+  ceoName: string | null;
+  /** Exterior (FMP): quadro aproximado de colaboradores, quando a fonte publicar. */
+  fullTimeEmployees: number | null;
+  /** Exterior: tickers de pares comparáveis (setor) — não são filiais nem grupo econômico. */
+  intlStockPeers: string[] | null;
   summary: string;
   keywords: string[];
   sourceLabel: string;
@@ -107,4 +173,10 @@ export type AssetDossier = {
   bestMove: AssetMoveSnapshot | null;
   worstMove: AssetMoveSnapshot | null;
   relatedNews: NewsArticle[];
+  /** Exterior: métricas TTM (FMP) quando configurado — complementa Yahoo no dossiê. */
+  intlKeyMetricsTtm: IntlKeyMetricsTtm | null;
+  /** Exterior: último ano fiscal reportado (DRE / balanço / fluxo) via FMP quando disponível. */
+  intlAnnualStatements: IntlAnnualStatementsSnapshot | null;
+  /** Retornos e volumes por ano civil derivados do histórico carregado. */
+  historicalInsights: AssetDossierHistoricalInsights;
 };
