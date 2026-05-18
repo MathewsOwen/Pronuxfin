@@ -24,9 +24,12 @@ import { RevealOnce } from "@/components/marketing/landing-reveal";
 
 type NewsApiResponse = {
   ok: boolean;
-  articles: NewsArticle[];
-  fetchedAt: number;
+  articles?: NewsArticle[];
+  fetchedAt?: number;
   message?: string;
+  error?: string;
+  feedsSucceeded?: number;
+  feedsAttempted?: number;
 };
 
 const EMPTY_ARTICLES: NewsArticle[] = [];
@@ -72,10 +75,35 @@ export function NewsLiveHub({
   const [payload, setPayload] = useState<NewsApiResponse | null>(null);
 
   const pull = useCallback(async () => {
-    const res = await fetch("/api/news", { cache: "no-store" });
-    const json = (await res.json()) as NewsApiResponse;
-    setPayload(json);
-  }, []);
+    try {
+      const res = await fetch("/api/news", { cache: "no-store" });
+      const json = (await res.json()) as NewsApiResponse;
+      if (res.status === 429) {
+        setPayload({
+          ok: false,
+          articles: [],
+          fetchedAt: Date.now(),
+          message: json.error === "rate_limited" ? t("rateLimited") : t("fetchError"),
+        });
+        return;
+      }
+      setPayload({
+        ok: json.ok !== false,
+        articles: json.articles ?? [],
+        fetchedAt: json.fetchedAt ?? Date.now(),
+        message: json.message,
+        feedsSucceeded: json.feedsSucceeded,
+        feedsAttempted: json.feedsAttempted,
+      });
+    } catch {
+      setPayload({
+        ok: false,
+        articles: [],
+        fetchedAt: Date.now(),
+        message: t("fetchError"),
+      });
+    }
+  }, [t]);
 
   useSequentialInterval(pull, 10_000);
 
@@ -261,8 +289,22 @@ export function NewsLiveHub({
           <p className="mt-4">
             {filterApplied && trimmedFilter ? (
               <>{tf("noHeadlinesChannel", { channel: trimmedFilter })}</>
-            ) : (
+            ) : payload === null ? (
               <>{t("loadingHint")}</>
+            ) : !payload.ok ? (
+              <>{payload.message ?? t("fetchError")}</>
+            ) : (
+              <>
+                {payload.message ?? t("emptyFeed")}
+                {payload.feedsAttempted != null ? (
+                  <span className="mt-2 block font-mono text-[11px] text-muted-foreground/80">
+                    {t("feedsStatus", {
+                      ok: payload.feedsSucceeded ?? 0,
+                      total: payload.feedsAttempted,
+                    })}
+                  </span>
+                ) : null}
+              </>
             )}
           </p>
         </div>

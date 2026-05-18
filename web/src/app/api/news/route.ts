@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fetchAggregatedNewsWithDiagnostics } from "@/lib/market/fetch-news";
 import { loadCachedAggregatedNews } from "@/lib/market/market-data-gateway";
 import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 
@@ -15,12 +16,31 @@ export async function GET() {
   if (limited) return limited;
 
   try {
-    const articles = await loadCachedAggregatedNews(80);
+    let articles = await loadCachedAggregatedNews(80);
+    let feedsAttempted: number | undefined;
+    let feedsSucceeded: number | undefined;
+    let hint: string | undefined;
+
+    if (articles.length === 0) {
+      const diag = await fetchAggregatedNewsWithDiagnostics(80);
+      articles = diag.articles;
+      feedsAttempted = diag.feedsAttempted;
+      feedsSucceeded = diag.feedsSucceeded;
+      if (articles.length === 0) {
+        hint =
+          diag.feedsSucceeded === 0
+            ? "Nenhum feed RSS respondeu no momento."
+            : "Feeds responderam, mas não há manchetes novas.";
+      }
+    }
+
     const res = NextResponse.json({
       ok: true,
       fetchedAt: Date.now(),
       count: articles.length,
       articles,
+      ...(feedsAttempted != null ? { feedsAttempted, feedsSucceeded } : {}),
+      ...(hint ? { message: hint } : {}),
     });
     res.headers.set(
       "Cache-Control",

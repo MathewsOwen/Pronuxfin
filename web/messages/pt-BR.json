@@ -988,7 +988,11 @@
     "filterAll": "Filtro · todas",
     "readFull": "Ler na íntegra",
     "viewDesk": "Ver mesa ao vivo",
-    "loadingHint": "Carregando manchetes… Se persistir, verifique sua rede ou tente novamente em instantes.",
+    "loadingHint": "Carregando manchetes…",
+    "fetchError": "Não foi possível atualizar o radar de notícias. Tente novamente em instantes.",
+    "rateLimited": "Muitas atualizações seguidas. Aguarde um minuto e tente de novo.",
+    "emptyFeed": "Nenhuma manchete disponível no momento. Os feeds serão tentados de novo em breve.",
+    "feedsStatus": "Fontes RSS: {ok} de {total} responderam.",
     "editorialFoot": "PRONUXFIN organiza e apresenta conteúdo de terceiros via RSS público. O texto integral e a responsabilidade editorial permanecem com cada veículo. Isso não é recomendação de investimento.",
     "regionBr": "Brasil",
     "regionGlobal": "Mundo"
