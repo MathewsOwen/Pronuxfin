@@ -49,6 +49,7 @@ export default async function PerfilPage() {
       </div>
 
       <ProfileSettingsForm
+        key={user.name?.trim() ?? "empty"}
         email={user.email}
         initialName={user.name?.trim() ?? ""}
         variant="page"

@@ -36,6 +36,18 @@ type SavedScenario = {
   updatedAt?: string;
 };
 
+function readLocalSavedScenarios(): SavedScenario[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(COMPOUND_SCENARIO_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as SavedScenario[];
+    return Array.isArray(parsed) ? parsed.slice(0, 3) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function CompoundInterestCalculator({
   loggedIn = false,
   compact = false,
@@ -46,7 +58,9 @@ export function CompoundInterestCalculator({
   const t = useTranslations("Tools.compound");
   const locale = useLocale();
   const [input, setInput] = useState<CompoundInterestInput>(DEFAULT_INPUT);
-  const [saved, setSaved] = useState<SavedScenario[]>([]);
+  const [saved, setSaved] = useState<SavedScenario[]>(() =>
+    loggedIn ? [] : readLocalSavedScenarios(),
+  );
   const [saveLabel, setSaveLabel] = useState("");
   const [status, setStatus] = useState<string | null>(null);
 
@@ -67,20 +81,29 @@ export function CompoundInterestCalculator({
       }
       return;
     }
-
-    try {
-      const raw = localStorage.getItem(COMPOUND_SCENARIO_STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as SavedScenario[];
-      if (Array.isArray(parsed)) setSaved(parsed.slice(0, 3));
-    } catch {
-      /* ignore */
-    }
+    setSaved(readLocalSavedScenarios());
   }, [loggedIn]);
 
   useEffect(() => {
-    void loadSaved();
-  }, [loadSaved]);
+    if (!loggedIn) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch("/api/user/compound-scenarios");
+        if (!res.ok || cancelled) return;
+        const json = (await res.json()) as {
+          ok: boolean;
+          items?: SavedScenario[];
+        };
+        if (!cancelled && json.ok && json.items) setSaved(json.items);
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [loggedIn]);
 
   function patch<K extends keyof CompoundInterestInput>(
     key: K,

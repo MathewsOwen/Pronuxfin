@@ -69,6 +69,7 @@ export default async function CarteiraPage({ searchParams }: CarteiraPageProps) 
       </div>
 
       <PortfolioManager
+        key={`${initialSymbol}|${initialQuantity ?? ""}|${initialAverageCost ?? ""}|${editingExisting}`}
         initialSymbol={initialSymbol}
         initialPrice={initialPrice}
         initialQuantity={initialQuantity}

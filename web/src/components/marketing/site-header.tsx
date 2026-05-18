@@ -17,7 +17,7 @@ import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import type { SessionUser } from "@/lib/session";
-import { displayNameForUser, initialsForUser } from "@/lib/user-display";
+import { displayNameForUser } from "@/lib/user-display";
 import { cn } from "@/lib/utils";
 
 const navLinkClass =

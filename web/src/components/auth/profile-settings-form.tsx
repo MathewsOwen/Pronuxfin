@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
@@ -34,10 +34,6 @@ export function ProfileSettingsForm({
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [pending, setPending] = useState(false);
-
-  useEffect(() => {
-    setName(initialName);
-  }, [initialName]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
