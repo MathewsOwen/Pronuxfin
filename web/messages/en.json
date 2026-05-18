@@ -753,7 +753,7 @@
   "Dashboard": {
     "eyebrow": "Smart summary",
     "greeting": "Hello,",
-    "subtitle": "Sample data for a premium UI — wire real transactions when APIs land.",
+    "subtitle": "Private desk summary — simulated portfolio, watchlist, and wealth GPS only reflect what you save.",
     "subtitleEmpty": "Your desk starts empty — add a simulated portfolio, Wealth GPS goals, or watchlist symbols to see real numbers.",
     "subtitleLive": "Summary from your simulated portfolio and live quotes — not a brokerage account balance.",
     "ctaPortfolio": "Simulated portfolio",
