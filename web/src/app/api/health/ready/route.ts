@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { hasPublicSiteUrlConfigured } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -42,7 +43,7 @@ function probeAuthorized(req: Request): boolean {
 
 export async function GET(req: Request) {
   const apiUrl = process.env.API_URL?.trim() ?? "";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "";
+  const siteUrlConfigured = hasPublicSiteUrlConfigured();
 
   const [backend, db] = await Promise.all([
     apiUrl ? checkBackend(apiUrl) : Promise.resolve({ ok: false as const, status: null }),
@@ -51,7 +52,7 @@ export async function GET(req: Request) {
 
   const checks = {
     api_url_configured: apiUrl.length > 0,
-    site_url_configured: siteUrl.length > 0,
+    site_url_configured: siteUrlConfigured,
     backend_ready: backend.ok,
     backend_status: backend.status,
     database_configured: db.configured,
