@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Wallet } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
+import { PortfolioClearAllButton } from "@/components/tools/portfolio-clear-all-button";
+import { PortfolioEmptyHero } from "@/components/tools/portfolio-empty-hero";
 import { PortfolioManager } from "@/components/tools/portfolio-manager";
 import { PortfolioSummaryPanel } from "@/components/tools/portfolio-summary-panel";
+import { PortfolioWelcomeBanner } from "@/components/tools/portfolio-welcome-banner";
 import type { AppLocale } from "@/i18n/routing";
 import { privateAppMetadata } from "@/lib/page-metadata";
 import { getCurrentUser } from "@/lib/session";
@@ -23,7 +24,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 type CarteiraPageProps = {
-  searchParams: Promise<{ symbol?: string; price?: string; quantity?: string; averageCost?: string }>;
+  searchParams: Promise<{
+    symbol?: string;
+    price?: string;
+    quantity?: string;
+    averageCost?: string;
+    welcome?: string;
+  }>;
 };
 
 export default async function CarteiraPage({ searchParams }: CarteiraPageProps) {
@@ -33,6 +40,7 @@ export default async function CarteiraPage({ searchParams }: CarteiraPageProps) 
   if (!user) redirect("/login?from=%2Fcarteira");
 
   const query = await searchParams;
+  const showWelcome = query.welcome === "1";
   const initialSymbol = query.symbol?.trim().toUpperCase() ?? "";
   const priceRaw = query.price?.trim();
   const initialPrice =
@@ -51,40 +59,44 @@ export default async function CarteiraPage({ searchParams }: CarteiraPageProps) 
       : null;
 
   const positions = await listUserPortfolioPositions(user.id);
+  const isEmpty = positions.length === 0;
   const editingExisting =
     initialSymbol.length > 0 &&
     positions.some((p) => p.symbol === initialSymbol);
-  const summary = positions.length > 0 ? await buildPortfolioSummary(positions) : null;
+  const summary = !isEmpty ? await buildPortfolioSummary(positions) : null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      {showWelcome ? <PortfolioWelcomeBanner /> : null}
       {initialSymbol ? (
         <p className="rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm text-primary">
-          {t("prefillHint", { symbol: initialSymbol })}
+          {editingExisting ? t("prefillUpdateHint", { symbol: initialSymbol }) : t("prefillHint", { symbol: initialSymbol })}
         </p>
       ) : null}
-      <div>
-        <p className="text-sm font-medium text-muted-foreground">{t("eyebrow")}</p>
-        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight md:text-4xl">
-          {t("pageTitle")}
-        </h1>
-        <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">{t("pageLead")}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">{t("eyebrow")}</p>
+          <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight md:text-4xl">
+            {t("pageTitle")}
+          </h1>
+          <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">{t("pageLead")}</p>
+        </div>
+        <PortfolioClearAllButton positionCount={positions.length} />
       </div>
 
+      {isEmpty ? <PortfolioEmptyHero /> : null}
+
       <PortfolioManager
-        key={`${initialSymbol}|${initialQuantity ?? ""}|${initialAverageCost ?? ""}|${editingExisting}`}
+        key={`${initialSymbol}|${initialQuantity ?? ""}|${initialAverageCost ?? ""}|${editingExisting}|${isEmpty}`}
         initialSymbol={initialSymbol}
         initialPrice={initialPrice}
         initialQuantity={initialQuantity}
         initialAverageCost={initialAverageCost}
         editingExisting={editingExisting}
+        isFirstPosition={isEmpty}
       />
 
-      {summary ? (
-        <PortfolioSummaryPanel summary={summary} locale={locale} />
-      ) : (
-        <EmptyState icon={Wallet} title={t("emptyTitle")} description={t("empty")} />
-      )}
+      {summary ? <PortfolioSummaryPanel summary={summary} locale={locale} /> : null}
     </div>
   );
 }

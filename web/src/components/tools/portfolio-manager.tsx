@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,14 +21,17 @@ export function PortfolioManager({
   initialQuantity,
   initialAverageCost,
   editingExisting = false,
+  isFirstPosition = false,
 }: {
   initialSymbol?: string;
   initialPrice?: number | null;
   initialQuantity?: number | null;
   initialAverageCost?: number | null;
   editingExisting?: boolean;
+  isFirstPosition?: boolean;
 }) {
   const t = useTranslations("Portfolio");
+  const router = useRouter();
   const [symbol, setSymbol] = useState(initialSymbol);
   const [quantity, setQuantity] = useState(() =>
     initialQuantity != null && Number.isFinite(initialQuantity)
@@ -46,6 +49,7 @@ export function PortfolioManager({
   });
 
   const [message, setMessage] = useState<string | null>(null);
+  const [messageTone, setMessageTone] = useState<"success" | "error">("error");
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,6 +60,7 @@ export function PortfolioManager({
     const cost = Number(averageCost);
     if (!symbol.trim() || !Number.isFinite(qty) || qty <= 0 || !Number.isFinite(cost) || cost <= 0) {
       setPending(false);
+      setMessageTone("error");
       setMessage(t("saveError"));
       return;
     }
@@ -71,31 +76,48 @@ export function PortfolioManager({
     setPending(false);
     if (!res.ok) {
       const data = (await res.json().catch(() => ({}))) as { message?: string };
+      setMessageTone("error");
       setMessage(data.message ?? t("saveError"));
       return;
     }
-    setMessage(t("saveSuccess"));
-    window.location.href = "/carteira";
+    setMessageTone("success");
+    setMessage(isFirstPosition ? t("saveFirstSuccess") : t("saveSuccess"));
+    router.push("/carteira");
+    router.refresh();
   }
 
   return (
-    <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
+    <Card
+      id="portfolio-add-form"
+      className="glass-panel card-shine scroll-mt-24 border-white/12 shadow-none ring-0"
+    >
       <CardHeader>
         <CardTitle className="font-heading">
-          {editingExisting ? t("updateTitle") : t("addTitle")}
+          {editingExisting
+            ? t("updateTitle")
+            : isFirstPosition
+              ? t("firstAddTitle")
+              : t("addTitle")}
         </CardTitle>
         <CardDescription>
-          {editingExisting ? t("updateSubtitle") : t("addSubtitle")}
+          {editingExisting
+            ? t("updateSubtitle")
+            : isFirstPosition
+              ? t("firstAddSubtitle")
+              : t("addSubtitle")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={(e) => void handleSubmit(e)} className="grid gap-4 sm:grid-cols-3">
           <div>
-            <Label className="text-xs text-muted-foreground">{t("symbol")}</Label>
+            <Label htmlFor="portfolio-symbol" className="text-xs text-muted-foreground">
+              {t("symbol")}
+            </Label>
             <Input
+              id="portfolio-symbol"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              placeholder="PETR4"
+              placeholder={t("symbolPlaceholder")}
               className="mt-1.5 border-white/15 bg-black/20 font-mono"
               required
               readOnly={editingExisting}
@@ -103,8 +125,11 @@ export function PortfolioManager({
             />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">{t("quantity")}</Label>
+            <Label htmlFor="portfolio-quantity" className="text-xs text-muted-foreground">
+              {t("quantity")}
+            </Label>
             <Input
+              id="portfolio-quantity"
               type="number"
               min="0.0001"
               step="any"
@@ -116,8 +141,11 @@ export function PortfolioManager({
             />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">{t("averageCost")}</Label>
+            <Label htmlFor="portfolio-average-cost" className="text-xs text-muted-foreground">
+              {t("averageCost")}
+            </Label>
             <Input
+              id="portfolio-average-cost"
               type="number"
               min="0.0001"
               step="any"
@@ -128,7 +156,7 @@ export function PortfolioManager({
               required
             />
           </div>
-          <div className="sm:col-span-3 flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 sm:col-span-3">
             <button
               type="submit"
               disabled={pending}
@@ -144,9 +172,11 @@ export function PortfolioManager({
             </Link>
             {message ? (
               <p
+                role={messageTone === "error" ? "alert" : "status"}
+                aria-live="polite"
                 className={cn(
                   "text-sm",
-                  message === t("saveSuccess") ? "text-emerald-400" : "text-rose-400",
+                  messageTone === "success" ? "text-emerald-400" : "text-rose-400",
                 )}
               >
                 {message}
@@ -162,28 +192,43 @@ export function PortfolioManager({
 
 export function PortfolioRemoveButton({ symbol }: { symbol: string }) {
   const t = useTranslations("Portfolio");
+  const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function remove() {
     if (!window.confirm(t("removeConfirm", { symbol }))) return;
     setPending(true);
-    await fetch("/api/user/portfolio", {
+    setError(null);
+    const res = await fetch("/api/user/portfolio", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ symbol }),
     });
-    window.location.reload();
+    setPending(false);
+    if (!res.ok) {
+      setError(t("removeError"));
+      return;
+    }
+    router.refresh();
   }
 
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => void remove()}
-      className="text-xs text-muted-foreground hover:text-rose-400 disabled:opacity-50"
-    >
-      {pending ? t("removing") : t("remove")}
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => void remove()}
+        className="text-xs text-muted-foreground hover:text-rose-400 disabled:opacity-50"
+      >
+        {pending ? t("removing") : t("remove")}
+      </button>
+      {error ? (
+        <p className="text-[10px] text-rose-400" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </div>
   );
 }
 

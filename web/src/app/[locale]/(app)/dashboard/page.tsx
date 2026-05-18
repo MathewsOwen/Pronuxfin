@@ -8,6 +8,7 @@ import {
   Waves,
 } from "lucide-react";
 import { DashboardAnalyticsSection } from "@/components/dashboard/dashboard-analytics-section";
+import { PortfolioEmptyDeskCallout } from "@/components/dashboard/portfolio-empty-desk-callout";
 import { WatchlistSignalSync } from "@/components/dashboard/watchlist-signal-sync";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -252,6 +253,10 @@ export default async function DashboardPage() {
           </Badge>
         </div>
       </div>
+
+      {!portfolioSummary && user ? (
+        <PortfolioEmptyDeskCallout watchlistCount={watchlistItems.length} />
+      ) : null}
 
       {portfolioSummary ? (
         <PortfolioSummaryPanel summary={portfolioSummary} locale={locale} compact />

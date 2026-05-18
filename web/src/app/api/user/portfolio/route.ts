@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getSessionUserId } from "@/lib/auth/session-user";
 import { parseZodBody } from "@/lib/http/parse-zod-body";
 import {
+  clearUserPortfolio,
   deleteUserPortfolioPosition,
   getUserPortfolioPosition,
   isValidPortfolioSymbol,
@@ -11,6 +12,10 @@ import {
   normalizePortfolioSymbol,
   upsertUserPortfolioPosition,
 } from "@/lib/user-portfolio/load";
+import {
+  portfolioDeleteBodySchema,
+  portfolioUpsertBodySchema,
+} from "@/lib/user-portfolio/portfolio-api-schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,17 +27,8 @@ const unauthorized = NextResponse.json(
   { status: 401 },
 );
 
-const upsertSchema = z.object({
-  symbol: z.string().min(1).max(16),
-  quantity: z.number().positive(),
-  averageCost: z.number().positive(),
-  currency: z.string().min(3).max(3).optional(),
-  note: z.string().max(240).nullable().optional(),
-});
-
-const deleteSchema = z.object({
-  symbol: z.string().min(1).max(16),
-});
+const upsertSchema = portfolioUpsertBodySchema;
+const deleteSchema = portfolioDeleteBodySchema;
 
 export async function GET() {
   const userId = await getSessionUserId();
@@ -94,6 +90,25 @@ export async function DELETE(req: Request) {
 
   const parsed = await parseBody(req, deleteSchema);
   if (!parsed.ok) return parsed.response;
+
+  if ("clearAll" in parsed.data && parsed.data.clearAll) {
+    try {
+      const removed = await clearUserPortfolio(userId);
+      return NextResponse.json({ ok: true as const, cleared: removed });
+    } catch {
+      return NextResponse.json(
+        { ok: false as const, message: "Não foi possível limpar a carteira." },
+        { status: 500 },
+      );
+    }
+  }
+
+  if (!("symbol" in parsed.data)) {
+    return NextResponse.json(
+      { ok: false as const, message: "Body inválido." },
+      { status: 400 },
+    );
+  }
 
   const symbol = normalizePortfolioSymbol(parsed.data.symbol);
   try {
