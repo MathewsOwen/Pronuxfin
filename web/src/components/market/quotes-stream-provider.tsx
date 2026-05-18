@@ -33,7 +33,7 @@ export function QuotesStreamProvider({ children }: { children: ReactNode }) {
         return;
       }
       const data = (await res.json()) as QuotesPayload & { warnings?: string[] };
-      setPayload(data);
+      setPayload((prev) => (prev.fetchedAt === data.fetchedAt ? prev : data));
     } catch {
       setPayload(resolveClientQuotesFallback());
     }

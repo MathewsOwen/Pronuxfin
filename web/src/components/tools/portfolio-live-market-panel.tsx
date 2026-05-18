@@ -2,12 +2,13 @@
 
 import { Loader2, Radio, RefreshCw, Search } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useQuotesStream } from "@/components/market/quotes-stream-provider";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { Link } from "@/i18n/navigation";
 import {
   collectDeskQuotes,
@@ -26,7 +27,7 @@ type LookupResponse = {
   message?: string;
 };
 
-export function PortfolioLiveMarketPanel({
+function PortfolioLiveMarketPanelInner({
   symbol,
   onSelectSymbol,
   onUseLivePrice,
@@ -39,18 +40,22 @@ export function PortfolioLiveMarketPanel({
   const locale = useLocale();
   const deskPayload = useQuotesStream();
   const deskQuotes = useMemo(() => collectDeskQuotes(deskPayload), [deskPayload]);
+  const deskQuotesRef = useRef(deskQuotes);
+  deskQuotesRef.current = deskQuotes;
 
   const [search, setSearch] = useState(symbol);
+  const debouncedSearch = useDebouncedValue(search, 220);
   const [lookupQuote, setLookupQuote] = useState<QuoteSnapshot | null>(null);
   const [lookupMode, setLookupMode] = useState<MarketDataMode | null>(null);
   const [lookupSimulated, setLookupSimulated] = useState(false);
   const [pending, setPending] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const lookupAbortRef = useRef<AbortController | null>(null);
 
-  const suggestions = useMemo(
-    () => filterDeskQuotesForSearch(deskQuotes, search, 8),
-    [deskQuotes, search],
-  );
+  const suggestions = useMemo(() => {
+    if (debouncedSearch.trim().length < 2) return [];
+    return filterDeskQuotesForSearch(deskQuotes, debouncedSearch, 8);
+  }, [deskQuotes, debouncedSearch]);
 
   const activeQuote = useMemo(() => {
     const clean = normalizeWatchlistSymbol(symbol);
@@ -61,45 +66,59 @@ export function PortfolioLiveMarketPanel({
   const activeMode: MarketDataMode | null =
     lookupMode ?? (activeQuote ? (deskPayload.dataMode ?? "live") : null);
 
-  const fetchLookup = useCallback(async (symbolInput: string) => {
-    const clean = normalizeWatchlistSymbol(symbolInput);
-    if (!clean || !isValidWatchlistSymbol(clean)) {
-      setLookupQuote(null);
-      setLookupError(t("liveInvalidSymbol"));
-      return;
-    }
-
-    const fromDesk = findDeskQuote(deskQuotes, clean);
-    if (fromDesk?.regularMarketPrice != null) {
-      setLookupQuote(fromDesk);
-      setLookupMode(deskPayload.dataMode ?? "live");
-      setLookupSimulated(Boolean(deskPayload.simulated));
-      setLookupError(null);
-      return;
-    }
-
-    setPending(true);
+  const applyDeskQuote = useCallback((quote: QuoteSnapshot) => {
+    setLookupQuote(quote);
+    setLookupMode(deskPayload.dataMode ?? "live");
+    setLookupSimulated(Boolean(deskPayload.simulated));
     setLookupError(null);
-    try {
-      const res = await fetch(`/api/quotes/lookup?symbol=${encodeURIComponent(clean)}`, {
-        cache: "no-store",
-      });
-      const data = (await res.json().catch(() => ({}))) as LookupResponse;
-      if (!res.ok || !data.ok || !data.quote) {
+  }, [deskPayload.dataMode, deskPayload.simulated]);
+
+  const fetchLookup = useCallback(
+    async (symbolInput: string, forceApi = false) => {
+      const clean = normalizeWatchlistSymbol(symbolInput);
+      if (!clean || !isValidWatchlistSymbol(clean)) {
         setLookupQuote(null);
-        setLookupError(data.message ?? t("liveQuoteUnavailable"));
+        setLookupError(t("liveInvalidSymbol"));
         return;
       }
-      setLookupQuote(data.quote);
-      setLookupMode(data.dataMode ?? "live");
-      setLookupSimulated(Boolean(data.simulated));
-    } catch {
-      setLookupQuote(null);
-      setLookupError(t("liveQuoteUnavailable"));
-    } finally {
-      setPending(false);
-    }
-  }, [deskPayload.dataMode, deskPayload.simulated, deskQuotes, t]);
+
+      const fromDesk = findDeskQuote(deskQuotesRef.current, clean);
+      if (!forceApi && fromDesk?.regularMarketPrice != null) {
+        applyDeskQuote(fromDesk);
+        return;
+      }
+
+      lookupAbortRef.current?.abort();
+      const controller = new AbortController();
+      lookupAbortRef.current = controller;
+
+      setPending(true);
+      setLookupError(null);
+      try {
+        const res = await fetch(`/api/quotes/lookup?symbol=${encodeURIComponent(clean)}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const data = (await res.json().catch(() => ({}))) as LookupResponse;
+        if (controller.signal.aborted) return;
+        if (!res.ok || !data.ok || !data.quote) {
+          setLookupQuote(null);
+          setLookupError(data.message ?? t("liveQuoteUnavailable"));
+          return;
+        }
+        setLookupQuote(data.quote);
+        setLookupMode(data.dataMode ?? "live");
+        setLookupSimulated(Boolean(data.simulated));
+      } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setLookupQuote(null);
+        setLookupError(t("liveQuoteUnavailable"));
+      } finally {
+        if (!controller.signal.aborted) setPending(false);
+      }
+    },
+    [applyDeskQuote, t],
+  );
 
   useEffect(() => {
     setSearch(symbol);
@@ -112,23 +131,26 @@ export function PortfolioLiveMarketPanel({
       setLookupError(null);
       return;
     }
-    void fetchLookup(clean);
-  }, [symbol, fetchLookup]);
+    const fromDesk = findDeskQuote(deskQuotesRef.current, clean);
+    if (fromDesk?.regularMarketPrice != null) {
+      applyDeskQuote(fromDesk);
+      return;
+    }
+    void fetchLookup(clean, true);
+    return () => lookupAbortRef.current?.abort();
+  }, [symbol, fetchLookup, applyDeskQuote]);
 
   useEffect(() => {
-    if (!symbol.trim()) return;
-    const timer = window.setInterval(() => {
-      if (document.hidden) return;
-      void fetchLookup(symbol);
-    }, 45_000);
-    return () => window.clearInterval(timer);
-  }, [symbol, fetchLookup]);
+    const clean = normalizeWatchlistSymbol(symbol);
+    if (!clean) return;
+    const fromDesk = findDeskQuote(deskQuotes, clean);
+    if (fromDesk?.regularMarketPrice != null) applyDeskQuote(fromDesk);
+  }, [deskQuotes, symbol, applyDeskQuote]);
 
   function selectQuote(quote: QuoteSnapshot) {
     onSelectSymbol(quote);
     setSearch(quote.symbol);
-    setLookupQuote(quote);
-    setLookupError(null);
+    applyDeskQuote(quote);
     if (quote.regularMarketPrice != null && Number.isFinite(quote.regularMarketPrice)) {
       onUseLivePrice(quote.regularMarketPrice, quote);
     }
@@ -192,7 +214,7 @@ export function PortfolioLiveMarketPanel({
             if (e.key === "Enter") {
               e.preventDefault();
               const clean = normalizeWatchlistSymbol(search);
-              if (isValidWatchlistSymbol(clean)) void fetchLookup(clean);
+              if (isValidWatchlistSymbol(clean)) void fetchLookup(clean, true);
             }
           }}
           placeholder={t("liveSearchPlaceholder")}
@@ -202,7 +224,7 @@ export function PortfolioLiveMarketPanel({
         />
       </div>
 
-      {suggestions.length > 0 && search.trim().length > 0 ? (
+      {suggestions.length > 0 ? (
         <ul className="mt-3 max-h-52 space-y-1 overflow-y-auto rounded-xl border border-white/10 bg-black/30 p-1">
           {suggestions.map((quote) => (
             <li key={quote.symbol}>
@@ -275,7 +297,7 @@ export function PortfolioLiveMarketPanel({
               disabled={pending}
               aria-label={t("liveRefresh")}
               className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
-              onClick={() => void fetchLookup(activeQuote.symbol)}
+              onClick={() => void fetchLookup(activeQuote.symbol, true)}
             >
               {pending ? (
                 <Loader2 className="size-3.5 animate-spin" />
@@ -304,3 +326,5 @@ export function PortfolioLiveMarketPanel({
     </section>
   );
 }
+
+export const PortfolioLiveMarketPanel = memo(PortfolioLiveMarketPanelInner);
