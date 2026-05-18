@@ -180,6 +180,12 @@ async function fetchBrAssetDossier(symbol: string) {
 
     const quote = mapBrapiQuote(row);
     const history = mapBrapiHistory(row.historicalDataPrice ?? []);
+    const fmpSymbol = `${symbol}.SA`;
+    const [fmpProfile, intlKeyMetricsTtm, intlAnnualStatements] = await Promise.all([
+      fetchIntlCompanyProfileFromFmp(fmpSymbol),
+      fetchIntlKeyMetricsTtmFromFmp(fmpSymbol),
+      fetchIntlLatestAnnualStatementsFromFmp(fmpSymbol),
+    ]);
     const output = {
       quote,
       history: history.length > 1 ? history : buildIndicativeHistory(quote, "br"),
@@ -196,9 +202,9 @@ async function fetchBrAssetDossier(symbol: string) {
         priceEarnings: readNumber(row.priceEarnings),
         earningsPerShare: readNumber(row.earningsPerShare),
       },
-      profile: null,
-      intlKeyMetricsTtm: null,
-      intlAnnualStatements: null,
+      profile: mapBrapiProfile(row) ?? fmpProfile,
+      intlKeyMetricsTtm,
+      intlAnnualStatements,
       intlStockPeers: null,
     };
     noteMarketProviderUsage("brapi");
@@ -303,6 +309,46 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       intlStockPeers,
     };
   }
+}
+
+function mapBrapiProfile(row: Record<string, unknown>): IntlCompanyProfile | null {
+  const summaryProfile =
+    row.summaryProfile && typeof row.summaryProfile === "object"
+      ? (row.summaryProfile as Record<string, unknown>)
+      : null;
+
+  const companyName =
+    readString(row.longName) ??
+    readString(row.shortName) ??
+    readString(summaryProfile?.companyName);
+  if (!companyName) return null;
+
+  const city = readString(summaryProfile?.city);
+  const state = readString(summaryProfile?.state);
+  const headquarters =
+    city && state ? `${city}, ${state}` : city ?? state ?? readString(summaryProfile?.address);
+
+  return {
+    companyName,
+    summary: readString(summaryProfile?.description) ?? readString(row.description),
+    sector: readString(summaryProfile?.sector) ?? readString(row.sector),
+    industry: readString(summaryProfile?.industry) ?? readString(row.industry),
+    headquarters,
+    country: readString(summaryProfile?.country) ?? "Brasil",
+    exchange: readString(summaryProfile?.exchange) ?? "B3",
+    website: readString(summaryProfile?.website),
+    imageUrl: readString(row.logourl) ?? readString(summaryProfile?.image),
+    ipoDate: readString(summaryProfile?.ipoDate),
+    ceoName: readString(summaryProfile?.ceo),
+    fullTimeEmployees: readNumber(summaryProfile?.fullTimeEmployees),
+    sourceLabel: "BRAPI",
+  };
+}
+
+function readString(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 function mapBrapiQuote(row: Record<string, unknown>): QuoteSnapshot {

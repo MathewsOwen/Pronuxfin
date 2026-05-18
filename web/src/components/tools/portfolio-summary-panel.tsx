@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PortfolioRemoveButton } from "@/components/tools/portfolio-manager";
+import { PortfolioEditLink, PortfolioRemoveButton } from "@/components/tools/portfolio-manager";
 import type { PortfolioPositionSnapshot, PortfolioSummary } from "@/lib/user-portfolio/snapshot";
 import { cn } from "@/lib/utils";
 
@@ -132,7 +132,14 @@ export async function PortfolioSummaryPanel({
                         : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <PortfolioRemoveButton symbol={row.position.symbol} />
+                      <div className="flex flex-col items-end gap-1">
+                        <PortfolioEditLink
+                          symbol={row.position.symbol}
+                          quantity={row.position.quantity}
+                          averageCost={row.position.averageCost}
+                        />
+                        <PortfolioRemoveButton symbol={row.position.symbol} />
+                      </div>
                     </td>
                   </tr>
                 ))}
