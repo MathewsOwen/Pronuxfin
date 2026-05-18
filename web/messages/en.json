@@ -988,7 +988,11 @@
     "filterAll": "Filter · all",
     "readFull": "Read full article",
     "viewDesk": "View live desk",
-    "loadingHint": "Loading headlines… If it persists check your connection or retry shortly.",
+    "loadingHint": "Loading headlines…",
+    "fetchError": "Could not refresh the news radar. Try again in a moment.",
+    "rateLimited": "Too many refreshes. Wait a minute and try again.",
+    "emptyFeed": "No headlines available right now. Feeds will be retried shortly.",
+    "feedsStatus": "RSS sources: {ok} of {total} responded.",
     "editorialFoot": "PRONUXFIN organizes third-party headlines via open RSS feeds. Responsibility for wording stays with publishers. Nothing here is personalized investment advice.",
     "regionBr": "Brazil",
     "regionGlobal": "Global"

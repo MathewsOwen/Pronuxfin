@@ -6,7 +6,6 @@ import { sortQuotesForDesk } from "@/lib/market/indices";
 import { simulatedIntlEquitiesForSymbols, simulatedB3EquitiesForSymbols } from "@/lib/market/equities-sim";
 import { rememberWithTtl } from "@/lib/market/market-server-cache";
 import {
-  canUseMarketProvider,
   getMarketProviderBudgetWarning,
   noteMarketProviderUsage,
 } from "@/lib/market/market-provider-budget";
@@ -211,17 +210,18 @@ export async function loadCachedAggregatedNews(
   limit = 72,
 ): Promise<NewsArticle[]> {
   return rememberWithTtl(
-    `market-gateway:related-news:${limit}:v1`,
+    `market-gateway:related-news:${limit}:v2`,
     CACHE_TTL.relatedNewsMs,
     async () => {
-      const providers = getMarketTaskProviders("asset_related_news");
-      const provider = providers[0] ?? "rss_public";
-      if (!canUseMarketProvider(provider)) {
-        return [];
-      }
       const articles = await fetchAggregatedNews(limit);
-      noteMarketProviderUsage(provider);
+      if (articles.length > 0) {
+        noteMarketProviderUsage("rss_public");
+      }
       return articles;
+    },
+    {
+      shortTtlMs: 30_000,
+      shouldRetain: (articles) => articles.length > 0,
     },
   );
 }

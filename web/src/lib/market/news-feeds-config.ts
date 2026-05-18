@@ -15,13 +15,13 @@ export const NEWS_FEEDS: NewsFeedConfig[] = [
     region: "br",
   },
   {
-    url: "http://feeds.bbci.co.uk/news/business/rss.xml",
+    url: "https://feeds.bbci.co.uk/news/business/rss.xml",
     source: "BBC Business",
     region: "global",
   },
   {
-    url: "http://rss.cnn.com/rss/money_latest.rss",
-    source: "CNN Business",
+    url: "https://www.theguardian.com/business/rss",
+    source: "The Guardian",
     region: "global",
   },
 ];
