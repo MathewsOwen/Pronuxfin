@@ -5,7 +5,12 @@ export async function getSessionToken(): Promise<string | undefined> {
   return (await cookies()).get(AUTH_COOKIE)?.value;
 }
 
-export type SessionUser = { id: string; email: string };
+export type SessionUser = {
+  id: string;
+  email: string;
+  name?: string | null;
+  isAdmin?: boolean;
+};
 
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const token = await getSessionToken();
@@ -18,5 +23,11 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   });
 
   if (!res.ok) return null;
-  return res.json();
+  const data = (await res.json()) as SessionUser;
+  return {
+    id: data.id,
+    email: data.email,
+    name: data.name ?? null,
+    isAdmin: Boolean(data.isAdmin),
+  };
 }

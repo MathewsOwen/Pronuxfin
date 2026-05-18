@@ -7,9 +7,9 @@ import {
   type WatchlistAlertRuleType,
 } from "@/lib/user-watchlist/alerts";
 import {
-  listEffectiveWatchlistAlertRules,
   deleteUserWatchlistAlertRule,
-  upsertUserWatchlistAlertRule,
+  listEffectiveWatchlistAlertRules,
+  upsertManyUserWatchlistAlertRules,
 } from "@/lib/user-watchlist/rules";
 
 export const runtime = "nodejs";
@@ -80,20 +80,21 @@ export async function PATCH(req: Request) {
     );
   }
 
-  for (const rule of body.rules) {
-    try {
-      await upsertUserWatchlistAlertRule(userId, {
+  try {
+    await upsertManyUserWatchlistAlertRules(
+      userId,
+      body.rules.map((rule) => ({
         ruleType: normalizeRuleType(rule.ruleType),
         threshold: rule.threshold,
         enabled: rule.enabled,
         symbol: normalizeAlertRuleScope(rule.symbol),
-      });
-    } catch {
-      return NextResponse.json(
-        { ok: false as const, message: "Não foi possível persistir as regras." },
-        { status: 500 },
-      );
-    }
+      })),
+    );
+  } catch {
+    return NextResponse.json(
+      { ok: false as const, message: "Não foi possível persistir as regras." },
+      { status: 500 },
+    );
   }
 
   const rules = await listEffectiveWatchlistAlertRules(userId);

@@ -21,9 +21,15 @@ export function createRegisterSchema(msg: {
   passwordMin: string;
   passwordLetters: string;
   passwordDigits: string;
+  nameRequired: string;
+  nameMax: string;
 }) {
   return z.object({
-    name: z.string().max(120).optional(),
+    name: z
+      .string()
+      .trim()
+      .min(2, msg.nameRequired)
+      .max(120, msg.nameMax),
     email: z.string().email(msg.emailInvalid),
     password: z
       .string()

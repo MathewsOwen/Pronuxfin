@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { AiChannelId, AudienceKind } from "@/lib/assistant/ai-channels";
 import { pickOfflineSnippetKey } from "@/lib/assistant/chat-offline-heuristics";
@@ -30,6 +31,8 @@ type MarketAiResp =
       demo?: boolean;
       reply: string;
       provider?: "pronux-ollama" | "pronux-openai" | "pronux-gemini";
+      engine?: MarketAiEngineId;
+      ensemble?: boolean;
     }
   | { ok: false; message: string; code?: string };
 
@@ -77,6 +80,7 @@ export function AssistantChat({
   const [isTyping, setIsTyping] = useState(false);
   const [engines, setEngines] = useState<MarketAiEngineId[]>([]);
   const [engine, setEngine] = useState<MarketAiEngineId | "">("");
+  const [ensemblePanel, setEnsemblePanel] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("AiHub");
   const tApiErr = useTranslations("AiApiErrors");
@@ -90,9 +94,7 @@ export function AssistantChat({
         if (!d.ok || !Array.isArray(d.engines)) return;
         const next = d.engines;
         setEngines(next);
-        setEngine((prev) =>
-          prev && next.includes(prev) ? prev : (next[0] ?? ""),
-        );
+        setEngine((prev) => (prev && next.includes(prev) ? prev : ""));
       })
       .catch(() => {});
   }, []);
@@ -146,7 +148,8 @@ export function AssistantChat({
           audience,
           channel: channelId,
           locale: aiLocale,
-          ...(engine ? { engine } : {}),
+          ...(ensemblePanel && engines.length >= 2 ? { ensemble: true } : {}),
+          ...(!ensemblePanel && engine ? { engine } : {}),
         }),
       });
 
@@ -200,9 +203,11 @@ export function AssistantChat({
         ]);
       } else {
         let text = data.reply;
-        if (data.provider === "pronux-ollama") text += t("chatOllamaFooter");
-        else if (data.provider === "pronux-openai") text += t("chatOpenAiFooter");
-        else if (data.provider === "pronux-gemini") text += t("chatGeminiFooter");
+        if (!data.demo && !data.ensemble) {
+          if (data.provider === "pronux-ollama") text += t("chatOllamaFooter");
+          else if (data.provider === "pronux-openai") text += t("chatOpenAiFooter");
+          else if (data.provider === "pronux-gemini") text += t("chatGeminiFooter");
+        }
         setMessages((m) => [...m, { role: "assistant", text }]);
       }
     } catch {
@@ -276,6 +281,25 @@ export function AssistantChat({
           </div>
         </ScrollArea>
         <div className="flex flex-col gap-3 border-t border-white/10 bg-muted/25 p-4 backdrop-blur-md">
+          {engines.length >= 2 ? (
+            <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+              <input
+                id="pronux-ensemble-panel"
+                type="checkbox"
+                className="mt-1 size-4 shrink-0 rounded border-white/20 bg-background accent-primary"
+                checked={ensemblePanel}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setEnsemblePanel(on);
+                  if (on) setEngine("");
+                }}
+              />
+              <Label htmlFor="pronux-ensemble-panel" className="cursor-pointer text-sm leading-snug">
+                <span className="font-medium text-foreground">{t("ensembleLabel")}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">{t("ensembleHint")}</span>
+              </Label>
+            </div>
+          ) : null}
           {engines.length > 1 ? (
             <label className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
               <span className="shrink-0 text-xs font-medium text-muted-foreground">
@@ -284,11 +308,15 @@ export function AssistantChat({
               <select
                 value={engine}
                 aria-label={t("engineLabel")}
-                onChange={(e) =>
-                  setEngine(e.target.value as MarketAiEngineId)
-                }
+                disabled={ensemblePanel}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setEnsemblePanel(false);
+                  setEngine(v === "" ? "" : (v as MarketAiEngineId));
+                }}
                 className="h-9 min-w-[12rem] rounded-md border border-white/12 bg-background/70 px-2.5 text-sm text-foreground shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
+                <option value="">{t("engineAuto")}</option>
                 {engines.map((id) => (
                   <option key={id} value={id}>
                     {engineOptionLabel(id)}

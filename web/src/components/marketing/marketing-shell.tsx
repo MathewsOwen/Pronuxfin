@@ -1,7 +1,7 @@
 import { AmbientBackdrop } from "@/components/marketing/ambient-backdrop";
 import { PageEnter } from "@/components/marketing/page-enter";
 import { SiteFooter } from "@/components/marketing/landing-sections";
-import { SiteHeader } from "@/components/marketing/site-header";
+import { SiteHeaderShell } from "@/components/marketing/site-header-shell";
 import { LiveMarketStrip } from "@/components/market/live-market-strip";
 import { MarketSessionBar } from "@/components/market/market-session-bar";
 import { QuotesStreamProvider } from "@/components/market/quotes-stream-provider";
@@ -24,7 +24,7 @@ export function MarketingShell({
     <>
       <AmbientBackdrop />
       <div className="relative flex min-h-screen flex-col">
-        <SiteHeader showLanguageSwitcher={showLanguageSwitcher} />
+        <SiteHeaderShell showLanguageSwitcher={showLanguageSwitcher} />
         {ticker ? (
           <QuotesStreamProvider>
             <>

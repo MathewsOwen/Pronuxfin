@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ArrowUpRight, Bookmark, ShieldCheck, Sparkles, Waves } from "lucide-react";
+import {
+  ArrowUpRight,
+  Bookmark,
+  CalendarDays,
+  ShieldCheck,
+  Sparkles,
+  Wallet,
+  Waves,
+} from "lucide-react";
 import { WatchlistSignalSync } from "@/components/dashboard/watchlist-signal-sync";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,6 +25,8 @@ import { loadAssetDossier } from "@/lib/market/load-asset-dossier";
 import { formatRelativeTime } from "@/lib/market/time";
 import { privateAppMetadata } from "@/lib/page-metadata";
 import { getCurrentUser } from "@/lib/session";
+import { CompleteNameCard } from "@/components/auth/complete-name-card";
+import { displayNameForUser, userNeedsName } from "@/lib/user-display";
 import {
   buildWatchlistAlertCenter,
   buildWatchlistBriefing,
@@ -29,6 +39,13 @@ import {
 } from "@/lib/user-watchlist/intelligence";
 import { listUserWatchlist } from "@/lib/user-watchlist/load";
 import { listEffectiveWatchlistAlertRules } from "@/lib/user-watchlist/rules";
+import { listUserPortfolioPositions } from "@/lib/user-portfolio/load";
+import { buildPortfolioSummary } from "@/lib/user-portfolio/snapshot";
+import { PortfolioSummaryPanel } from "@/components/tools/portfolio-summary-panel";
+import { FinancialRouteDashboardStrip } from "@/components/financial-route/financial-route-dashboard-strip";
+import { evaluateUserFinancialRoutes } from "@/lib/financial-route/load";
+import { loadEconomicCalendar } from "@/lib/tools/load-economic-calendar";
+import { buildPortfolioHref } from "@/lib/market/portfolio-links";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -47,8 +64,28 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   const t = await getTranslations("Dashboard");
   const locale = await getLocale();
-  const greeting = user?.email?.split("@")[0] ?? t("guestFallback");
+  const needsName = user ? userNeedsName(user) : false;
+  const greeting = user
+    ? displayNameForUser(user) || t("guestFallback")
+    : t("guestFallback");
   const watchlistItems = user ? await listUserWatchlist(user.id) : [];
+  const portfolioPositions = user ? await listUserPortfolioPositions(user.id) : [];
+  const portfolioSummary =
+    portfolioPositions.length > 0 ? await buildPortfolioSummary(portfolioPositions) : null;
+  const watchlistSymbols = watchlistItems.map((item) => item.symbol);
+  const deskSymbols = [
+    ...new Set([
+      ...watchlistSymbols,
+      ...portfolioPositions.map((p) => p.symbol),
+    ]),
+  ];
+  const { events: todayCalendarEvents } = await loadEconomicCalendar({
+    days: 1,
+    watchlistSymbols: deskSymbols,
+    limit: 5,
+  });
+  const agendaHasLive = todayCalendarEvents.length > 0;
+  const financialRoutes = user ? await evaluateUserFinancialRoutes(user.id) : [];
   const effectiveRules = user ? await listEffectiveWatchlistAlertRules(user.id) : [];
   const radarDossiers = (
     await Promise.all(
@@ -81,37 +118,90 @@ export default async function DashboardPage() {
   ).length;
   const radarNewsCount = radarItems.filter((item) => item.signal.newsCount > 0).length;
 
-  const kpis = [
-    { label: t("kpiConsolidated"), value: "R$ 84.290", delta: "+4,2%", up: true as boolean | null },
-    { label: t("kpiIncome"), value: "R$ 18.400", delta: "+1,1%", up: true },
-    { label: t("kpiExpense"), value: "R$ 12.080", delta: "−0,6%", up: true },
-    { label: t("kpiGoals"), value: "5", delta: t("kpiGoalsHint"), up: null },
-  ];
+  const moneyFmt = (value: number, currency: string) =>
+    new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+
+  const kpis = portfolioSummary
+    ? [
+        {
+          label: t("kpiMarketValue"),
+          value: moneyFmt(portfolioSummary.marketValue, portfolioSummary.currency),
+          delta:
+            portfolioSummary.totalPnlPercent != null
+              ? `${portfolioSummary.totalPnlPercent >= 0 ? "+" : ""}${portfolioSummary.totalPnlPercent.toFixed(2)}%`
+              : "—",
+          up: portfolioSummary.totalPnl >= 0,
+        },
+        {
+          label: t("kpiDayPnl"),
+          value: moneyFmt(portfolioSummary.dayPnl, portfolioSummary.currency),
+          delta: t("kpiDayPnlHint"),
+          up: portfolioSummary.dayPnl >= 0,
+        },
+        {
+          label: t("kpiCostBasis"),
+          value: moneyFmt(portfolioSummary.costBasis, portfolioSummary.currency),
+          delta: t("kpiPositions", { count: portfolioSummary.positionCount }),
+          up: null,
+        },
+        {
+          label: t("kpiTotalPnl"),
+          value: moneyFmt(portfolioSummary.totalPnl, portfolioSummary.currency),
+          delta: t("kpiSimulated"),
+          up: portfolioSummary.totalPnl >= 0,
+        },
+      ]
+    : [
+        {
+          label: t("kpiEmptyPortfolio"),
+          value: "—",
+          delta: t("kpiEmptyHint"),
+          up: null,
+        },
+        {
+          label: t("kpiEmptyRoute"),
+          value: "—",
+          delta: t("kpiEmptyRouteHint"),
+          up: null,
+        },
+        {
+          label: t("kpiEmptyWatchlist"),
+          value: String(watchlistItems.length),
+          delta: t("kpiEmptyWatchlistHint"),
+          up: null,
+        },
+        {
+          label: t("kpiEmptyCalendar"),
+          value: String(todayCalendarEvents.length),
+          delta: t("kpiEmptyCalendarHint"),
+          up: null,
+        },
+      ];
   const signals = [
     {
-      label: t("signalAllocationLabel"),
-      value: t("signalAllocationValue"),
-      icon: Waves,
-      tone: "border-sky-500/25 bg-sky-950/16 text-sky-100",
-    },
-    {
-      label: t("signalDisciplineLabel"),
-      value: t("signalDisciplineValue"),
+      label: t("signalTrustLabel"),
+      value: t("signalTrustValue"),
       icon: ShieldCheck,
       tone: "border-emerald-500/25 bg-emerald-950/16 text-emerald-100",
     },
     {
-      label: t("signalAutomationLabel"),
-      value: t("signalAutomationValue"),
+      label: t("signalDataLabel"),
+      value: t("signalDataValue"),
+      icon: Waves,
+      tone: "border-sky-500/25 bg-sky-950/16 text-sky-100",
+    },
+    {
+      label: t("signalSimLabel"),
+      value: t("signalSimValue"),
       icon: Sparkles,
       tone: "border-amber-500/25 bg-amber-950/16 text-amber-100",
     },
   ];
-  const agenda = [
-    t("agendaItem1"),
-    t("agendaItem2"),
-    t("agendaItem3"),
-  ];
+  const agendaFallback = [t("agendaItem1"), t("agendaItem2"), t("agendaItem3")];
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -127,7 +217,27 @@ export default async function DashboardPage() {
         <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight md:text-4xl">
           {t("greeting")} <span className="text-gradient-brand">{greeting}</span>
         </h1>
-        <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">{t("subtitle")}</p>
+        <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">
+          {portfolioSummary ? t("subtitleLive") : t("subtitleEmpty")}
+        </p>
+        {needsName ? (
+          <div className="mt-5">
+            <CompleteNameCard />
+          </div>
+        ) : null}
+        {!portfolioSummary && !needsName ? (
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link href="/carteira" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              {t("ctaPortfolio")}
+            </Link>
+            <Link href="/rota" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              {t("ctaRoute")}
+            </Link>
+            <Link href="/bolsa" className={buttonVariants({ variant: "outline", size: "sm" })}>
+              {t("ctaMarket")}
+            </Link>
+          </div>
+        ) : null}
         <div className="mt-6 flex flex-wrap gap-2">
           <Badge className="border-primary/25 bg-primary/10 text-primary">
             {t("heroPillOverview")}
@@ -140,6 +250,14 @@ export default async function DashboardPage() {
           </Badge>
         </div>
       </div>
+
+      {portfolioSummary ? (
+        <PortfolioSummaryPanel summary={portfolioSummary} locale={locale} compact />
+      ) : null}
+
+      {user ? (
+        <FinancialRouteDashboardStrip routes={financialRoutes} />
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
         {signals.map(({ label, value, icon: Icon, tone }) => (
@@ -263,12 +381,53 @@ export default async function DashboardPage() {
         </Card>
 
         <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
-          <CardHeader>
-            <CardTitle className="font-heading">{t("agendaTitle")}</CardTitle>
-            <CardDescription>{t("agendaSubtitle")}</CardDescription>
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="font-heading">{t("agendaTitle")}</CardTitle>
+              <CardDescription>
+                {agendaHasLive ? t("agendaSubtitleLive") : t("agendaSubtitle")}
+              </CardDescription>
+            </div>
+            <Link
+              href="/calendario"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "shrink-0")}
+            >
+              <CalendarDays className="size-4" />
+              {t("agendaFullCta")}
+            </Link>
           </CardHeader>
           <CardContent className="space-y-3">
-            {agenda.map((item, index) => (
+            {agendaHasLive
+              ? todayCalendarEvents.map((ev, index) => {
+                  const title = locale.startsWith("pt") ? ev.titlePt : ev.titleEn;
+                  const timeLabel = formatAgendaEventTime(ev.date, ev.timeUtc, locale);
+                  return (
+                    <div
+                      key={ev.id}
+                      className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+                    >
+                      <div className="flex size-8 shrink-0 items-center justify-center rounded-full border border-primary/25 bg-primary/10 text-xs font-semibold text-primary">
+                        {index + 1}
+                      </div>
+                      <div className="min-w-0 flex-1 pt-0.5">
+                        {ev.watchlistSymbol ? (
+                          <Link
+                            href={`/ativo/${encodeURIComponent(ev.watchlistSymbol)}`}
+                            className="text-sm font-medium text-foreground hover:text-primary"
+                          >
+                            {title}
+                          </Link>
+                        ) : (
+                          <p className="text-sm font-medium text-foreground">{title}</p>
+                        )}
+                        <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                          {timeLabel}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              : agendaFallback.map((item, index) => (
               <div
                 key={item}
                 className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
@@ -280,7 +439,7 @@ export default async function DashboardPage() {
                   {item}
                 </p>
               </div>
-            ))}
+                ))}
           </CardContent>
         </Card>
       </div>
@@ -510,6 +669,15 @@ export default async function DashboardPage() {
                         {t("radarOpenAsset")}
                       </Link>
                       <Link
+                        href={buildPortfolioHref(dossier.symbol, {
+                          price: dossier.quote.regularMarketPrice,
+                        })}
+                        className={buttonVariants({ variant: "ghost", size: "sm" })}
+                      >
+                        <Wallet className="size-3.5" />
+                        {t("radarPortfolioCta")}
+                      </Link>
+                      <Link
                         href={`/compare?symbols=${encodeURIComponent(dossier.symbol)}`}
                         className={buttonVariants({ variant: "ghost", size: "sm" })}
                       >
@@ -693,6 +861,19 @@ function attentionLabelKey(level: WatchlistAttentionLevel) {
       return "radarAttentionMedium";
     default:
       return "radarAttentionBaseline";
+  }
+}
+
+function formatAgendaEventTime(date: string, timeUtc: string | null, locale: string) {
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      ...(timeUtc ? { hour: "2-digit", minute: "2-digit", timeZone: "UTC" } : {}),
+    }).format(new Date(`${date}T${timeUtc ?? "12:00"}:00Z`));
+  } catch {
+    return date;
   }
 }
 

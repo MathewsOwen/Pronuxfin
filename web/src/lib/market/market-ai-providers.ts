@@ -10,7 +10,8 @@ export const MARKET_AI_ENGINE_ZOD = MARKET_AI_ENGINES as unknown as [
   ...MarketAiEngineId[],
 ];
 
-const ENGINE_ORDER: MarketAiEngineId[] = ["ollama", "openai", "gemini"];
+/** Ordem de listagem / fallback genérico: nuvem primeiro (mais previsível em produção). */
+const ENGINE_ORDER: MarketAiEngineId[] = ["openai", "gemini", "ollama"];
 
 /** Motores disponíveis apenas via variáveis de ambiente (chave de plataforma). */
 export function listEnginesFromEnv(): MarketAiEngineId[] {

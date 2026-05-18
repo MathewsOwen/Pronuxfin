@@ -19,6 +19,10 @@ model User {
   watchlistItems      UserWatchlistItem[]
   watchlistAlertRules UserWatchlistAlertRule[]
   watchlistSignals    UserWatchlistSignalHistory[]
+  portfolioPositions  UserPortfolioPosition[]
+  compoundScenarios   UserCompoundScenario[]
+  financialRoutes     UserFinancialRoute[]
+  financialRouteAlerts UserFinancialRouteAlert[]
 }
 
 /// Chaves externas BYOK guardadas AES-256-GCM ( ciphertext em Base64 ).
@@ -86,4 +90,70 @@ model UserWatchlistSignalHistory {
   createdAt      DateTime @default(now())
 
   @@index([userId, symbol, createdAt])
+}
+
+model UserPortfolioPosition {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symbol      String
+  region      String
+  quantity    Float
+  averageCost Float
+  currency    String   @default("BRL")
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, symbol])
+  @@index([userId, updatedAt])
+}
+
+model UserCompoundScenario {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String
+  payloadJson Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId, updatedAt])
+}
+
+model UserFinancialRoute {
+  id                  String   @id @default(cuid())
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label               String
+  goalType            String
+  targetAmount        Float
+  targetDate          DateTime
+  initialAmount       Float    @default(0)
+  monthlyContribution Float
+  assumedReturnPct    Float    @default(10)
+  assumedInflationPct Float    @default(4.5)
+  currency            String   @default("BRL")
+  linkPortfolio       Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  alerts              UserFinancialRouteAlert[]
+
+  @@index([userId, updatedAt])
+}
+
+model UserFinancialRouteAlert {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routeId     String
+  route       UserFinancialRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  alertType   String
+  severity    String
+  paramsJson  Json
+  dismissedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, routeId, createdAt])
+  @@index([userId, dismissedAt])
 }

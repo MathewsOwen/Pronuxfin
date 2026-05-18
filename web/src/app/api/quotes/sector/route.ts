@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { loadSectorQuotesPayload } from "@/lib/market/load-sector-quotes";
+import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 import {
   type MarketRegionId,
   type SectorId,
@@ -12,7 +13,13 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /** Livro ao vivo por setor: `region=br|intl`, `sector=commodities|technology|…`. */
+const SECTOR_WINDOW_MS = 60_000;
+const SECTOR_MAX_PER_WINDOW = 48;
+
 export async function GET(req: NextRequest) {
+  const limited = await rateLimitResponse("quotes-sector", SECTOR_MAX_PER_WINDOW, SECTOR_WINDOW_MS);
+  if (limited) return limited;
+
   const url = new URL(req.url);
   const regionRaw = url.searchParams.get("region")?.trim() ?? "br";
   const sectorRaw =

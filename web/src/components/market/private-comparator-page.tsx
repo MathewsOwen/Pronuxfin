@@ -9,6 +9,7 @@ import {
   Scale,
   Sparkles,
   Trash2,
+  Wallet,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -29,6 +30,7 @@ import {
   type WatchlistRadarReason,
 } from "@/lib/user-watchlist/intelligence";
 import { formatRelativeTime } from "@/lib/market/time";
+import { buildPortfolioHref } from "@/lib/market/portfolio-links";
 import type { WatchlistAlertRule } from "@/lib/user-watchlist/alerts";
 import type { WatchlistSignalSnapshot } from "@/lib/user-watchlist/history";
 import type { UserWatchlistItemView } from "@/lib/user-watchlist/load";
@@ -245,6 +247,13 @@ export function PrivateComparatorPage({
                               : t("watchlistSelect")}
                         </Button>
                         <Link
+                          href={buildPortfolioHref(item.symbol)}
+                          className={buttonVariants({ variant: "ghost", size: "sm" })}
+                        >
+                          <Wallet className="size-4" />
+                          {t("portfolioCta")}
+                        </Link>
+                        <Link
                           href={`/ativo/${item.symbol}`}
                           className={buttonVariants({ variant: "ghost", size: "sm" })}
                         >
@@ -394,6 +403,15 @@ export function PrivateComparatorPage({
                           className={buttonVariants({ variant: "outline", size: "sm" })}
                         >
                           {t("openDossier")}
+                        </Link>
+                        <Link
+                          href={buildPortfolioHref(dossier.symbol, {
+                            price: dossier.quote.regularMarketPrice,
+                          })}
+                          className={buttonVariants({ variant: "ghost", size: "sm" })}
+                        >
+                          <Wallet className="size-4" />
+                          {t("portfolioCta")}
                         </Link>
                       </div>
                     </CardContent>

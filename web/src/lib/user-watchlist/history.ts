@@ -96,16 +96,16 @@ export async function persistWatchlistSignalSnapshots(
   if (rows.length === 0) return;
 
   try {
-    await prisma.$transaction(
-      rows.map((row) =>
-        prisma.$executeRaw(Prisma.sql`
+    await prisma.$transaction(async (tx) => {
+      for (const row of rows) {
+        await tx.$executeRaw(Prisma.sql`
           INSERT INTO "UserWatchlistSignalHistory"
             ("id", "userId", "symbol", "priority", "attentionLevel", "reasonsJson", "newsCount", "moveAbs", "rangeProgress", "createdAt")
           VALUES
             (${cryptoRandomId()}, ${row.userId}, ${row.symbol}, ${row.priority}, ${row.attentionLevel}, ${row.reasonsJson}, ${row.newsCount}, ${row.moveAbs}, ${row.rangeProgress}, NOW())
-        `),
-      ),
-    );
+        `);
+      }
+    });
   } catch {
     // Ignore transient DB issues; the UI should keep working.
   }

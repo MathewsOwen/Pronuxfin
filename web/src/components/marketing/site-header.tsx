@@ -16,6 +16,8 @@ import { PronuxFinLogo } from "@/components/brand/pronux-fin-logo";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import type { SessionUser } from "@/lib/session";
+import { displayNameForUser, initialsForUser } from "@/lib/user-display";
 import { cn } from "@/lib/utils";
 
 const navLinkClass =
@@ -47,7 +49,13 @@ function NavLink({
   );
 }
 
-export function SiteHeader({ showLanguageSwitcher = false }: { showLanguageSwitcher?: boolean }) {
+export function SiteHeader({
+  showLanguageSwitcher = false,
+  user = null,
+}: {
+  showLanguageSwitcher?: boolean;
+  user?: SessionUser | null;
+}) {
   const t = useTranslations("Nav");
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -58,6 +66,7 @@ export function SiteHeader({ showLanguageSwitcher = false }: { showLanguageSwitc
         { href: "/bolsa", label: t("market") },
         { href: "/projecao", label: t("projecao") },
         { href: "/noticias", label: t("news") },
+        { href: "/ferramentas", label: t("tools") },
         /** Âncoras da home: usar `/#…` para funcionar em qualquer rota (ex.: `#ia` virava `/noticias#ia`). */
         { href: "/assistant", label: t("ia") },
         { href: "/#beneficios", label: t("benefits") },
@@ -135,15 +144,28 @@ export function SiteHeader({ showLanguageSwitcher = false }: { showLanguageSwitc
 
         <div className="hidden items-center gap-2 md:flex md:gap-3">
           {showLanguageSwitcher ? <LanguageSwitcher /> : null}
-          <Link
-            href="/login"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-          >
-            {t("login")}
-          </Link>
-          <Link href="/register" className={cn(buttonVariants({ size: "sm" }))}>
-            {t("start")}
-          </Link>
+          {user ? (
+            <>
+              <span className="max-w-[140px] truncate text-sm text-muted-foreground">
+                {displayNameForUser(user) || user.email}
+              </span>
+              <Link href="/dashboard" className={cn(buttonVariants({ size: "sm" }))}>
+                {t("product")}
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+              >
+                {t("login")}
+              </Link>
+              <Link href="/register" className={cn(buttonVariants({ size: "sm" }))}>
+                {t("start")}
+              </Link>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
@@ -199,26 +221,41 @@ export function SiteHeader({ showLanguageSwitcher = false }: { showLanguageSwitc
             ),
           )}
           <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-4">
-            <Link
-              href="/login"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "default" }),
-                "w-full justify-center",
-              )}
-              onClick={() => setOpen(false)}
-            >
-              {t("login")}
-            </Link>
-            <Link
-              href="/register"
-              className={cn(
-                buttonVariants({ size: "default" }),
-                "w-full justify-center",
-              )}
-              onClick={() => setOpen(false)}
-            >
-              {t("start")}
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className={cn(
+                  buttonVariants({ size: "default" }),
+                  "w-full justify-center",
+                )}
+                onClick={() => setOpen(false)}
+              >
+                {t("product")}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "default" }),
+                    "w-full justify-center",
+                  )}
+                  onClick={() => setOpen(false)}
+                >
+                  {t("login")}
+                </Link>
+                <Link
+                  href="/register"
+                  className={cn(
+                    buttonVariants({ size: "default" }),
+                    "w-full justify-center",
+                  )}
+                  onClick={() => setOpen(false)}
+                >
+                  {t("start")}
+                </Link>
+              </>
+            )}
           </div>
         </nav>
       </div>

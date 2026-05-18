@@ -29,8 +29,8 @@ const labels = {
     demoTrade:
       "Sem perfil/registro/regulatória completos não indico entrada/saída em ativos; posso apenas listar perguntas e checagens típicas de mesa (liquidez, stress, cenários).",
     radar: "Radar (snapshot do servidor):",
-    ollamaHint:
-      "Para modelo de linguagem: suba um Ollama e defina PRONUX_MARKET_AI_OLLAMA_ORIGIN — o app usa só o protocolo nativo (/api/chat), não API estilo provedores OpenAI-compat.",
+    demoFooter:
+      "Para respostas mais completas com um assistente de IA, o operador da plataforma precisa de configurar um motor de linguagem nas definições do serviço.",
     remoteFail:
       "Falha ao contatar modelo remoto neste ciclo — resposta de demonstração apenas.",
   },
@@ -60,8 +60,8 @@ const labels = {
     demoTrade:
       "Without disclosures, onboarding and supervisory cover I cannot prescribe trade tickets; share the checklist desks use (liquidity, stress, disclosures).",
     radar: "Desk snapshot (server):",
-    ollamaHint:
-      "To enable a local LLM, run Ollama and set PRONUX_MARKET_AI_OLLAMA_ORIGIN — this build calls the native /api/chat route only (not an OpenAI-compatible shim).",
+    demoFooter:
+      "For fuller AI answers, the platform operator needs to configure a language model in the service settings.",
     remoteFail:
       "Remote model unavailable this round — showing demo reply only.",
   },
@@ -180,7 +180,7 @@ export function demoMarketReply(
       ? `${contextSummary.slice(0, 900)}…`
       : contextSummary;
 
-  return `${lead}\n\n— ${L.radar}\n${ctxSnippet || L.ctxUnavailable}\n\n${L.ollamaHint}`;
+  return `${lead}\n\n— ${L.radar}\n${ctxSnippet || L.ctxUnavailable}\n\n${L.demoFooter}`;
 }
 
 export function remoteModelFailureSuffix(locale: AiLocale): string {

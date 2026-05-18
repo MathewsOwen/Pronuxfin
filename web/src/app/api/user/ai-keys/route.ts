@@ -135,18 +135,29 @@ export async function PATCH(req: Request) {
     nextGemini = encryptAiSecret(parsed.geminiKey.trim(), master);
   }
 
-  await prisma.userAiKeys.upsert({
-    where: { userId },
-    create: {
-      userId,
-      openaiCipher: nextOpenai,
-      geminiCipher: nextGemini,
-    },
-    update: {
-      openaiCipher: nextOpenai,
-      geminiCipher: nextGemini,
-    },
-  });
+  try {
+    await prisma.userAiKeys.upsert({
+      where: { userId },
+      create: {
+        userId,
+        openaiCipher: nextOpenai,
+        geminiCipher: nextGemini,
+      },
+      update: {
+        openaiCipher: nextOpenai,
+        geminiCipher: nextGemini,
+      },
+    });
+  } catch {
+    return NextResponse.json(
+      {
+        ok: false as const,
+        message:
+          "Não foi possível guardar as chaves neste momento. Verifique a base de dados e tente novamente.",
+      },
+      { status: 503 },
+    );
+  }
 
   return NextResponse.json({ ok: true as const });
 }

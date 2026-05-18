@@ -3,9 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { createHash, randomBytes } from 'crypto';
+import { Prisma } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { AuthMailerService } from './auth-mailer.service';
 import type { JwtPayload } from './jwt.strategy';
+import { rolesForEmail } from './platform-admin.util';
 
 const SALT_ROUNDS = 12;
 const DEFAULT_RESET_TTL_MIN = 30;
@@ -19,7 +21,7 @@ export class AuthService {
     private readonly mailer: AuthMailerService,
   ) {}
 
-  async register(email: string, password: string, name?: string) {
+  async register(email: string, password: string, name: string) {
     const existing = await this.users.findByEmail(email);
     if (existing) {
       throw new HttpException(
@@ -32,8 +34,25 @@ export class AuthService {
       );
     }
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-    const user = await this.users.create({ email, passwordHash, name });
-    return this.issueTokens(user.id, user.email);
+    try {
+      const user = await this.users.create({ email, passwordHash, name: name.trim() });
+      return this.issueTokens(user.id, user.email);
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.CONFLICT,
+            message: 'This email is already registered.',
+            code: 'AUTH_EMAIL_IN_USE',
+          },
+          HttpStatus.CONFLICT,
+        );
+      }
+      throw e;
+    }
   }
 
   async login(email: string, password: string) {
@@ -138,7 +157,8 @@ export class AuthService {
   }
 
   private issueTokens(sub: string, email: string) {
-    const payload: JwtPayload = { sub, email };
+    const roles = rolesForEmail(email, this.config);
+    const payload: JwtPayload = { sub, email, roles };
     const access_token = this.jwt.sign(payload);
     return {
       access_token,
