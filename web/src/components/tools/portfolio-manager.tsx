@@ -13,6 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { PortfolioLiveMarketPanel } from "@/components/tools/portfolio-live-market-panel";
+import type { QuoteSnapshot } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
 
 export function PortfolioManager({
@@ -108,6 +110,15 @@ export function PortfolioManager({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <PortfolioLiveMarketPanel
+          symbol={symbol}
+          onSelectSymbol={(quote: QuoteSnapshot) => {
+            setSymbol(quote.symbol);
+          }}
+          onUseLivePrice={(price) => {
+            setAverageCost(String(price));
+          }}
+        />
         <form onSubmit={(e) => void handleSubmit(e)} className="grid gap-4 sm:grid-cols-3">
           <div>
             <Label htmlFor="portfolio-symbol" className="text-xs text-muted-foreground">

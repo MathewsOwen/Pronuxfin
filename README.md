@@ -67,7 +67,7 @@ PRONUXFIN é uma plataforma de inteligência de mercado com front-end em Next.js
 - **Fase 4 — polish (SEO, a11y, performance):** `docs/phase-4-polish.md`
 - **Fase 5 — go-live & confiança:** `docs/phase-5-go-live.md`
 - **Critérios 10/10 (Fases 4+5):** `docs/phases-4-5.md`
-- **Carteira simulada (do zero):** conta nova começa sem posições; `/carteira` para montar qty e preço médio
+- **Carteira simulada (do zero):** conta nova sem posições; `/carteira` com busca ao vivo (BRAPI/Yahoo) para adicionar ativos com cotação em tempo real
 - **Arquitetura:** `ARCHITECTURE.md` · **Segurança:** `SECURITY.md`
 
 ## Estado atual
