@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const STEPS = [
   { titleKey: "step1Title", leadKey: "step1Lead", href: "/bolsa", ctaKey: "step1Cta" },
-  { titleKey: "step2Title", leadKey: "step2Lead", href: "/dashboard", ctaKey: "step2Cta" },
+  { titleKey: "step2Title", leadKey: "step2Lead", href: "/carteira", ctaKey: "step2Cta" },
   { titleKey: "step3Title", leadKey: "step3Lead", href: "/ferramentas", ctaKey: "step3Cta" },
 ] as const;
 

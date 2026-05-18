@@ -116,3 +116,10 @@ export async function deleteUserPortfolioPosition(
     where: { userId, symbol: normalizePortfolioSymbol(symbol) },
   });
 }
+
+export async function clearUserPortfolio(userId: string): Promise<number> {
+  const result = await prisma.userPortfolioPosition.deleteMany({
+    where: { userId },
+  });
+  return result.count;
+}
