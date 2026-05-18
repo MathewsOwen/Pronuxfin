@@ -31,10 +31,10 @@ export function LiveMarketStrip() {
   const duplex = rows.length > 0 ? [...rows, ...rows] : [];
   const mode =
     payload.dataMode ??
-    (payload.simulated || payload.cryptoSimulated
-      ? "simulated"
-      : rows.length === 0
-        ? "degraded"
+    (rows.length === 0
+      ? "degraded"
+      : payload.simulated || payload.cryptoSimulated
+        ? "partial"
         : "live");
 
   return (
@@ -53,8 +53,8 @@ export function LiveMarketStrip() {
               "flex items-center gap-2 rounded border px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider",
               mode === "live" &&
                 "border-emerald-500/35 bg-emerald-950/40 text-emerald-400",
-              mode === "simulated" &&
-                "border-amber-500/35 bg-amber-950/40 text-amber-300",
+              mode === "partial" &&
+                "border-amber-500/35 bg-amber-950/40 text-amber-200",
               mode === "degraded" &&
                 "border-rose-500/35 bg-rose-950/40 text-rose-300",
             )}
@@ -63,29 +63,29 @@ export function LiveMarketStrip() {
               className={cn(
                 "size-1.5 shrink-0 rounded-full",
                 mode === "live" && "bg-emerald-400 shadow-[0_0_8px_oklch(0.72_0.17_155)]",
-                mode === "simulated" && "bg-amber-400",
+                mode === "partial" && "bg-amber-400",
                 mode === "degraded" && "bg-rose-400",
               )}
               aria-hidden
             />
             {mode === "live"
               ? t("stripLive")
-              : mode === "simulated"
-                ? t("stripBadgeDemo")
+              : mode === "partial"
+                ? t("stripBadgePartial")
                 : t("stripBadgeDegraded")}
           </span>
           <p className="hidden max-w-xl text-[11px] leading-snug text-muted-foreground lg:block">
             {t("stripHint")}{" "}
             {mode === "degraded" ? (
               <span className="text-rose-300/95">{t("stripDegraded")}</span>
-            ) : payload.simulated ? (
-              <span className="text-amber-400/95">{t("stripDemoEquities")}</span>
+            ) : payload.equitiesPartial || payload.results.length === 0 ? (
+              <span className="text-amber-200/90">{t("stripPartialEquities")}</span>
             ) : (
-              <span className="text-amber-200/80">{t("stripLiveEquities")}</span>
+              <span className="text-emerald-300/90">{t("stripLiveEquities")}</span>
             )}
             {" · "}
-            {payload.cryptoSimulated ? (
-              <span className="text-amber-400/95">{t("stripDemoCrypto")}</span>
+            {payload.cryptoSimulated || (payload.crypto?.length ?? 0) === 0 ? (
+              <span className="text-amber-200/90">{t("stripPartialCrypto")}</span>
             ) : payload.cryptoPartial ? (
               <span className="text-amber-200/90">{t("cryptoBadgePartial")}</span>
             ) : (

@@ -1,4 +1,10 @@
-import type { AssetDividendEvent, AssetDividendInsights } from "@/lib/market/types";
+import type {
+  AssetDividendEvent,
+  AssetDividendInsights,
+  AssetHistoryPoint,
+  DividendTypeFilter,
+  DividendYearYield,
+} from "@/lib/market/types";
 
 function readNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -68,11 +74,64 @@ function normalizeDividendType(label: string) {
   return upper.slice(0, 24) || "DIVIDEND";
 }
 
+export function filterDividendEvents(
+  events: AssetDividendEvent[],
+  filter: DividendTypeFilter,
+): AssetDividendEvent[] {
+  if (filter === "ALL") return events;
+  return events.filter((e) => e.type === filter);
+}
+
+export function computeDividendYieldByYear(
+  events: AssetDividendEvent[],
+  history: AssetHistoryPoint[],
+): DividendYearYield[] {
+  const yearEndPrice = new Map<number, number>();
+  const sortedHistory = [...history].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+  for (const p of sortedHistory) {
+    yearEndPrice.set(new Date(p.date).getUTCFullYear(), p.close);
+  }
+
+  const paidByYear = new Map<number, number>();
+  for (const e of events) {
+    if (!e.paymentDate) continue;
+    const y = new Date(e.paymentDate).getUTCFullYear();
+    paidByYear.set(y, (paidByYear.get(y) ?? 0) + e.amount);
+  }
+
+  return [...paidByYear.entries()]
+    .map(([year, totalPaid]) => {
+      const price = yearEndPrice.get(year) ?? null;
+      const yieldPct =
+        price != null && price > 0 ? (totalPaid / price) * 100 : null;
+      return { year, totalPaid, yieldPct, yearEndPrice: price };
+    })
+    .sort((a, b) => a.year - b.year);
+}
+
+export function aggregateDividendsByYear(events: AssetDividendEvent[]) {
+  const map = new Map<number, { total: number; count: number }>();
+  for (const e of events) {
+    if (!e.paymentDate) continue;
+    const y = new Date(e.paymentDate).getUTCFullYear();
+    const bucket = map.get(y) ?? { total: 0, count: 0 };
+    bucket.total += e.amount;
+    bucket.count += 1;
+    map.set(y, bucket);
+  }
+  return [...map.entries()]
+    .map(([year, row]) => ({ year, total: row.total, count: row.count }))
+    .sort((a, b) => a.year - b.year);
+}
+
 export function buildAssetDividendInsights(
   events: AssetDividendEvent[],
   sourceLabel: string,
   currentPrice: number | null,
   dividendYieldSnapshot: number | null,
+  history: AssetHistoryPoint[] = [],
 ): AssetDividendInsights {
   const sorted = [...events].sort((a, b) => {
     const ta = a.paymentDate ? new Date(a.paymentDate).getTime() : 0;
@@ -97,18 +156,8 @@ export function buildAssetDividendInsights(
       ? (trailing12mTotal / currentPrice) * 100
       : null;
 
-  const byYearMap = new Map<number, { total: number; count: number }>();
-  for (const e of sorted) {
-    if (!e.paymentDate) continue;
-    const y = new Date(e.paymentDate).getUTCFullYear();
-    const bucket = byYearMap.get(y) ?? { total: 0, count: 0 };
-    bucket.total += e.amount;
-    bucket.count += 1;
-    byYearMap.set(y, bucket);
-  }
-  const byYear = [...byYearMap.entries()]
-    .map(([year, row]) => ({ year, total: row.total, count: row.count }))
-    .sort((a, b) => b.year - a.year);
+  const byYear = aggregateDividendsByYear(sorted).sort((a, b) => b.year - a.year);
+  const yieldByYear = computeDividendYieldByYear(sorted, history);
 
   const upcoming = sorted
     .filter((e) => e.paymentDate && new Date(e.paymentDate).getTime() >= now)
@@ -116,12 +165,13 @@ export function buildAssetDividendInsights(
 
   return {
     sourceLabel,
-    events: sorted.slice(0, 48),
+    events: sorted.slice(0, 120),
     trailing12mTotal: trailing12mTotal > 0 ? trailing12mTotal : null,
     trailing12mYield,
     paymentsLast12m: last12m.length,
     paymentsLast24m: last24m.length,
     byYear: byYear.slice(0, 12),
+    yieldByYear: yieldByYear.slice(-12),
     nextPayment: upcoming[0] ?? null,
     dividendYieldSnapshot,
   };

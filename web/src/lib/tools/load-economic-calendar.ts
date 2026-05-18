@@ -1,8 +1,9 @@
 import { fetchFmpEarningsCalendarEvents } from "@/lib/market/fmp-earnings-calendar";
+import { fetchFmpMacroCalendarEvents } from "@/lib/market/fmp-economic-calendar";
 import { buildB3EarningsSeasonEvents } from "@/lib/tools/b3-earnings-season";
 import {
-  buildWatchlistCalendarEvents,
   listEconomicCalendarEvents,
+  listFixedMacroCalendarEvents,
   mergeEconomicCalendarEvents,
   type EconomicCalendarEvent,
   type EconomicEventRegion,
@@ -18,6 +19,8 @@ export type LoadedEconomicCalendar = {
   events: EconomicCalendarEvent[];
   fmpAvailable: boolean;
   mode: EconomicCalendarMode;
+  fmpEarningsCount: number;
+  fmpMacroCount: number;
 };
 
 export async function loadEconomicCalendar(options: {
@@ -29,15 +32,37 @@ export async function loadEconomicCalendar(options: {
   const days = options.days;
   const watchlist = options.watchlistSymbols ?? [];
 
-  const base = listEconomicCalendarEvents({ days, region: options.region ?? "all" });
-  const fmp = await fetchFmpEarningsCalendarEvents({
+  const [fmpEarnings, fmpMacro] = await Promise.all([
+    fetchFmpEarningsCalendarEvents({
+      days,
+      watchlistSymbols: watchlist.length > 0 ? watchlist : undefined,
+      publicLimit: watchlist.length > 0 ? undefined : 80,
+    }),
+    fetchFmpMacroCalendarEvents({ days, limit: 60 }),
+  ]);
+
+  const fmpAvailable = fmpEarnings.available || fmpMacro.available;
+
+  let events = listFixedMacroCalendarEvents({
     days,
-    watchlistSymbols: watchlist.length > 0 ? watchlist : undefined,
-    publicLimit: watchlist.length > 0 ? undefined : 60,
+    region: options.region ?? "all",
   });
 
+  events = mergeEconomicCalendarEvents(events, fmpMacro.events, fmpEarnings.events);
+
+  if (!fmpAvailable) {
+    events = mergeEconomicCalendarEvents(
+      events,
+      listEconomicCalendarEvents({
+        days,
+        region: options.region ?? "all",
+        includeRecurring: true,
+      }),
+    );
+  }
+
   const fmpSymbols = new Set<string>();
-  for (const ev of fmp.events) {
+  for (const ev of fmpEarnings.events) {
     if (ev.watchlistSymbol) fmpSymbols.add(ev.watchlistSymbol);
     else {
       const match = ev.id.match(/^fmp-earnings-([A-Z0-9.-]+)-/);
@@ -49,20 +74,12 @@ export async function loadEconomicCalendar(options: {
     .map((s) => s.trim().toUpperCase())
     .filter((s) => s && !fmpSymbols.has(s));
 
-  const b3Season =
-    withoutFmp.filter(isB3Symbol).length > 0
-      ? buildB3EarningsSeasonEvents(withoutFmp.filter(isB3Symbol), { days })
-      : [];
-
-  const illustrative =
-    withoutFmp.filter((s) => !isB3Symbol(s)).length > 0
-      ? buildWatchlistCalendarEvents(withoutFmp.filter((s) => !isB3Symbol(s)), { days })
-      : [];
-
-  let events = mergeEconomicCalendarEvents(
-    mergeEconomicCalendarEvents(mergeEconomicCalendarEvents(base, fmp.events), b3Season),
-    illustrative,
-  );
+  if (withoutFmp.filter(isB3Symbol).length > 0) {
+    events = mergeEconomicCalendarEvents(
+      events,
+      buildB3EarningsSeasonEvents(withoutFmp.filter(isB3Symbol), { days }),
+    );
+  }
 
   if (options.region && options.region !== "all") {
     events = events.filter((e) => e.region === options.region || e.region === "both");
@@ -72,9 +89,24 @@ export async function loadEconomicCalendar(options: {
     events = events.slice(0, options.limit);
   }
 
-  const fmpLiveCount = fmp.events.filter((e) => e.source === "fmp").length;
-  const mode: EconomicCalendarMode =
-    fmp.available && fmpLiveCount > 0 ? "hybrid" : "curated";
+  const fmpEarningsCount = events.filter(
+    (e) => e.source === "fmp" && e.category === "earnings",
+  ).length;
+  const fmpMacroCount = events.filter((e) => e.source === "fmp" && e.category === "macro").length;
+  const fmpTotal = fmpEarningsCount + fmpMacroCount;
 
-  return { events, fmpAvailable: fmp.available, mode };
+  const mode: EconomicCalendarMode =
+    fmpAvailable && fmpTotal >= 5
+      ? "live"
+      : fmpAvailable && fmpTotal > 0
+        ? "hybrid"
+        : "curated";
+
+  return {
+    events,
+    fmpAvailable,
+    mode,
+    fmpEarningsCount,
+    fmpMacroCount,
+  };
 }

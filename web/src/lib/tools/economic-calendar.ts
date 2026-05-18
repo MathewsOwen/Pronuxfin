@@ -147,11 +147,38 @@ function expandRecurringForDate(d: Date): EconomicCalendarEvent[] {
   return out;
 }
 
+/** Datas macro fixas (FOMC, BCE) — sem slots recorrentes genéricos. */
+export function listFixedMacroCalendarEvents(options?: {
+  from?: Date;
+  days?: number;
+  region?: EconomicEventRegion | "all";
+}): EconomicCalendarEvent[] {
+  const from = options?.from ?? new Date();
+  const days = options?.days ?? 14;
+  const region = options?.region ?? "all";
+
+  const start = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()));
+  const end = start.getTime() + days * 86_400_000;
+
+  let list = FIXED_2026.filter((fixed) => {
+    const fd = new Date(`${fixed.date}T00:00:00Z`).getTime();
+    return fd >= start.getTime() && fd < end;
+  });
+
+  if (region !== "all") {
+    list = list.filter((e) => e.region === region || e.region === "both");
+  }
+
+  return list.map((e) => ({ ...e, source: "curated" as const }));
+}
+
 export function listEconomicCalendarEvents(options?: {
   from?: Date;
   days?: number;
   region?: EconomicEventRegion | "all";
   limit?: number;
+  /** Inclui slots recorrentes ilustrativos (evitar quando FMP está ativo). */
+  includeRecurring?: boolean;
 }): EconomicCalendarEvent[] {
   const from = options?.from ?? new Date();
   const days = options?.days ?? 14;
@@ -164,14 +191,16 @@ export function listEconomicCalendarEvents(options?: {
   for (const fixed of FIXED_2026) {
     const fd = new Date(`${fixed.date}T00:00:00Z`);
     if (fd >= start && fd < new Date(start.getTime() + days * 86_400_000)) {
-      byId.set(fixed.id, fixed);
+      byId.set(fixed.id, { ...fixed, source: "curated" });
     }
   }
 
-  for (let i = 0; i < days; i += 1) {
-    const d = new Date(start.getTime() + i * 86_400_000);
-    for (const ev of expandRecurringForDate(d)) {
-      byId.set(ev.id, ev);
+  if (options?.includeRecurring !== false) {
+    for (let i = 0; i < days; i += 1) {
+      const d = new Date(start.getTime() + i * 86_400_000);
+      for (const ev of expandRecurringForDate(d)) {
+        byId.set(ev.id, ev);
+      }
     }
   }
 
@@ -238,10 +267,10 @@ export function buildWatchlistCalendarEvents(
 
 export function mergeEconomicCalendarEvents(
   base: EconomicCalendarEvent[],
-  extra: EconomicCalendarEvent[],
+  ...extras: EconomicCalendarEvent[][]
 ): EconomicCalendarEvent[] {
   const byId = new Map<string, EconomicCalendarEvent>();
-  for (const ev of [...base, ...extra]) {
+  for (const ev of [base, ...extras].flat()) {
     byId.set(ev.id, ev);
   }
   return [...byId.values()].sort((a, b) => {

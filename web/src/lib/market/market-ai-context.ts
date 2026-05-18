@@ -13,7 +13,7 @@ const labels = {
     headlines: "Manchetes RSS recentes (títulos apenas):",
     ctxUnavailable: "(contexto indisponível neste ciclo)",
     demoDefault:
-      "Resposta em modo demonstração — sem modelo remoto configurado. Trato apenas educação e enquadramento de risco.",
+      "Assistente indisponível neste ciclo — nenhum motor de linguagem configurado no servidor. Abaixo, o snapshot ao vivo da mesa (quando a API responde). Conteúdo educativo apenas; não é recomendação de investimento.",
     demoRates:
       "Juros e COPOM mexem diretamente no custo do capital e no desconto de fluxos futuros — em mesa, você olha política monetária, inflação esperada e prêmios de crédito/soberano.",
     demoFx:
@@ -30,9 +30,9 @@ const labels = {
       "Sem perfil/registro/regulatória completos não indico entrada/saída em ativos; posso apenas listar perguntas e checagens típicas de mesa (liquidez, stress, cenários).",
     radar: "Radar (snapshot do servidor):",
     demoFooter:
-      "Para respostas mais completas com um assistente de IA, o operador da plataforma precisa de configurar um motor de linguagem nas definições do serviço.",
+      "Para respostas completas com IA generativa, configure Ollama, OpenAI ou Gemini nas variáveis do serviço (painel do operador).",
     remoteFail:
-      "Falha ao contatar modelo remoto neste ciclo — resposta de demonstração apenas.",
+      "Falha ao contatar modelo remoto neste ciclo — exibindo apenas contexto de mercado ao vivo.",
   },
   en: {
     updated: "Snapshot timestamp (unix ms)",
@@ -44,7 +44,7 @@ const labels = {
     headlines: "Recent RSS headlines (titles only):",
     ctxUnavailable: "(no desk context returned this cycle)",
     demoDefault:
-      "Demo pathway — remote LLM not configured yet. Guidance covers education plus explicit risk framing only.",
+      "Assistant unavailable this cycle — no language model configured on the server. Below is the live desk snapshot when the API responds. Educational framing only; not investment advice.",
     demoRates:
       "Policy rates reshape the equity discount rate curve — desks pair central-bank narratives with sovereign and credit spreads, not anecdotes.",
     demoFx:
@@ -61,9 +61,9 @@ const labels = {
       "Without disclosures, onboarding and supervisory cover I cannot prescribe trade tickets; share the checklist desks use (liquidity, stress, disclosures).",
     radar: "Desk snapshot (server):",
     demoFooter:
-      "For fuller AI answers, the platform operator needs to configure a language model in the service settings.",
+      "For full generative answers, configure Ollama, OpenAI or Gemini in service environment variables.",
     remoteFail:
-      "Remote model unavailable this round — showing demo reply only.",
+      "Remote model unavailable this round — showing live market context only.",
   },
 } as const;
 

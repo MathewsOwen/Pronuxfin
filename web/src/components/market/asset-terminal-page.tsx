@@ -29,7 +29,6 @@ import { buttonVariants } from "@/components/ui/button";
 import {
   DossierCalendarYearsSection,
   DossierComparablePeers,
-  DossierDividendsSection,
   DossierMarketRatiosSection,
   DossierPeriodReturnsSection,
   DossierRiskMetricsSection,
@@ -37,6 +36,8 @@ import {
   DossierSessionTradingSection,
   type AssetDossierSectionLabels,
 } from "@/components/market/asset-dossier-sections";
+import { DossierDividendsPanel } from "@/components/market/dossier-dividends-panel";
+import { DossierPriceChart } from "@/components/market/dossier-price-chart";
 import { dividendInsightsHasData } from "@/lib/market/asset-dossier-dividends";
 import { marketExtrasHasDisplayData } from "@/lib/market/asset-dossier-market-extras";
 import { WatchlistToggleButton } from "@/components/market/watchlist-toggle-button";
@@ -220,11 +221,18 @@ export async function AssetTerminalPage({
       <DossierSessionTradingSection dossier={dossier} locale={locale} labels={sectionLabels} />
       <DossierPeriodReturnsSection stats={dossier.periodStats} labels={sectionLabels} />
       <DossierMarketRatiosSection dossier={dossier} locale={locale} labels={sectionLabels} />
-      <DossierDividendsSection
+      <DossierDividendsPanel
         insights={dossier.dividends}
+        history={dossier.history}
         currency={dossier.currency}
         locale={locale}
         labels={sectionLabels}
+        filters={[
+          { id: "ALL", label: sectionLabels.dividendsFilterAll },
+          { id: "DIVIDEND", label: sectionLabels.dividendsFilterDividend },
+          { id: "JCP", label: sectionLabels.dividendsFilterJcp },
+          { id: "INCOME", label: sectionLabels.dividendsFilterIncome },
+        ]}
       />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.85fr)]">
@@ -235,7 +243,13 @@ export async function AssetTerminalPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
-              <AssetPriceChart history={dossier.history} positive={chartTrend >= 0} />
+              <DossierPriceChart
+                history={dossier.history}
+                locale={locale}
+                positive={chartTrend >= 0}
+                ariaLabel={t("chartTitle")}
+                emptyLabel={t("notAvailable")}
+              />
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
               <MiniMetric
@@ -583,7 +597,11 @@ export async function AssetTerminalPage({
         </Card>
       ) : null}
 
-      <DossierCalendarYearsSection rows={ins.calendarYearReturns} labels={sectionLabels} />
+      <DossierCalendarYearsSection
+        rows={ins.calendarYearReturns}
+        labels={sectionLabels}
+        locale={locale}
+      />
       <DossierRiskMetricsSection stats={dossier.periodStats} labels={sectionLabels} />
 
       <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
@@ -905,37 +923,6 @@ function AssetAvatar({ dossier }: { dossier: AssetDossier }) {
   );
 }
 
-function AssetPriceChart({
-  history,
-  positive,
-}: {
-  history: AssetHistoryPoint[];
-  positive: boolean;
-}) {
-  const points = buildChartPoints(history, 640, 240);
-  const stroke = positive ? "oklch(0.74 0.15 154)" : "oklch(0.72 0.16 20)";
-  const fill = positive
-    ? "rgba(16, 185, 129, 0.14)"
-    : "rgba(244, 63, 94, 0.14)";
-
-  return (
-    <svg viewBox="0 0 640 240" className="h-[240px] w-full" role="img" aria-label="Asset price chart">
-      <defs>
-        <linearGradient id="asset-chart-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={fill} />
-          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
-        </linearGradient>
-      </defs>
-      <rect x="0" y="0" width="640" height="240" rx="18" fill="rgba(255,255,255,0.02)" />
-      {[48, 120, 192].map((y) => (
-        <line key={y} x1="0" x2="640" y1={y} y2={y} stroke="rgba(255,255,255,0.06)" strokeDasharray="6 8" />
-      ))}
-      <path d={`${points.areaPath} L 640 220 L 0 220 Z`} fill="url(#asset-chart-fill)" />
-      <path d={points.linePath} fill="none" stroke={stroke} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 function ProfileRow({
   icon: Icon,
   label,
@@ -1094,30 +1081,6 @@ function computeChartTrend(history: AssetHistoryPoint[]) {
   if (!start || !end) return 0;
   return ((end - start) / start) * 100;
 }
-
-function buildChartPoints(history: AssetHistoryPoint[], width: number, height: number) {
-  const safe = history.length > 1 ? history : [{ date: "", close: 0 }, { date: "", close: 0 }];
-  const values = safe.map((point) => point.close);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const yRange = max - min || 1;
-  const xStep = width / Math.max(safe.length - 1, 1);
-  const topPadding = 20;
-  const bottomPadding = 20;
-  const plotHeight = Math.max(height - topPadding - bottomPadding, 1);
-
-  const points = safe.map((point, index) => {
-    const x = index * xStep;
-    const y = topPadding + (1 - (point.close - min) / yRange) * plotHeight;
-    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  });
-
-  return {
-    linePath: points.join(" "),
-    areaPath: points.join(" "),
-  };
-}
-
 function joinRange(start: string, end: string) {
   if (start === "—" && end === "—") return "—";
   return `${start} / ${end}`;
@@ -1317,6 +1280,16 @@ function buildSectionLabels(
     dividendsNextPayment: t("dividendsNextPayment"),
     dividendsYieldSnapshot: t("dividendsYieldSnapshot"),
     dividendsByYearTitle: t("dividendsByYearTitle"),
+    dividendsByYearSubtitle: t("dividendsByYearSubtitle"),
+    dividendsYieldByYearTitle: t("dividendsYieldByYearTitle"),
+    dividendsYieldByYearSubtitle: t("dividendsYieldByYearSubtitle"),
+    dividendsYieldEmpty: t("dividendsYieldEmpty"),
+    dividendsYieldHint: t("dividendsYieldHint"),
+    dividendsFilterAll: t("dividendsFilterAll"),
+    dividendsFilterDividend: t("dividendsFilterDividend"),
+    dividendsFilterJcp: t("dividendsFilterJcp"),
+    dividendsFilterIncome: t("dividendsFilterIncome"),
+    dividendsFilterEmpty: t("dividendsFilterEmpty"),
     dividendsTableType: t("dividendsTableType"),
     dividendsTableEx: t("dividendsTableEx"),
     dividendsTablePay: t("dividendsTablePay"),

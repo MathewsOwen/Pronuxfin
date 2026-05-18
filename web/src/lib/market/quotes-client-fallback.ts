@@ -1,6 +1,7 @@
 import { simulatedCryptoQuotes } from "@/lib/market/crypto";
 import { simulatedEquities } from "@/lib/market/equities-brapi";
 import { sortQuotesForDesk } from "@/lib/market/indices";
+import { clientAllowsSimulatedMarketData } from "@/lib/market/market-data-policy";
 import type { QuotesPayload } from "@/lib/market/types";
 
 /** Cliente: sem cotações inventadas quando a API falha em produção estrita. */
@@ -29,14 +30,9 @@ export function simulatedDeskFallbackPayload(): QuotesPayload {
   };
 }
 
-function clientAllowsSimulatedQuotes(): boolean {
-  if (process.env.NEXT_PUBLIC_MARKET_ALLOW_SIMULATION === "1") return true;
-  return process.env.NODE_ENV !== "production";
-}
-
 /** Fallback após falha de rede ou HTTP na strip / mesa pública. */
 export function resolveClientQuotesFallback(): QuotesPayload {
-  return clientAllowsSimulatedQuotes()
+  return clientAllowsSimulatedMarketData()
     ? simulatedDeskFallbackPayload()
     : degradedDeskFallbackPayload();
 }

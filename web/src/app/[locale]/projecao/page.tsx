@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ProjecaoPage() {
   const user = await getCurrentUser();
-  const hub = <ProjecaoHub />;
+  const hub = <ProjecaoHub loggedIn={Boolean(user)} />;
 
   if (user) {
     return <AuthenticatedPublicChrome user={user}>{hub}</AuthenticatedPublicChrome>;

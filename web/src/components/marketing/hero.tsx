@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Binary, Cpu } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { HeroPreview } from "@/components/marketing/hero-preview";
+import { HeroLiveDesk } from "@/components/marketing/hero-live-desk";
 import { HeroWatermarks } from "@/components/marketing/hero-watermarks";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -168,7 +168,7 @@ export function Hero() {
           </motion.p>
         </div>
 
-        <HeroPreview />
+        <HeroLiveDesk />
       </div>
     </section>
   );

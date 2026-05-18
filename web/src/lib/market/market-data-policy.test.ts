@@ -11,9 +11,10 @@ describe("market-data-policy", () => {
     vi.unstubAllEnvs();
   });
 
-  it("allows simulation in development", () => {
+  it("blocks simulation in development without opt-in", () => {
     vi.stubEnv("NODE_ENV", "development");
-    expect(shouldUseSimulatedMarketData()).toBe(true);
+    vi.stubEnv("MARKET_ALLOW_SIMULATION", "");
+    expect(shouldUseSimulatedMarketData()).toBe(false);
   });
 
   it("blocks silent simulation in production without opt-in", () => {
