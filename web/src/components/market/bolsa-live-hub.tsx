@@ -445,9 +445,9 @@ export function BolsaLiveHub() {
               />
             </div>
             <div className="flex flex-wrap gap-2 border-t border-white/[0.08] pt-3">
-              {payload.simulated ? (
-                <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-300">
-                  {tDesk("equitiesBadgeSandbox")}
+              {payload.results.length === 0 ? (
+                <span className="rounded border border-rose-500/35 bg-rose-950/40 px-2 py-1 font-medium text-rose-300">
+                  {tDesk("equitiesBadgeUnavailable")}
                 </span>
               ) : payload.equitiesPartial ? (
                 <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-200">
@@ -458,9 +458,9 @@ export function BolsaLiveHub() {
                   {tDesk("equitiesBadgeLive")}
                 </span>
               )}
-              {payload.cryptoSimulated ? (
-                <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-300">
-                  {tDesk("cryptoBadgeDemo")}
+              {(payload.crypto?.length ?? 0) === 0 ? (
+                <span className="rounded border border-rose-500/35 bg-rose-950/40 px-2 py-1 font-medium text-rose-300">
+                  {tDesk("cryptoBadgeUnavailable")}
                 </span>
               ) : payload.cryptoPartial ? (
                 <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-200">
@@ -471,9 +471,9 @@ export function BolsaLiveHub() {
                   {tDesk("cryptoBadgeLive")}
                 </span>
               )}
-              {sectorBook.simulated ? (
-                <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-300">
-                  {t("sectorBadgeSandbox")}
+              {sectorBook.results.length === 0 ? (
+                <span className="rounded border border-rose-500/35 bg-rose-950/40 px-2 py-1 font-medium text-rose-300">
+                  {t("sectorBadgeUnavailable")}
                 </span>
               ) : sectorBook.partial ? (
                 <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-200">
@@ -484,9 +484,9 @@ export function BolsaLiveHub() {
                   {t("sectorBadgeLive")}
                 </span>
               )}
-              {cryptoSectorBook.simulated ? (
-                <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-300">
-                  {t("cryptoSectorBadgeSandbox")}
+              {cryptoSectorBook.results.length === 0 ? (
+                <span className="rounded border border-rose-500/35 bg-rose-950/40 px-2 py-1 font-medium text-rose-300">
+                  {t("cryptoSectorBadgeUnavailable")}
                 </span>
               ) : cryptoSectorBook.partial ? (
                 <span className="rounded border border-amber-500/35 bg-amber-950/40 px-2 py-1 font-medium text-amber-200">

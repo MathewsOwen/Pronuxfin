@@ -1,8 +1,6 @@
 import { Link } from "@/i18n/navigation";
-import { dividendInsightsHasData } from "@/lib/market/asset-dossier-dividends";
 import { marketExtrasHasDisplayData } from "@/lib/market/asset-dossier-market-extras";
 import type {
-  AssetDividendInsights,
   AssetDossier,
   AssetDossierPeriodStats,
   CalendarYearReturn,
@@ -15,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DossierCalendarChart } from "@/components/market/dossier-calendar-chart";
 import { cn } from "@/lib/utils";
 
 export type AssetDossierSectionLabels = {
@@ -80,6 +79,16 @@ export type AssetDossierSectionLabels = {
   dividendsNextPayment: string;
   dividendsYieldSnapshot: string;
   dividendsByYearTitle: string;
+  dividendsByYearSubtitle: string;
+  dividendsYieldByYearTitle: string;
+  dividendsYieldByYearSubtitle: string;
+  dividendsYieldEmpty: string;
+  dividendsYieldHint: string;
+  dividendsFilterAll: string;
+  dividendsFilterDividend: string;
+  dividendsFilterJcp: string;
+  dividendsFilterIncome: string;
+  dividendsFilterEmpty: string;
   dividendsTableType: string;
   dividendsTableEx: string;
   dividendsTablePay: string;
@@ -320,9 +329,11 @@ export function DossierMarketRatiosSection({
 export function DossierCalendarYearsSection({
   rows,
   labels,
+  locale,
 }: {
   rows: CalendarYearReturn[];
   labels: AssetDossierSectionLabels;
+  locale: string;
 }) {
   if (rows.length === 0) return null;
 
@@ -335,7 +346,16 @@ export function DossierCalendarYearsSection({
         <CardTitle className="font-heading">{labels.calendarTitle}</CardTitle>
         <CardDescription>{labels.calendarSubtitle}</CardDescription>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
+      <CardContent className="space-y-6">
+        <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+          <DossierCalendarChart
+            rows={rows}
+            locale={locale}
+            ariaLabel={labels.calendarTitle}
+            emptyLabel={labels.notAvailable}
+          />
+        </div>
+        <div className="overflow-x-auto">
         <table className="w-full min-w-[320px] text-left text-sm">
           <thead>
             <tr className="border-b border-white/10 text-xs uppercase tracking-wider text-muted-foreground">
@@ -359,6 +379,7 @@ export function DossierCalendarYearsSection({
             ))}
           </tbody>
         </table>
+        </div>
       </CardContent>
     </Card>
   );
@@ -398,137 +419,6 @@ export function DossierRiskMetricsSection({
     </Card>
   );
 }
-
-export function DossierDividendsSection({
-  insights,
-  currency,
-  locale,
-  labels,
-}: {
-  insights: AssetDividendInsights;
-  currency: string;
-  locale: string;
-  labels: AssetDossierSectionLabels;
-}) {
-  if (!dividendInsightsHasData(insights)) return null;
-
-  const maxYearTotal = Math.max(...insights.byYear.map((y) => y.total), 0.0001);
-  const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
-
-  return (
-    <Card
-      id={NAV_IDS.dividends}
-      className="glass-panel card-shine scroll-mt-24 border-emerald-500/20 shadow-none ring-0"
-    >
-      <CardHeader>
-        <CardTitle className="font-heading">{labels.dividendsTitle}</CardTitle>
-        <CardDescription>{labels.dividendsSubtitle}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <Metric
-            label={labels.dividendsTtmTotal}
-            value={formatMoney(insights.trailing12mTotal, currency, locale)}
-            accent="text-emerald-400"
-          />
-          <Metric
-            label={labels.dividendsTtmYield}
-            value={formatPercentFromMaybeDecimal(insights.trailing12mYield, locale, true)}
-            accent="text-emerald-300"
-          />
-          <Metric
-            label={labels.dividendsYieldSnapshot}
-            value={formatPercentFromMaybeDecimal(insights.dividendYieldSnapshot, locale)}
-          />
-          <Metric label={labels.dividendsPayments12m} value={String(insights.paymentsLast12m)} />
-          <Metric label={labels.dividendsPayments24m} value={String(insights.paymentsLast24m)} />
-        </div>
-
-        {insights.nextPayment ? (
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/15 px-4 py-3 text-sm">
-            <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-              {labels.dividendsNextPayment}
-            </p>
-            <p className="mt-1 font-medium text-foreground">
-              {insights.nextPayment.paymentDate
-                ? dateFmt.format(new Date(insights.nextPayment.paymentDate))
-                : labels.notAvailable}{" "}
-              · {formatMoney(insights.nextPayment.amount, currency, locale)}{" "}
-              <span className="text-muted-foreground">({insights.nextPayment.type})</span>
-            </p>
-          </div>
-        ) : null}
-
-        {insights.byYear.length > 0 ? (
-          <div className="space-y-3">
-            <p className="text-xs font-mono uppercase tracking-[0.16em] text-muted-foreground">
-              {labels.dividendsByYearTitle}
-            </p>
-            <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-black/20 p-4">
-              {[...insights.byYear].reverse().map((row) => (
-                <div key={row.year} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-                  <div
-                    className="w-full max-w-[48px] rounded-t-md bg-gradient-to-t from-emerald-600/80 to-emerald-400/90"
-                    style={{ height: `${Math.max(12, (row.total / maxYearTotal) * 120)}px` }}
-                    title={formatMoney(row.total, currency, locale)}
-                  />
-                  <span className="font-mono text-[10px] text-muted-foreground">{row.year}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {insights.events.length > 0 ? (
-          <div className="overflow-x-auto rounded-2xl border border-white/10">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/10 bg-white/[0.03] text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="px-3 py-2">{labels.dividendsTablePay}</th>
-                  <th className="px-3 py-2">{labels.dividendsTableEx}</th>
-                  <th className="px-3 py-2">{labels.dividendsTableType}</th>
-                  <th className="px-3 py-2 text-right">{labels.dividendsTableAmount}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {insights.events.slice(0, 24).map((event, index) => (
-                  <tr key={`${event.paymentDate}-${event.amount}-${index}`} className="border-b border-white/5">
-                    <td className="px-3 py-2.5 text-foreground">
-                      {event.paymentDate
-                        ? dateFmt.format(new Date(event.paymentDate))
-                        : labels.notAvailable}
-                    </td>
-                    <td className="px-3 py-2.5 text-muted-foreground">
-                      {event.exDate ? dateFmt.format(new Date(event.exDate)) : "—"}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] uppercase">
-                        {event.label ?? event.type}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-semibold text-emerald-300">
-                      {formatMoney(event.amount, currency, locale)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">{labels.dividendsEmpty}</p>
-        )}
-
-        <div className="space-y-1 border-t border-white/10 pt-4 text-xs leading-relaxed text-muted-foreground">
-          <p>{labels.dividendsDisclaimer}</p>
-          <p className="font-mono text-[10px] uppercase tracking-wider opacity-90">
-            {labels.dividendsSource.replace("{source}", insights.sourceLabel)}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function DossierComparablePeers({
   peers,
   emptyLabel,

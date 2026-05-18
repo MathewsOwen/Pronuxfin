@@ -84,14 +84,14 @@ export function EconomicCalendarView({
 
   return (
     <div className="space-y-4">
-      {calendarMode === "hybrid" ? (
+      {calendarMode === "live" ? (
+        <p className="text-xs text-emerald-300/90">{t("modeLive")}</p>
+      ) : calendarMode === "hybrid" ? (
         <p className="text-xs text-emerald-300/90">{t("modeHybrid")}</p>
       ) : calendarMode === "curated" ? (
         <p className="text-xs text-amber-200/90">{t("modeCurated")}</p>
       ) : fmpAvailable ? (
         <p className="text-xs text-emerald-300/90">{t("fmpLiveHint")}</p>
-      ) : loggedIn && watchlistSymbols.length > 0 ? (
-        <p className="text-xs text-amber-200/90">{t("fmpFallbackHint")}</p>
       ) : null}
       {loggedIn && watchlistSymbols.some((s) => /\d$/.test(s.trim())) ? (
         <p className="text-xs text-sky-200/90">{t("b3SeasonHint")}</p>

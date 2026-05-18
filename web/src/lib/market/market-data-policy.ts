@@ -7,10 +7,14 @@ export type MarketDataMode = "live" | "simulated" | "degraded";
  * Em produção, cotações simuladas só são permitidas com opt-in explícito
  * (`MARKET_ALLOW_SIMULATION=1`) — típico de demos internas, nunca go-live público.
  */
+/** Servidor: cotações inventadas só com opt-in explícito (nunca por padrão em dev). */
 export function shouldUseSimulatedMarketData(): boolean {
-  if (process.env.MARKET_ALLOW_SIMULATION === "1") return true;
-  if (process.env.NODE_ENV !== "production") return true;
-  return false;
+  return process.env.MARKET_ALLOW_SIMULATION === "1";
+}
+
+/** Cliente (strip / hooks): espelha opt-in público. */
+export function clientAllowsSimulatedMarketData(): boolean {
+  return process.env.NEXT_PUBLIC_MARKET_ALLOW_SIMULATION === "1";
 }
 
 export function isProductionMarketStrict(): boolean {

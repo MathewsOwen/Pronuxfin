@@ -2,8 +2,27 @@ import {
   simulatedB3EquitiesForSymbols,
   simulatedIntlEquitiesForSymbols,
 } from "@/lib/market/equities-sim";
+import { clientAllowsSimulatedMarketData } from "@/lib/market/market-data-policy";
 import type { EquityMarketRegion, SectorBookPayload } from "@/lib/market/types";
 
+function degradedSectorBook(
+  region: EquityMarketRegion,
+  sector: string,
+  symbols: readonly string[],
+): SectorBookPayload {
+  return {
+    fetchedAt: Date.now(),
+    region,
+    sector,
+    universeCount: symbols.length,
+    source: region === "br" ? "brapi" : "yahoo",
+    results: [],
+    simulated: false,
+    partial: true,
+  };
+}
+
+/** Primeira pintura: vazio até a API responder. */
 export function sectorDeskPlaceholderPayload(
   region: EquityMarketRegion,
   sector: string,
@@ -15,12 +34,9 @@ export function sectorDeskPlaceholderPayload(
     sector,
     universeCount: symbols.length,
     source: region === "br" ? "brapi" : "yahoo",
-    results:
-      region === "br"
-        ? simulatedB3EquitiesForSymbols(symbols).map((r) => ({ ...r }))
-        : simulatedIntlEquitiesForSymbols(symbols).map((r) => ({ ...r })),
-    simulated: true,
-    partial: false,
+    results: [],
+    simulated: false,
+    partial: true,
   };
 }
 
@@ -29,6 +45,10 @@ export function sectorDeskFallbackPayload(
   sector: string,
   symbols: readonly string[],
 ): SectorBookPayload {
+  if (!clientAllowsSimulatedMarketData()) {
+    return degradedSectorBook(region, sector, symbols);
+  }
+
   const results =
     region === "br"
       ? simulatedB3EquitiesForSymbols(symbols)

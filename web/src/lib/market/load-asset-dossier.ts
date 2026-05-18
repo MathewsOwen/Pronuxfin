@@ -85,7 +85,7 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
   const symbol = normalizeSymbol(symbolInput);
   if (!symbol) return null;
 
-  return rememberWithTtl(`asset-dossier:${symbol}:v8`, DOSSIER_TTL_MS, async () => {
+  return rememberWithTtl(`asset-dossier:${symbol}:v9`, DOSSIER_TTL_MS, async () => {
     const region = detectAssetRegion(symbol);
     const [market, articles] = await Promise.all([
       region === "br" ? fetchBrAssetDossier(symbol) : fetchIntlAssetDossier(symbol),
@@ -127,6 +127,7 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       market.dividendSourceLabel,
       market.quote.regularMarketPrice,
       market.intlKeyMetricsTtm?.dividendYield ?? marketExtras.dividendYield ?? null,
+      market.history,
     );
 
     return {

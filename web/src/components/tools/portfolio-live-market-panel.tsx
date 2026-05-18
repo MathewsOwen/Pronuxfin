@@ -200,7 +200,7 @@ function PortfolioLiveMarketPanelInner({
             )}
           >
             <Radio className="size-3" aria-hidden />
-            {activeMode === "live" && !lookupSimulated ? t("liveBadge") : t("liveBadgeDemo")}
+            {activeMode === "live" && !lookupSimulated ? t("liveBadge") : t("liveBadgeUnavailable")}
           </Badge>
         ) : null}
       </div>

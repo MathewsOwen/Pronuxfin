@@ -42,6 +42,12 @@ export default async function EducationPage() {
           <Link href="/noticias" className={buttonVariants({ variant: "outline", size: "sm" })}>
             {t("ctaNews")}
           </Link>
+          <Link href="/bolsa" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            {t("ctaBolsa")}
+          </Link>
+          <Link href="/projecao" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            {t("ctaProjecao")}
+          </Link>
         </div>
       </div>
     </div>

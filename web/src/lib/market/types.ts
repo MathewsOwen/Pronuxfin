@@ -24,7 +24,7 @@ export type QuoteSnapshot = {
 };
 
 /** Agregado para UI: live = fontes reais; simulated = demo explícita; degraded = sem cotações. */
-export type MarketDataMode = "live" | "simulated" | "degraded";
+export type MarketDataMode = "live" | "simulated" | "degraded" | "partial";
 
 export type QuotesPayload = {
   fetchedAt: number;
@@ -101,6 +101,16 @@ export type AssetDividendEvent = {
   label?: string;
 };
 
+/** Yield de proventos / preço de fechamento do ano (aprox.). */
+export type DividendYearYield = {
+  year: number;
+  totalPaid: number;
+  yieldPct: number | null;
+  yearEndPrice: number | null;
+};
+
+export type DividendTypeFilter = "ALL" | "DIVIDEND" | "JCP" | "INCOME";
+
 /** Histórico e leituras de dividendos no dossiê. */
 export type AssetDividendInsights = {
   sourceLabel: string;
@@ -110,6 +120,7 @@ export type AssetDividendInsights = {
   paymentsLast12m: number;
   paymentsLast24m: number;
   byYear: Array<{ year: number; total: number; count: number }>;
+  yieldByYear: DividendYearYield[];
   nextPayment: AssetDividendEvent | null;
   dividendYieldSnapshot: number | null;
 };
