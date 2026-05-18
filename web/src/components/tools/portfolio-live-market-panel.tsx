@@ -1,0 +1,306 @@
+"use client";
+
+import { Loader2, Radio, RefreshCw, Search } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useQuotesStream } from "@/components/market/quotes-stream-provider";
+import { Link } from "@/i18n/navigation";
+import {
+  collectDeskQuotes,
+  filterDeskQuotesForSearch,
+  findDeskQuote,
+} from "@/lib/market/portfolio-live-search";
+import type { MarketDataMode, QuoteSnapshot } from "@/lib/market/types";
+import { isValidWatchlistSymbol, normalizeWatchlistSymbol } from "@/lib/user-watchlist/load";
+import { cn } from "@/lib/utils";
+
+type LookupResponse = {
+  ok: boolean;
+  quote?: QuoteSnapshot;
+  simulated?: boolean;
+  dataMode?: MarketDataMode;
+  message?: string;
+};
+
+export function PortfolioLiveMarketPanel({
+  symbol,
+  onSelectSymbol,
+  onUseLivePrice,
+}: {
+  symbol: string;
+  onSelectSymbol: (quote: QuoteSnapshot) => void;
+  onUseLivePrice: (price: number, quote: QuoteSnapshot) => void;
+}) {
+  const t = useTranslations("Portfolio");
+  const locale = useLocale();
+  const deskPayload = useQuotesStream();
+  const deskQuotes = useMemo(() => collectDeskQuotes(deskPayload), [deskPayload]);
+
+  const [search, setSearch] = useState(symbol);
+  const [lookupQuote, setLookupQuote] = useState<QuoteSnapshot | null>(null);
+  const [lookupMode, setLookupMode] = useState<MarketDataMode | null>(null);
+  const [lookupSimulated, setLookupSimulated] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+
+  const suggestions = useMemo(
+    () => filterDeskQuotesForSearch(deskQuotes, search, 8),
+    [deskQuotes, search],
+  );
+
+  const activeQuote = useMemo(() => {
+    const clean = normalizeWatchlistSymbol(symbol);
+    if (!clean) return null;
+    return findDeskQuote(deskQuotes, clean) ?? lookupQuote;
+  }, [deskQuotes, lookupQuote, symbol]);
+
+  const activeMode: MarketDataMode | null =
+    lookupMode ?? (activeQuote ? (deskPayload.dataMode ?? "live") : null);
+
+  const fetchLookup = useCallback(async (symbolInput: string) => {
+    const clean = normalizeWatchlistSymbol(symbolInput);
+    if (!clean || !isValidWatchlistSymbol(clean)) {
+      setLookupQuote(null);
+      setLookupError(t("liveInvalidSymbol"));
+      return;
+    }
+
+    const fromDesk = findDeskQuote(deskQuotes, clean);
+    if (fromDesk?.regularMarketPrice != null) {
+      setLookupQuote(fromDesk);
+      setLookupMode(deskPayload.dataMode ?? "live");
+      setLookupSimulated(Boolean(deskPayload.simulated));
+      setLookupError(null);
+      return;
+    }
+
+    setPending(true);
+    setLookupError(null);
+    try {
+      const res = await fetch(`/api/quotes/lookup?symbol=${encodeURIComponent(clean)}`, {
+        cache: "no-store",
+      });
+      const data = (await res.json().catch(() => ({}))) as LookupResponse;
+      if (!res.ok || !data.ok || !data.quote) {
+        setLookupQuote(null);
+        setLookupError(data.message ?? t("liveQuoteUnavailable"));
+        return;
+      }
+      setLookupQuote(data.quote);
+      setLookupMode(data.dataMode ?? "live");
+      setLookupSimulated(Boolean(data.simulated));
+    } catch {
+      setLookupQuote(null);
+      setLookupError(t("liveQuoteUnavailable"));
+    } finally {
+      setPending(false);
+    }
+  }, [deskPayload.dataMode, deskPayload.simulated, deskQuotes, t]);
+
+  useEffect(() => {
+    setSearch(symbol);
+  }, [symbol]);
+
+  useEffect(() => {
+    const clean = normalizeWatchlistSymbol(symbol);
+    if (!clean) {
+      setLookupQuote(null);
+      setLookupError(null);
+      return;
+    }
+    void fetchLookup(clean);
+  }, [symbol, fetchLookup]);
+
+  useEffect(() => {
+    if (!symbol.trim()) return;
+    const timer = window.setInterval(() => {
+      if (document.hidden) return;
+      void fetchLookup(symbol);
+    }, 45_000);
+    return () => window.clearInterval(timer);
+  }, [symbol, fetchLookup]);
+
+  function selectQuote(quote: QuoteSnapshot) {
+    onSelectSymbol(quote);
+    setSearch(quote.symbol);
+    setLookupQuote(quote);
+    setLookupError(null);
+    if (quote.regularMarketPrice != null && Number.isFinite(quote.regularMarketPrice)) {
+      onUseLivePrice(quote.regularMarketPrice, quote);
+    }
+  }
+
+  const money = (value: number | null | undefined, currency?: string) => {
+    if (value == null || !Number.isFinite(value)) return "—";
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: currency ?? "BRL",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value);
+    } catch {
+      return String(value);
+    }
+  };
+
+  const pct = (value: number | null | undefined) => {
+    if (value == null || !Number.isFinite(value)) return "—";
+    return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+  };
+
+  return (
+    <section
+      className="mb-6 rounded-2xl border border-white/10 bg-black/20 p-4 md:p-5"
+      aria-labelledby="portfolio-live-market-title"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-primary/90">
+            {t("liveEyebrow")}
+          </p>
+          <h3 id="portfolio-live-market-title" className="font-heading mt-1 text-base font-semibold">
+            {t("liveTitle")}
+          </h3>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("liveLead")}</p>
+        </div>
+        {activeQuote ? (
+          <Badge
+            className={cn(
+              "gap-1 border",
+              activeMode === "live" && !lookupSimulated
+                ? "border-emerald-500/30 bg-emerald-950/25 text-emerald-200"
+                : "border-amber-500/30 bg-amber-950/25 text-amber-200",
+            )}
+          >
+            <Radio className="size-3" aria-hidden />
+            {activeMode === "live" && !lookupSimulated ? t("liveBadge") : t("liveBadgeDemo")}
+          </Badge>
+        ) : null}
+      </div>
+
+      <div className="relative mt-4">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value.toUpperCase())}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const clean = normalizeWatchlistSymbol(search);
+              if (isValidWatchlistSymbol(clean)) void fetchLookup(clean);
+            }
+          }}
+          placeholder={t("liveSearchPlaceholder")}
+          className="border-white/15 bg-black/25 pl-10 font-mono"
+          aria-label={t("liveSearchPlaceholder")}
+          autoComplete="off"
+        />
+      </div>
+
+      {suggestions.length > 0 && search.trim().length > 0 ? (
+        <ul className="mt-3 max-h-52 space-y-1 overflow-y-auto rounded-xl border border-white/10 bg-black/30 p-1">
+          {suggestions.map((quote) => (
+            <li key={quote.symbol}>
+              <button
+                type="button"
+                onClick={() => selectQuote(quote)}
+                className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-white/[0.06]"
+              >
+                <span>
+                  <span className="font-mono font-medium text-foreground">{quote.symbol}</span>
+                  {quote.shortName ? (
+                    <span className="mt-0.5 block text-xs text-muted-foreground">{quote.shortName}</span>
+                  ) : null}
+                </span>
+                <span className="shrink-0 text-right tabular-nums">
+                  <span className="block text-foreground">
+                    {money(quote.regularMarketPrice, quote.currency)}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xs",
+                      (quote.regularMarketChangePercent ?? 0) >= 0
+                        ? "text-emerald-400"
+                        : "text-rose-400",
+                    )}
+                  >
+                    {pct(quote.regularMarketChangePercent)}
+                  </span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {activeQuote ? (
+        <div className="mt-4 flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-mono text-sm font-semibold">{activeQuote.symbol}</p>
+            <p className="text-xs text-muted-foreground">{activeQuote.shortName ?? "—"}</p>
+            <p className="mt-2 font-heading text-2xl font-semibold tabular-nums">
+              {money(activeQuote.regularMarketPrice, activeQuote.currency)}
+            </p>
+            <p
+              className={cn(
+                "text-sm tabular-nums",
+                (activeQuote.regularMarketChangePercent ?? 0) >= 0
+                  ? "text-emerald-400"
+                  : "text-rose-400",
+              )}
+            >
+              {pct(activeQuote.regularMarketChangePercent)} {t("liveDayMove")}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={pending || activeQuote.regularMarketPrice == null}
+              className={cn(buttonVariants({ size: "sm" }), "glow-ring")}
+              onClick={() => {
+                if (activeQuote.regularMarketPrice != null) {
+                  onUseLivePrice(activeQuote.regularMarketPrice, activeQuote);
+                }
+              }}
+            >
+              {t("liveUsePrice")}
+            </button>
+            <button
+              type="button"
+              disabled={pending}
+              aria-label={t("liveRefresh")}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+              onClick={() => void fetchLookup(activeQuote.symbol)}
+            >
+              {pending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="size-3.5" />
+              )}
+              <span className="hidden sm:inline">{t("liveRefresh")}</span>
+            </button>
+            <Link
+              href={`/ativo/${activeQuote.symbol}`}
+              className={buttonVariants({ variant: "ghost", size: "sm" })}
+            >
+              {t("liveOpenAsset")}
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
+      {lookupError ? (
+        <p className="mt-3 text-xs text-amber-300" role="status">
+          {lookupError}
+        </p>
+      ) : null}
+
+      <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">{t("liveFootnote")}</p>
+    </section>
+  );
+}
