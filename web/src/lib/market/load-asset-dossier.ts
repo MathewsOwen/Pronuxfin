@@ -1,4 +1,15 @@
 import { computeAssetDossierHistoricalInsights } from "@/lib/market/asset-dossier-historical-insights";
+import { extractMarketExtrasFromQuoteRow } from "@/lib/market/asset-dossier-market-extras";
+import {
+  buildAssetDividendInsights,
+  parseBrapiDividendEvents,
+  parseFmpDividendEvents,
+} from "@/lib/market/asset-dossier-dividends";
+import { computeAssetDossierPeriodStats } from "@/lib/market/asset-dossier-period-stats";
+import {
+  listSectorPeersForSymbol,
+  mergeComparablePeers,
+} from "@/lib/market/asset-dossier-sector-peers";
 import { getAssetReferenceProfile } from "@/lib/market/asset-reference-profiles";
 import {
   simulatedB3EquitiesForSymbols,
@@ -10,6 +21,7 @@ import {
   fetchIntlKeyMetricsTtmFromFmp,
   fetchIntlLatestAnnualStatementsFromFmp,
   fetchIntlStockPeersFromFmp,
+  fetchStockDividendHistoryFromFmp,
   type IntlCompanyProfile,
 } from "@/lib/market/financial-modeling-prep";
 import { loadCachedAggregatedNews } from "@/lib/market/market-data-gateway";
@@ -20,6 +32,7 @@ import {
 import { rememberWithTtl } from "@/lib/market/market-server-cache";
 import { SECTOR_ORDER, listSectorSymbols, type SectorId } from "@/lib/market/sector-universe";
 import type {
+  AssetDividendEvent,
   AssetDossier,
   AssetHistoryPoint,
   AssetMoveSnapshot,
@@ -57,6 +70,9 @@ type MarketDossierSnapshot = {
   history: AssetHistoryPoint[];
   historyMode: "live" | "indicative";
   fields: DetailedQuoteFields;
+  marketExtras: ReturnType<typeof extractMarketExtrasFromQuoteRow>;
+  dividendEvents: AssetDividendEvent[];
+  dividendSourceLabel: string;
   profile: IntlCompanyProfile | null;
   intlKeyMetricsTtm: IntlKeyMetricsTtm | null;
   intlAnnualStatements: IntlAnnualStatementsSnapshot | null;
@@ -69,7 +85,7 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
   const symbol = normalizeSymbol(symbolInput);
   if (!symbol) return null;
 
-  return rememberWithTtl(`asset-dossier:${symbol}:v6`, DOSSIER_TTL_MS, async () => {
+  return rememberWithTtl(`asset-dossier:${symbol}:v8`, DOSSIER_TTL_MS, async () => {
     const region = detectAssetRegion(symbol);
     const [market, articles] = await Promise.all([
       region === "br" ? fetchBrAssetDossier(symbol) : fetchIntlAssetDossier(symbol),
@@ -90,8 +106,28 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       reference?.keywords,
       reference?.aliases,
     );
-    const relatedNews = pickRelatedNews(articles, keywords).slice(0, 6);
+    const relatedNews = pickRelatedNews(articles, keywords).slice(0, 12);
     const historicalInsights = computeAssetDossierHistoricalInsights(market.history);
+    const periodStats = computeAssetDossierPeriodStats(
+      market.history,
+      market.quote.regularMarketPrice,
+      market.fields.fiftyTwoWeekHigh,
+      market.fields.fiftyTwoWeekLow,
+    );
+    const sectorPeers = listSectorPeersForSymbol(symbol, region);
+    const comparablePeers = mergeComparablePeers(symbol, sectorPeers, market.intlStockPeers);
+    const marketExtras = {
+      ...market.marketExtras,
+      ceoName: market.profile?.ceoName ?? market.marketExtras.ceoName ?? null,
+      fullTimeEmployees:
+        market.profile?.fullTimeEmployees ?? market.marketExtras.fullTimeEmployees ?? null,
+    };
+    const dividends = buildAssetDividendInsights(
+      market.dividendEvents,
+      market.dividendSourceLabel,
+      market.quote.regularMarketPrice,
+      market.intlKeyMetricsTtm?.dividendYield ?? marketExtras.dividendYield ?? null,
+    );
 
     return {
       symbol,
@@ -111,9 +147,13 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       ipoDate: market.profile?.ipoDate ?? null,
       sector: reference?.sector ?? market.profile?.sector ?? inferredSector,
       industry: reference?.industry ?? market.profile?.industry ?? null,
-      ceoName: market.profile?.ceoName ?? null,
-      fullTimeEmployees: market.profile?.fullTimeEmployees ?? null,
+      ceoName: market.profile?.ceoName ?? marketExtras.ceoName ?? null,
+      fullTimeEmployees: market.profile?.fullTimeEmployees ?? marketExtras.fullTimeEmployees ?? null,
       intlStockPeers: region === "intl" ? market.intlStockPeers : null,
+      comparablePeers,
+      marketExtras,
+      periodStats,
+      dividends,
       summary:
         reference?.summary ??
         market.profile?.summary ??
@@ -160,7 +200,7 @@ async function fetchBrAssetDossier(symbol: string) {
   const base = token
     ? `https://brapi.dev/api/quote/${symbol}?token=${encodeURIComponent(token)}`
     : `https://brapi.dev/api/quote/${symbol}`;
-  const url = `${base}&range=10y&interval=1d`;
+  const url = `${base}&range=10y&interval=1d&dividends=true&modules=summaryProfile,defaultKeyStatistics,financialData`;
 
   try {
     if (!canUseMarketProvider("brapi")) {
@@ -182,15 +222,27 @@ async function fetchBrAssetDossier(symbol: string) {
     const quote = mapBrapiQuote(row);
     const history = mapBrapiHistory(row.historicalDataPrice ?? []);
     const fmpSymbol = `${symbol}.SA`;
-    const [fmpProfile, intlKeyMetricsTtm, intlAnnualStatements] = await Promise.all([
-      fetchIntlCompanyProfileFromFmp(fmpSymbol),
-      fetchIntlKeyMetricsTtmFromFmp(fmpSymbol),
-      fetchIntlLatestAnnualStatementsFromFmp(fmpSymbol),
-    ]);
+    const [fmpProfile, intlKeyMetricsTtm, intlAnnualStatements, intlStockPeers, fmpDividendRows] =
+      await Promise.all([
+        fetchIntlCompanyProfileFromFmp(fmpSymbol),
+        fetchIntlKeyMetricsTtmFromFmp(fmpSymbol),
+        fetchIntlLatestAnnualStatementsFromFmp(fmpSymbol),
+        fetchIntlStockPeersFromFmp(fmpSymbol),
+        fetchStockDividendHistoryFromFmp(fmpSymbol),
+      ]);
+    const brDividends = parseBrapiDividendEvents(row);
+    const dividendBundle = mergeDividendSources(
+      brDividends,
+      "BRAPI · proventos",
+      parseFmpDividendEvents(fmpDividendRows),
+    );
     const output = {
       quote,
       history: history.length > 1 ? history : buildIndicativeHistory(quote, "br"),
       historyMode: history.length > 1 ? ("live" as const) : ("indicative" as const),
+      marketExtras: extractMarketExtrasFromQuoteRow(row),
+      dividendEvents: dividendBundle.events,
+      dividendSourceLabel: dividendBundle.sourceLabel,
       fields: {
         marketCap: readNumber(row.marketCap),
         regularMarketVolume: readNumber(row.regularMarketVolume),
@@ -206,7 +258,7 @@ async function fetchBrAssetDossier(symbol: string) {
       profile: mapBrapiProfile(row) ?? fmpProfile,
       intlKeyMetricsTtm,
       intlAnnualStatements,
-      intlStockPeers: null,
+      intlStockPeers,
     };
     noteMarketProviderUsage("brapi");
     return output;
@@ -220,6 +272,9 @@ async function fetchBrAssetDossier(symbol: string) {
       quote: fallback,
       history: buildIndicativeHistory(fallback, "br"),
       historyMode: "indicative" as const,
+      marketExtras: emptyMarketExtras(),
+      dividendEvents: [],
+      dividendSourceLabel: "PRONUX model",
       fields: emptyDetailedFields(),
       profile: null,
       intlKeyMetricsTtm: null,
@@ -229,13 +284,33 @@ async function fetchBrAssetDossier(symbol: string) {
   }
 }
 
+function mergeDividendSources(
+  primary: AssetDividendEvent[],
+  primaryLabel: string,
+  fallback: AssetDividendEvent[],
+) {
+  if (primary.length > 0) {
+    return { events: primary, sourceLabel: primaryLabel };
+  }
+  if (fallback.length > 0) {
+    return {
+      events: fallback,
+      sourceLabel: "Financial Modeling Prep · dividend history",
+    };
+  }
+  return { events: [], sourceLabel: primaryLabel };
+}
+
 async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnapshot> {
-  const [profile, intlKeyMetricsTtm, intlAnnualStatements, intlStockPeers] = await Promise.all([
-    fetchIntlCompanyProfileFromFmp(symbol),
-    fetchIntlKeyMetricsTtmFromFmp(symbol),
-    fetchIntlLatestAnnualStatementsFromFmp(symbol),
-    fetchIntlStockPeersFromFmp(symbol),
-  ]);
+  const [profile, intlKeyMetricsTtm, intlAnnualStatements, intlStockPeers, fmpDividendRows] =
+    await Promise.all([
+      fetchIntlCompanyProfileFromFmp(symbol),
+      fetchIntlKeyMetricsTtmFromFmp(symbol),
+      fetchIntlLatestAnnualStatementsFromFmp(symbol),
+      fetchIntlStockPeersFromFmp(symbol),
+      fetchStockDividendHistoryFromFmp(symbol),
+    ]);
+  const fmpDividends = parseFmpDividendEvents(fmpDividendRows);
 
   try {
     if (!canUseMarketProvider("yahoo")) {
@@ -268,6 +343,12 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       quote,
       history: liveHistory.length > 1 ? liveHistory : buildIndicativeHistory(quote, "intl"),
       historyMode: liveHistory.length > 1 ? ("live" as const) : ("indicative" as const),
+      marketExtras: extractMarketExtrasFromQuoteRow(row),
+      dividendEvents: fmpDividends,
+      dividendSourceLabel:
+        fmpDividends.length > 0
+          ? "Financial Modeling Prep · dividend history"
+          : "Yahoo Finance",
       fields: {
         marketCap: readNumber(row.marketCap),
         regularMarketVolume: readNumber(row.regularMarketVolume),
@@ -294,6 +375,11 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
         intlKeyMetricsTtm,
         intlAnnualStatements,
         intlStockPeers,
+        dividendEvents: fmpDividends,
+        dividendSourceLabel:
+          fmpDividends.length > 0
+            ? "Financial Modeling Prep · dividend history"
+            : "Yahoo Finance",
       };
     }
     const fallback =
@@ -302,6 +388,12 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       quote: fallback,
       history: buildIndicativeHistory(fallback, "intl"),
       historyMode: "indicative" as const,
+      marketExtras: emptyMarketExtras(),
+      dividendEvents: fmpDividends,
+      dividendSourceLabel:
+        fmpDividends.length > 0
+          ? "Financial Modeling Prep · dividend history"
+          : "PRONUX model",
       fields: emptyDetailedFields(),
       profile,
       intlKeyMetricsTtm,
@@ -328,12 +420,19 @@ function unavailableDossier(quote: QuoteSnapshot) {
     quote,
     history: [] as AssetHistoryPoint[],
     historyMode: "indicative" as const,
+    marketExtras: emptyMarketExtras(),
+    dividendEvents: [] as AssetDividendEvent[],
+    dividendSourceLabel: "—",
     fields: emptyDetailedFields(),
     profile: null,
     intlKeyMetricsTtm: null,
     intlAnnualStatements: null,
     intlStockPeers: null,
   };
+}
+
+function emptyMarketExtras() {
+  return extractMarketExtrasFromQuoteRow({});
 }
 
 function mapBrapiProfile(row: Record<string, unknown>): IntlCompanyProfile | null {

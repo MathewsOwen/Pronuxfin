@@ -252,6 +252,41 @@ async function fmpFetchAnnualRow(
   return row;
 }
 
+export async function fetchStockDividendHistoryFromFmp(
+  symbol: string,
+): Promise<Array<Record<string, unknown>>> {
+  if (!fmpReady()) return [];
+  const apiKey = fmpApiKey();
+  if (!apiKey) return [];
+
+  try {
+    const url = `https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/${encodeURIComponent(
+      symbol,
+    )}?apikey=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent":
+          "PRONUXFIN/1.0 (+https://pronuxfin.com.br; institutional asset dossiers)",
+      },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+
+    const json = (await res.json()) as {
+      historical?: Array<Record<string, unknown>>;
+      symbol?: string;
+    };
+    const rows = Array.isArray(json.historical) ? json.historical : [];
+    if (!rows.length) return [];
+
+    noteMarketProviderUsage("financial_modeling_prep");
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchIntlLatestAnnualStatementsFromFmp(
   symbol: string,
 ): Promise<IntlAnnualStatementsSnapshot | null> {

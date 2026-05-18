@@ -26,6 +26,19 @@ import type {
 } from "@/lib/market/types";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import {
+  DossierCalendarYearsSection,
+  DossierComparablePeers,
+  DossierDividendsSection,
+  DossierMarketRatiosSection,
+  DossierPeriodReturnsSection,
+  DossierRiskMetricsSection,
+  DossierSectionNav,
+  DossierSessionTradingSection,
+  type AssetDossierSectionLabels,
+} from "@/components/market/asset-dossier-sections";
+import { dividendInsightsHasData } from "@/lib/market/asset-dossier-dividends";
+import { marketExtrasHasDisplayData } from "@/lib/market/asset-dossier-market-extras";
 import { WatchlistToggleButton } from "@/components/market/watchlist-toggle-button";
 import {
   Card,
@@ -67,6 +80,16 @@ export async function AssetTerminalPage({
   const compareHref = buildCompareAssetHref(dossier);
   const portfolioHref = buildPortfolioAssetHref(dossier, portfolioPosition);
   const hasPortfolioPosition = portfolioPosition != null;
+  const sectionLabels = buildSectionLabels(t);
+  const showRatios = marketExtrasHasDisplayData(dossier.marketExtras);
+  const showCalendar = ins.calendarYearReturns.length > 0;
+  const showDividends = dividendInsightsHasData(dossier.dividends);
+  const fundamentalsTitle =
+    dossier.intlKeyMetricsTtm && intlFundamentalsHasData(dossier.intlKeyMetricsTtm)
+      ? dossier.region === "br"
+        ? t("fundamentalsTitleBr")
+        : t("fundamentalsTitle")
+      : null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -167,6 +190,13 @@ export async function AssetTerminalPage({
         />
       ) : null}
 
+      <DossierSectionNav
+        labels={sectionLabels}
+        showRatios={showRatios}
+        showCalendar={showCalendar}
+        showDividends={showDividends}
+      />
+
       <div className="grid gap-4 md:grid-cols-3">
         <SignalCard
           label={t("signalRangeLabel")}
@@ -186,6 +216,16 @@ export async function AssetTerminalPage({
           tone="border-emerald-500/25 bg-emerald-950/16"
         />
       </div>
+
+      <DossierSessionTradingSection dossier={dossier} locale={locale} labels={sectionLabels} />
+      <DossierPeriodReturnsSection stats={dossier.periodStats} labels={sectionLabels} />
+      <DossierMarketRatiosSection dossier={dossier} locale={locale} labels={sectionLabels} />
+      <DossierDividendsSection
+        insights={dossier.dividends}
+        currency={dossier.currency}
+        locale={locale}
+        labels={sectionLabels}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.85fr)]">
         <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
@@ -282,14 +322,14 @@ export async function AssetTerminalPage({
                   )
                 }
               />
-              {(dossier.region === "intl" || dossier.ceoName) ? (
+              {dossier.ceoName ? (
                 <ProfileRow
                   icon={UserRound}
                   label={t("profileCeo")}
-                  value={dossier.ceoName ?? t("notAvailable")}
+                  value={dossier.ceoName}
                 />
               ) : null}
-              {(dossier.region === "intl" || dossier.fullTimeEmployees != null) ? (
+              {dossier.fullTimeEmployees != null ? (
                 <ProfileRow
                   icon={Users}
                   label={t("profileEmployees")}
@@ -335,10 +375,10 @@ export async function AssetTerminalPage({
             </CardContent>
           </Card>
 
-          {intlFundamentalsHasData(dossier.intlKeyMetricsTtm) ? (
+          {fundamentalsTitle ? (
             <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
               <CardHeader>
-                <CardTitle className="font-heading">{t("fundamentalsTitle")}</CardTitle>
+                <CardTitle className="font-heading">{fundamentalsTitle}</CardTitle>
                 <CardDescription>{t("fundamentalsSubtitle")}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-3 sm:grid-cols-2">
@@ -543,6 +583,9 @@ export async function AssetTerminalPage({
         </Card>
       ) : null}
 
+      <DossierCalendarYearsSection rows={ins.calendarYearReturns} labels={sectionLabels} />
+      <DossierRiskMetricsSection stats={dossier.periodStats} labels={sectionLabels} />
+
       <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
         <CardHeader>
           <CardTitle className="font-heading">{t("termsTitle")}</CardTitle>
@@ -586,24 +629,7 @@ export async function AssetTerminalPage({
               {t("termsPeersTitle")}
             </p>
             <p className="text-xs text-muted-foreground">{t("termsPeersDisclaimer")}</p>
-            {dossier.intlStockPeers && dossier.intlStockPeers.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {dossier.intlStockPeers.map((peer) => (
-                  <Link
-                    key={peer}
-                    href={`/ativo/${encodeURIComponent(peer)}`}
-                    className={cn(
-                      buttonVariants({ variant: "outline", size: "sm" }),
-                      "rounded-full border-white/15 bg-white/[0.04] font-mono text-xs",
-                    )}
-                  >
-                    {peer}
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">{t("termsPeersEmpty")}</p>
-            )}
+            <DossierComparablePeers peers={dossier.comparablePeers} emptyLabel={t("termsPeersEmpty")} />
           </div>
 
           <div className="space-y-3 border-t border-white/10 pt-6">
@@ -1223,6 +1249,83 @@ function PortfolioKpi({
       ) : null}
     </div>
   );
+}
+
+function buildSectionLabels(
+  t: (key: string) => string,
+): AssetDossierSectionLabels {
+  return {
+    navSession: t("navSession"),
+    navReturns: t("navReturns"),
+    navRatios: t("navRatios"),
+    navCalendar: t("navCalendar"),
+    navRisk: t("navRisk"),
+    navDividends: t("navDividends"),
+    sessionTitle: t("sessionTitle"),
+    sessionSubtitle: t("sessionSubtitle"),
+    sessionOpen: t("sessionOpen"),
+    sessionPreviousClose: t("sessionPreviousClose"),
+    sessionDayHigh: t("sessionDayHigh"),
+    sessionDayLow: t("sessionDayLow"),
+    sessionVolume: t("sessionVolume"),
+    sessionChangeVsPrev: t("sessionChangeVsPrev"),
+    sessionFrom52High: t("sessionFrom52High"),
+    sessionFrom52Low: t("sessionFrom52Low"),
+    sessionAvgVol20: t("sessionAvgVol20"),
+    returnsTitle: t("returnsTitle"),
+    returnsSubtitle: t("returnsSubtitle"),
+    returnYtd: t("returnYtd"),
+    return1m: t("return1m"),
+    return3m: t("return3m"),
+    return6m: t("return6m"),
+    return1y: t("return1y"),
+    return3y: t("return3y"),
+    return5y: t("return5y"),
+    returnWindow: t("returnWindow"),
+    returnsTradingDays: t("returnsTradingDays"),
+    ratiosTitle: t("ratiosTitle"),
+    ratiosSubtitle: t("ratiosSubtitle"),
+    ratioBeta: t("ratioBeta"),
+    ratioPb: t("ratioPb"),
+    ratioDivYield: t("ratioDivYield"),
+    ratioDivRate: t("ratioDivRate"),
+    ratioMargin: t("ratioMargin"),
+    ratioRoe: t("ratioRoe"),
+    ratioRoa: t("ratioRoa"),
+    ratioDebtEquity: t("ratioDebtEquity"),
+    ratioPayout: t("ratioPayout"),
+    ratioBookValue: t("ratioBookValue"),
+    ratioEv: t("ratioEv"),
+    ratioForwardPe: t("ratioForwardPe"),
+    ratioPeg: t("ratioPeg"),
+    ratioShares: t("ratioShares"),
+    ratioFloat: t("ratioFloat"),
+    calendarTitle: t("calendarTitle"),
+    calendarSubtitle: t("calendarSubtitle"),
+    calendarYear: t("calendarYear"),
+    calendarReturn: t("calendarReturn"),
+    riskTitle: t("riskTitle"),
+    riskSubtitle: t("riskSubtitle"),
+    riskMaxDrawdown: t("riskMaxDrawdown"),
+    riskVolatility: t("riskVolatility"),
+    dividendsTitle: t("dividendsTitle"),
+    dividendsSubtitle: t("dividendsSubtitle"),
+    dividendsTtmTotal: t("dividendsTtmTotal"),
+    dividendsTtmYield: t("dividendsTtmYield"),
+    dividendsPayments12m: t("dividendsPayments12m"),
+    dividendsPayments24m: t("dividendsPayments24m"),
+    dividendsNextPayment: t("dividendsNextPayment"),
+    dividendsYieldSnapshot: t("dividendsYieldSnapshot"),
+    dividendsByYearTitle: t("dividendsByYearTitle"),
+    dividendsTableType: t("dividendsTableType"),
+    dividendsTableEx: t("dividendsTableEx"),
+    dividendsTablePay: t("dividendsTablePay"),
+    dividendsTableAmount: t("dividendsTableAmount"),
+    dividendsEmpty: t("dividendsEmpty"),
+    dividendsDisclaimer: t("dividendsDisclaimer"),
+    dividendsSource: t("dividendsSource"),
+    notAvailable: t("notAvailable"),
+  };
 }
 
 function formatWebsiteLabel(value: string) {

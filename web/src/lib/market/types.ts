@@ -91,6 +91,69 @@ export type CalendarYearVolume = {
   totalVolume: number;
 };
 
+/** Evento de provento (dividendo, JCP, rendimento). */
+export type AssetDividendEvent = {
+  paymentDate: string | null;
+  exDate: string | null;
+  recordDate: string | null;
+  amount: number;
+  type: string;
+  label?: string;
+};
+
+/** Histórico e leituras de dividendos no dossiê. */
+export type AssetDividendInsights = {
+  sourceLabel: string;
+  events: AssetDividendEvent[];
+  trailing12mTotal: number | null;
+  trailing12mYield: number | null;
+  paymentsLast12m: number;
+  paymentsLast24m: number;
+  byYear: Array<{ year: number; total: number; count: number }>;
+  nextPayment: AssetDividendEvent | null;
+  dividendYieldSnapshot: number | null;
+};
+
+/** Retornos e risco derivados da série de pregões carregada no dossiê. */
+export type AssetDossierPeriodStats = {
+  ytd: number | null;
+  oneMonth: number | null;
+  threeMonths: number | null;
+  sixMonths: number | null;
+  oneYear: number | null;
+  threeYears: number | null;
+  fiveYears: number | null;
+  sinceWindowStart: number | null;
+  maxDrawdownPct: number | null;
+  annualizedVolatilityPct: number | null;
+  avgVolume20d: number | null;
+  distanceFrom52WeekHighPct: number | null;
+  distanceFrom52WeekLowPct: number | null;
+  windowTradingDays: number;
+};
+
+/** Ratios e dividendos do snapshot de cotação (BRAPI / Yahoo) quando a fonte publica. */
+export type AssetDossierMarketExtras = {
+  beta: number | null;
+  dividendYield: number | null;
+  priceToBook: number | null;
+  profitMargin: number | null;
+  returnOnEquity: number | null;
+  returnOnAssets: number | null;
+  debtToEquity: number | null;
+  payoutRatio: number | null;
+  trailingAnnualDividendRate: number | null;
+  bookValuePerShare: number | null;
+  enterpriseValue: number | null;
+  forwardPe: number | null;
+  pegRatio: number | null;
+  sharesOutstanding: number | null;
+  floatShares: number | null;
+  ceoName?: string | null;
+  fullTimeEmployees?: number | null;
+  sourceLabel: string;
+};
+
 /** Leituras derivadas do histórico de cotações — não substituem demonstrações financeiras nem filings. */
 export type AssetDossierHistoricalInsights = {
   /** Série curta para inferências multi-ano (ex.: só indicativa ou poucos anos). */
@@ -160,6 +223,14 @@ export type AssetDossier = {
   fullTimeEmployees: number | null;
   /** Exterior: tickers de pares comparáveis (setor) — não são filiais nem grupo econômico. */
   intlStockPeers: string[] | null;
+  /** Pares do mesmo setor na mesa PRONUX + feed externo (quando existir). */
+  comparablePeers: string[];
+  /** Ratios do snapshot de mercado (beta, margens, dividendos, etc.). */
+  marketExtras: AssetDossierMarketExtras;
+  /** Retornos por horizonte, drawdown e volatilidade na janela de histórico. */
+  periodStats: AssetDossierPeriodStats;
+  /** Histórico de proventos e yield derivado (BRAPI / FMP). */
+  dividends: AssetDividendInsights;
   summary: string;
   keywords: string[];
   sourceLabel: string;
