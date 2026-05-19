@@ -65,6 +65,43 @@ jobs:
           ENABLE_CSP_REPORT_ONLY: "1"
         run: npm run build
 
+  web-e2e:
+    needs: web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      CI: true
+      API_URL: http://127.0.0.1:5999
+      JWT_SECRET: ci-e2e-placeholder-jwt-secret-min-32-characters
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+      NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
+      ENABLE_CSP_REPORT_ONLY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prisma generate
+        run: npx prisma generate --schema prisma/schema.prisma
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Build
+        run: npm run build
+
+      - name: E2E (Playwright)
+        run: npm run test:e2e
+
   backend:
     needs: quality-gates
     runs-on: ubuntu-latest
