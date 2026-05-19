@@ -17,7 +17,11 @@ export default async function PlatformLayout({
   children: React.ReactNode;
 }) {
   const readiness = await evaluateProductionReadiness();
-  if (readiness.enabled && !readiness.ok) {
+  // Só bloqueamos o painel privado quando a **configuração estática** falha
+  // (variáveis essenciais ausentes). Falhas de runtime (backend/DB) caem no
+  // banner de degradação dentro do AppShell — as páginas continuam navegáveis
+  // e cada uma trata o seu empty/error state.
+  if (readiness.enabled && !readiness.criticalOk) {
     return <MaintenanceLockScreen readiness={readiness} />;
   }
 
@@ -31,5 +35,12 @@ export default async function PlatformLayout({
     redirect("/login");
   }
 
-  return <AppShell user={user} degradedReason={platform.degraded ? platform.reason : undefined}>{children}</AppShell>;
+  const degradedReason =
+    (platform.degraded ? platform.reason : undefined) ?? readiness.runtimeReason;
+
+  return (
+    <AppShell user={user} degradedReason={degradedReason}>
+      {children}
+    </AppShell>
+  );
 }

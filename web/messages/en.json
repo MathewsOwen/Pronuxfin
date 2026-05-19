@@ -1452,11 +1452,27 @@
     ]
   },
   "Maintenance": {
-    "headline": "Maintenance mode",
-    "body": "We detected a production readiness issue. To avoid incomplete or inconsistent operations, private features are temporarily disabled.",
-    "checksLabel": "Readiness checks",
-    "checkOk": "ok",
-    "retry": "Try again"
+    "headline": "Private desk waiting for setup",
+    "body": "Some essential environment variables are not configured yet. For safety, the private desk is locked until setup is complete. Public pages remain live below.",
+    "checksLabel": "Missing settings",
+    "operatorHint": "Operator: set the variables above on Vercel (or the server .env) and redeploy. See docs/phase-1-production.md.",
+    "ctaPublicDesk": "Open public desk",
+    "ctaRetry": "Try again",
+    "publicAlternatives": "Market, news, projection and tools remain live",
+    "checks": {
+      "apiUrlLabel": "API URL (backend)",
+      "apiUrlMissing": "API_URL not set",
+      "siteUrlLabel": "Public site URL",
+      "siteUrlMissing": "NEXT_PUBLIC_SITE_URL not set",
+      "jwtSecretLabel": "JWT secret",
+      "jwtSecretMissing": "JWT_SECRET missing or < 32 chars",
+      "databaseLabel": "Database",
+      "databaseMissing": "DATABASE_URL not set",
+      "backendLabel": "Primary API",
+      "backendDown": "no response",
+      "databaseReadyLabel": "Database connection",
+      "databaseDown": "no response"
+    }
   },
   "PlatformDegradation": {
     "bannerLead": "Some market services are unstable right now. The app stays online, but you may notice slower responses or partial data.",

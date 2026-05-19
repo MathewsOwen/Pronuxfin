@@ -1452,11 +1452,27 @@
     ]
   },
   "Maintenance": {
-    "headline": "Ambiente em manutenção",
-    "body": "Detectamos um problema de prontidão em produção. Para evitar operações incompletas ou inconsistentes, as funções privadas foram bloqueadas temporariamente.",
-    "checksLabel": "Verificações de prontidão",
-    "checkOk": "ok",
-    "retry": "Tentar novamente"
+    "headline": "Painel privado em configuração",
+    "body": "Algumas variáveis essenciais ainda não estão configuradas neste ambiente. Por segurança, o painel privado fica bloqueado até que a configuração esteja completa. As páginas públicas continuam ao vivo abaixo.",
+    "checksLabel": "Configurações ausentes",
+    "operatorHint": "Operador: defina as variáveis acima na Vercel (ou no .env do servidor) e faça redeploy. Ver docs/phase-1-production.md.",
+    "ctaPublicDesk": "Abrir mesa pública",
+    "ctaRetry": "Tentar novamente",
+    "publicAlternatives": "Bolsa, notícias, projeção e ferramentas seguem ao vivo",
+    "checks": {
+      "apiUrlLabel": "URL da API (backend)",
+      "apiUrlMissing": "API_URL não definida",
+      "siteUrlLabel": "URL pública do site",
+      "siteUrlMissing": "NEXT_PUBLIC_SITE_URL não definida",
+      "jwtSecretLabel": "Segredo JWT",
+      "jwtSecretMissing": "JWT_SECRET ausente ou < 32 caracteres",
+      "databaseLabel": "Banco de dados",
+      "databaseMissing": "DATABASE_URL não definida",
+      "backendLabel": "API principal",
+      "backendDown": "sem resposta",
+      "databaseReadyLabel": "Conexão com o banco",
+      "databaseDown": "sem resposta"
+    }
   },
   "PlatformDegradation": {
     "bannerLead": "Alguns serviços de mercado estão instáveis no momento. O sistema segue ativo, mas você pode notar respostas lentas ou dados parciais.",

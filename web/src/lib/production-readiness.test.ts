@@ -30,7 +30,9 @@ describe("evaluateProductionReadiness", () => {
     const result = await evaluateProductionReadiness();
     expect(result.enabled).toBe(false);
     expect(result.ok).toBe(true);
+    expect(result.criticalOk).toBe(true);
     expect(result.checks).toHaveLength(0);
+    expect(result.criticalChecks).toHaveLength(0);
   });
 
   it("passes when all production checks succeed", async () => {
@@ -45,10 +47,12 @@ describe("evaluateProductionReadiness", () => {
     const result = await evaluateProductionReadiness();
     expect(result.enabled).toBe(true);
     expect(result.ok).toBe(true);
+    expect(result.criticalOk).toBe(true);
+    expect(result.runtimeReason).toBeUndefined();
     expect(result.checks.every((c) => c.ok)).toBe(true);
   });
 
-  it("fails when JWT_SECRET is missing in production", async () => {
+  it("fails critical when JWT_SECRET is missing in production", async () => {
     vi.stubEnv("JWT_SECRET", "");
     vi.stubGlobal(
       "fetch",
@@ -57,15 +61,30 @@ describe("evaluateProductionReadiness", () => {
 
     const result = await evaluateProductionReadiness();
     expect(result.ok).toBe(false);
-    expect(result.checks.find((c) => c.key === "jwt_secret_configured")?.ok).toBe(false);
+    expect(result.criticalOk).toBe(false);
+    expect(result.criticalChecks.find((c) => c.key === "jwt_secret_configured")?.ok).toBe(false);
   });
 
-  it("fails when public site URL cannot be determined", async () => {
+  it("fails critical when public site URL cannot be determined", async () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
     vi.stubEnv("VERCEL_URL", "");
 
     const result = await evaluateProductionReadiness();
     expect(result.ok).toBe(false);
-    expect(result.checks.find((c) => c.key === "site_url_configured")?.ok).toBe(false);
+    expect(result.criticalOk).toBe(false);
+    expect(result.criticalChecks.find((c) => c.key === "site_url_configured")?.ok).toBe(false);
+  });
+
+  it("keeps criticalOk when only runtime checks (backend) fail", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockRejectedValue(new Error("backend offline")),
+    );
+
+    const result = await evaluateProductionReadiness();
+    expect(result.criticalOk).toBe(true);
+    expect(result.ok).toBe(false);
+    expect(result.runtimeReason).toMatch(/api/i);
+    expect(result.checks.find((c) => c.key === "backend_ready")?.ok).toBe(false);
   });
 });

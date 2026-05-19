@@ -5,16 +5,34 @@ import {
   publicSiteUrlReadinessDetail,
 } from "@/lib/site-url";
 
-type ReadinessCheck = {
+/**
+ * Classifica cada check em duas dimensões:
+ * - severity=critical: configuração estática (variáveis ausentes/ inválidas).
+ *   Sem isto nada funciona — bloqueia o painel privado com `MaintenanceLockScreen`.
+ * - severity=runtime: backend/DB temporariamente fora.
+ *   Não bloqueia — o `AppShell` exibe banner de degradação e cada página
+ *   já trata o seu próprio empty/error state.
+ */
+export type ReadinessSeverity = "critical" | "runtime";
+
+export type ReadinessCheck = {
   key: string;
   ok: boolean;
   detail: string;
+  severity: ReadinessSeverity;
 };
 
 export type ProductionReadiness = {
   enabled: boolean;
+  /** True quando **todos** os checks (críticos + runtime) passam. */
   ok: boolean;
+  /** True quando todos os checks **críticos** passam — apenas estes ativam o gate. */
+  criticalOk: boolean;
+  /** Razão agregada quando runtime falha (para `SystemDegradationBanner`). */
+  runtimeReason?: string;
   checks: ReadinessCheck[];
+  /** Apenas checks críticos (subset de `checks`). */
+  criticalChecks: ReadinessCheck[];
 };
 
 function shouldEnableReadinessGate() {
@@ -32,48 +50,78 @@ function toReadinessChecks(
       key: "api_url_configured",
       ok: c.api_url_configured,
       detail: c.api_url_configured ? "configured" : "missing API_URL",
+      severity: "critical",
     },
     {
       key: "site_url_configured",
       ok: c.site_url_configured,
       detail: c.site_url_configured ? c.site_url_detail : "missing NEXT_PUBLIC_SITE_URL",
+      severity: "critical",
     },
     {
       key: "jwt_secret_configured",
       ok: c.jwt_secret_configured,
       detail: c.jwt_secret_detail,
+      severity: "critical",
     },
     {
       key: "database_configured",
       ok: c.database_configured,
       detail: c.database_configured ? "configured" : "missing DATABASE_URL",
+      severity: "critical",
     },
     {
       key: "backend_ready",
       ok: c.backend_ready,
       detail: c.backend_status != null ? `status ${c.backend_status}` : "request failed",
+      severity: "runtime",
     },
     {
       key: "database_ready",
       ok: c.database_ready,
       detail: c.database_ready ? "up" : c.database_configured ? "connection failed" : "skipped",
+      severity: "runtime",
     },
   ];
+}
+
+function aggregateRuntimeReason(checks: ReadinessCheck[]): string | undefined {
+  const failed = checks.filter((c) => c.severity === "runtime" && !c.ok);
+  if (failed.length === 0) return undefined;
+  if (failed.length === 1) {
+    return failed[0]!.key === "backend_ready"
+      ? "API principal indisponível ou em inicialização."
+      : "Base de dados indisponível.";
+  }
+  return "API principal e base de dados indisponíveis.";
 }
 
 export async function evaluateProductionReadiness(): Promise<ProductionReadiness> {
   const enabled = shouldEnableReadinessGate();
   if (!enabled) {
-    return { enabled: false, ok: true, checks: [] };
+    return {
+      enabled: false,
+      ok: true,
+      criticalOk: true,
+      checks: [],
+      criticalChecks: [],
+    };
   }
 
   const web = await evaluateWebReadiness();
   const checks = toReadinessChecks(web);
+  const criticalChecks = checks.filter((c) => c.severity === "critical");
+  const criticalOk = criticalChecks.every((c) => c.ok);
+  const ok = checks.every((c) => c.ok);
+  const runtimeReason = aggregateRuntimeReason(checks);
 
   return {
     enabled: true,
-    ok: checks.every((check) => check.ok),
+    ok,
+    criticalOk,
+    runtimeReason,
     checks,
+    criticalChecks,
   };
 }
 
@@ -85,6 +133,7 @@ export function evaluateStaticProductionConfig(): ReadinessCheck[] {
       key: "site_url_configured",
       ok: siteConfigured,
       detail: siteConfigured ? publicSiteUrlReadinessDetail() : "missing NEXT_PUBLIC_SITE_URL",
+      severity: "critical",
     },
   ];
 }
