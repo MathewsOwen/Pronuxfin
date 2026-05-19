@@ -43,7 +43,10 @@ Em produção **não** use `AUTH_RESET_DEV_LOG_ONLY=true` — o backend regista 
 
 Com `HEALTH_PROBE_SECRET` no web, `GET /api/health/ready` com header `Authorization: Bearer <secret>` devolve o objeto `checks` detalhado.
 
-**Painel privado:** em `NODE_ENV=production`, se algum check de readiness falhar, o utilizador vê o ecrã de manutenção (não um painel quebrado).
+**Painel privado:** em `NODE_ENV=production`, o gate distingue dois níveis:
+
+- **Crítico (manutenção):** `API_URL`, `NEXT_PUBLIC_SITE_URL`, `JWT_SECRET` (≥32) ou `DATABASE_URL` em falta. O painel privado é bloqueado com `MaintenanceLockScreen` listando apenas o que está em falta — páginas públicas (`/bolsa`, `/noticias`, `/projecao`, `/ferramentas/*`, `/privacidade`, `/termos`) seguem ao vivo.
+- **Runtime (degradação):** backend Nest a inicializar ou base de dados temporariamente fora. O painel continua **navegável** com banner âmbar (`SystemDegradationBanner`); cada página trata o seu próprio empty/error state.
 
 **Banner âmbar:** API fora do ar ou em warm-up — painel continua acessível com aviso (JWT local).
 

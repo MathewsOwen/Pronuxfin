@@ -36,7 +36,7 @@ npm run smoke:strict
 | Critério | Como verificar | Implementação |
 |----------|----------------|---------------|
 | Readiness unificado | Mesma lógica em manutenção e `/api/health/ready` | `web/src/lib/health/web-readiness.ts` |
-| Gate do painel | Todos os checks OK em `NODE_ENV=production` | `evaluateProductionReadiness()` |
+| Gate do painel | Bloqueia só em falha **crítica** (variáveis); runtime vira banner | `evaluateProductionReadiness()` (`criticalOk`) |
 | Degradação com retry | API com 2 tentativas + cache 45s | `platform-status.ts` |
 | SMTP / reset | `GET {API}/health` → `password_reset_mode: smtp` | `AuthMailerService` + capabilities |
 | CORS multi-domínio | `FRONTEND_URL` + `FRONTEND_URLS` | `bootstrap/cors-origins.ts` |
