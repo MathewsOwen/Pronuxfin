@@ -47,7 +47,7 @@ export function HeroPreview() {
             {[44, 62, 53, 76, 58, 82, 71, 91, 67].map((h, i) => (
               <div key={i} className="flex h-full flex-1 flex-col justify-end">
                 <motion.div
-                  className="w-full rounded-md bg-gradient-to-t from-primary/35 to-primary/80 shadow-[0_0_20px_color-mix(in_oklch,var(--primary)_%,transparent)]"
+                  className="w-full rounded-md bg-gradient-to-t from-primary/35 to-primary/80 shadow-[0_0_20px_color-mix(in oklch, var(--primary) 18%, transparent)]"
                   initial={{ height: 0 }}
                   animate={{ height: `${h}%` }}
                   transition={{

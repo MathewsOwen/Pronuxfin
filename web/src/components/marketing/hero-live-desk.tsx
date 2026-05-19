@@ -19,6 +19,7 @@ export function HeroLiveDesk() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      if (typeof document !== "undefined" && document.hidden) return;
       try {
         const res = await fetch("/api/quotes", { cache: "no-store" });
         if (!res.ok) return;
@@ -30,9 +31,14 @@ export function HeroLiveDesk() {
     }
     void load();
     const id = setInterval(() => void load(), 60_000);
+    const onVisibility = () => {
+      if (!document.hidden) void load();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
       clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
@@ -57,7 +63,7 @@ export function HeroLiveDesk() {
     <motion.div
       initial={{ opacity: 0, scale: 0.96, y: 24 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.75, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
       className="relative mx-auto w-full max-w-lg lg:mx-0"
     >
       <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-primary/25 via-transparent to-cognitive/8 blur-2xl motion-reduce:hidden" />

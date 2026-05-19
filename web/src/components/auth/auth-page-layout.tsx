@@ -11,7 +11,7 @@ export async function AuthBrandPanel() {
 
   return (
     <div className="relative hidden overflow-hidden border-r border-white/10 bg-[oklch(0.08_0.04_262)] lg:flex lg:w-[42%] lg:flex-col lg:justify-between xl:w-[44%]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,color-mix(in_oklch,var(--primary)_%,transparent),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,color-mix(in oklch, var(--primary) 18%, transparent),transparent_55%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.4] motion-safe:animate-pulse-soft">
         <div
           className="h-full w-full"
@@ -85,7 +85,7 @@ export async function AuthPageLayout({
       tabIndex={-1}
       className="relative flex min-h-screen overflow-hidden outline-none"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,color-mix(in_oklch,var(--primary)_%,transparent),transparent_42%)] lg:hidden" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,color-mix(in oklch, var(--primary) 18%, transparent),transparent_42%)] lg:hidden" />
       <AuthBrandPanel />
       <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-12 sm:px-8">
         <div className="mb-8 flex w-full max-w-md items-center justify-between lg:hidden">

@@ -3,15 +3,19 @@ import { describe, expect, it } from "vitest";
 import { resolveActiveNavLabel } from "./resolve-active-nav-label";
 
 describe("resolveActiveNavLabel", () => {
-  const t = (key: string) => `label:${key}`;
+  const t = (key: string) =>
+    ({
+      panel: "Painel",
+      portfolio: "Carteira",
+      unknownPage: "Página",
+    })[key] ?? key;
 
-  it("returns label for exact and nested routes", () => {
-    expect(resolveActiveNavLabel("/dashboard", t)).toBe("label:panel");
-    expect(resolveActiveNavLabel("/bolsa/PETR4", t)).toBe("label:market");
+  it("returns label for exact private route", () => {
+    expect(resolveActiveNavLabel("/dashboard", t)).toBe("Painel");
+    expect(resolveActiveNavLabel("/carteira", t)).toBe("Carteira");
   });
 
-  it("falls back to unknown page label", () => {
-    expect(resolveActiveNavLabel("/rota-inexistente", t)).toBe("rota-inexistente");
-    expect(resolveActiveNavLabel("/", t)).toBe("label:unknownPage");
+  it("falls back to segment for unknown paths", () => {
+    expect(resolveActiveNavLabel("/ativo/PETR4", t)).toBe("PETR4");
   });
 });

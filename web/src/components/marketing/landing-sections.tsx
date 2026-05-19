@@ -1,7 +1,6 @@
 "use client";
 
 import { useMessages, useTranslations } from "next-intl";
-import { motion, useReducedMotion } from "framer-motion";
 import { PronuxFinLogo } from "@/components/brand/pronux-fin-logo";
 import {
   Brain,
@@ -19,8 +18,6 @@ import {
   RevealOnce,
   RevealSection,
   RevealStaggerList,
-  landingEase,
-  viewportStandard,
 } from "@/components/marketing/landing-reveal";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { buttonVariants } from "@/components/ui/button";
@@ -149,109 +146,11 @@ export function FeaturesSection() {
               key={f}
               className="surface-rise flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm backdrop-blur-sm transition-colors hover:border-border hover:bg-white/[0.05]"
             >
-              <span className="size-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_12px_color-mix(in_oklch,var(--primary)_%,transparent)]" />
+              <span className="size-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_12px_color-mix(in oklch, var(--primary) 18%, transparent)]" />
               {f}
             </NestStaggerLi>
           ))}
         </RevealStaggerList>
-      </div>
-    </section>
-  );
-}
-
-export function DashboardMockSection() {
-  const t = useTranslations("DashboardMock");
-  const bars = [42, 68, 55, 82, 48, 74, 91, 63];
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <section id="dashboard" className="scroll-mt-24 px-4 py-20 sm:px-6">
-      <div className="mx-auto max-w-6xl">
-        <RevealSection>
-          <RevealBlock>
-            <SectionHeading
-              eyebrow={t("eyebrow")}
-              align="center"
-              title={t("title")}
-              description={t("description")}
-            />
-          </RevealBlock>
-          <RevealBlock className="mt-14">
-            <div className="glass-panel glow-ring card-shine rounded-3xl border-white/12 p-6 sm:p-8">
-              <p className="mb-6 rounded-xl border border-border bg-status-warning/8 px-4 py-3 text-center font-mono text-[10px] uppercase tracking-wider text-status-warning/90">
-                {t("banner")}
-              </p>
-              <div className="grid gap-6 lg:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-black/25 p-5 ring-1 ring-white/[0.04]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                    {t("saldoLabel")}
-                  </p>
-                  <p className="font-heading mt-3 text-3xl font-semibold tabular-nums tracking-tight text-muted-foreground">
-                    {t("maskedSaldo")}
-                  </p>
-                  <p className="mt-3 inline-flex rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 font-mono text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                    {t("varBadge")}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/25 p-5 ring-1 ring-white/[0.04] lg:col-span-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-                    {t("fluxoTitle")}
-                  </p>
-                  <div className="mt-6 flex h-36 items-end gap-2">
-                    {bars.map((h, i) => (
-                      <div key={i} className="flex h-full flex-1 flex-col justify-end">
-                        {reduceMotion ? (
-                          <div
-                            className="w-full rounded-t-md bg-gradient-to-t from-primary/25 to-primary shadow-[0_0_24px_color-mix(in_oklch,var(--primary)_%,transparent)]"
-                            style={{ height: `${h}%` }}
-                          />
-                        ) : (
-                          <motion.div
-                            className="w-full rounded-t-md bg-gradient-to-t from-primary/25 to-primary shadow-[0_0_24px_color-mix(in_oklch,var(--primary)_%,transparent)]"
-                            initial={{ height: 0 }}
-                            whileInView={{ height: `${h}%` }}
-                            viewport={viewportStandard}
-                            transition={{ duration: 0.5, delay: i * 0.05, ease: landingEase }}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4 ring-1 ring-white/[0.03]">
-                  <p className="font-mono text-[10px] font-semibold uppercase tracking-wide text-primary">
-                    {t("iaSampleTitle")}
-                  </p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {t("iaSampleBody")}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4 ring-1 ring-white/[0.03]">
-                  <p className="text-sm font-semibold">{t("metaTitle")}</p>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-                    {reduceMotion ? (
-                      <div
-                        className="h-full w-[72%] rounded-full bg-gradient-to-r from-primary to-primary/70"
-                        aria-hidden
-                      />
-                    ) : (
-                      <motion.div
-                        className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "72%" }}
-                        viewport={viewportStandard}
-                        transition={{ duration: 0.85, ease: landingEase }}
-                      />
-                    )}
-                  </div>
-                  <p className="mt-2 text-xs text-muted-foreground">{t("metaFooter")}</p>
-                </div>
-              </div>
-            </div>
-          </RevealBlock>
-        </RevealSection>
       </div>
     </section>
   );
@@ -262,7 +161,7 @@ export function CtaSection() {
 
   return (
     <section className="relative px-4 py-24 sm:px-6">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center_top,color-mix(in_oklch,var(--primary)_%,transparent),transparent_55%)]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center_top,color-mix(in oklch, var(--primary) 18%, transparent),transparent_55%)]" />
         <RevealOnce className="glass-panel glow-ring surface-rise relative mx-auto max-w-4xl rounded-3xl border border-primary/25 bg-black/20 px-8 py-14 text-center shadow-[inset_0_1px_0_oklch(1_0_0/0.04)] ring-1 ring-white/[0.06] sm:px-12">
         <h2 className="font-heading text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
           {t("title")}
@@ -271,7 +170,7 @@ export function CtaSection() {
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link
             href="/register"
-            className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-9 text-sm font-medium text-primary-foreground glow-ring shadow-[inset_0_1px_0_oklch(1_0_0/0.14)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_0_36px_color-mix(in_oklch,var(--primary)_%,transparent)] active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100"
+            className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-9 text-sm font-medium text-primary-foreground glow-ring shadow-[inset_0_1px_0_oklch(1_0_0/0.14)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_0_36px_color-mix(in oklch, var(--primary) 18%, transparent)] active:scale-[0.98] motion-reduce:hover:translate-y-0 motion-reduce:active:scale-100"
           >
             {t("primary")}
           </Link>
@@ -335,10 +234,10 @@ export function SiteFooter() {
             {t("linksProjecao")}
           </Link>
           <a
-            href="#dashboard"
+            href="#produto"
             className="text-muted-foreground transition-colors hover:text-primary"
           >
-            {t("linksDemo")}
+            {t("linksProduct")}
           </a>
           <Link
             href="/login?from=%2Feducation"
@@ -384,9 +283,17 @@ export function SiteFooter() {
           </Link>
         </RevealBlock>
       </RevealSection>
+      <RevealBlock className="mx-auto mt-12 max-w-6xl rounded-2xl border border-border bg-black/20 px-5 py-5 sm:px-6">
+        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          {t("trustTitle")}
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t("notAdvice")}</p>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t("dataSources")}</p>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground/90">{t("latencyNote")}</p>
+      </RevealBlock>
       <div className="mx-auto mt-14 flex max-w-6xl flex-col items-center justify-between gap-4 border-t border-white/[0.06] pt-8 text-xs text-muted-foreground sm:flex-row">
         <p>{t("stack", { year })}</p>
-        <p className="text-center sm:text-right">{t("disclaimer")}</p>
+        <p className="max-w-xl text-center sm:text-right">{t("disclaimer")}</p>
       </div>
     </footer>
   );

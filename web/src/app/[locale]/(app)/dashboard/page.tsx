@@ -7,6 +7,8 @@ import {
   Wallet,
   Waves,
 } from "lucide-react";
+import { DailyBriefingList } from "@/components/dashboard/daily-briefing-list";
+import { DeskJourneyStrip } from "@/components/dashboard/desk-journey-strip";
 import { DashboardAnalyticsSection } from "@/components/dashboard/dashboard-analytics-section";
 import { PortfolioEmptyDeskCallout } from "@/components/dashboard/portfolio-empty-desk-callout";
 import { WatchlistSignalSync } from "@/components/dashboard/watchlist-signal-sync";
@@ -204,10 +206,19 @@ export default async function DashboardPage() {
     },
   ];
   const agendaFallback = [t("agendaItem1"), t("agendaItem2"), t("agendaItem3")];
+  const focusSymbol =
+    briefingItems[0]?.symbol ?? radarItems[0]?.dossier.symbol ?? null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       {user ? <AppOnboardingPanel userId={user.id} /> : null}
+      {user ? (
+        <DeskJourneyStrip
+          watchlistCount={watchlistItems.length}
+          calendarEventsToday={todayCalendarEvents.length}
+          focusSymbol={focusSymbol}
+        />
+      ) : null}
       <WatchlistSignalSync
         items={radarItems.map((item) => ({
           symbol: item.dossier.symbol,
@@ -388,31 +399,8 @@ export default async function DashboardPage() {
                   <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                     {t("briefingTitle")}
                   </p>
-                  <div className="mt-3 space-y-3">
-                    {briefingItems.length > 0 ? (
-                      briefingItems.map((item) => (
-                        <div
-                          key={item.symbol}
-                          className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="text-sm font-semibold tracking-tight text-foreground">
-                                {item.symbol}
-                              </p>
-                              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                                {formatBriefingLine(item, t)}
-                              </p>
-                            </div>
-                            <Badge className={attentionBadgeClass(item.attentionLevel)}>
-                              {t(attentionLabelKey(item.attentionLevel))}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-muted-foreground">{t("briefingEmpty")}</p>
-                    )}
+                  <div className="mt-3">
+                    <DailyBriefingList items={briefingItems} />
                   </div>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-black/20 p-4">
@@ -658,36 +646,6 @@ function formatDashboardRadarReason(
       return t("radarReasonLiquid");
     default:
       return t("radarReasonLive");
-  }
-}
-
-function formatBriefingLine(
-  item: ReturnType<typeof buildWatchlistBriefing>[number],
-  t: (key: string, values?: Record<string, string | number>) => string,
-) {
-  switch (item.kind) {
-    case "attention_up":
-      return t("briefingAttentionUp", {
-        symbol: item.symbol,
-        value: item.delta ?? item.priority,
-      });
-    case "fresh_news":
-      return t("briefingFreshNews", {
-        symbol: item.symbol,
-        value: item.newsCount,
-      });
-    case "range_extreme":
-      return t("briefingRangeExtreme", {
-        symbol: item.symbol,
-      });
-    case "steady_high":
-      return t("briefingSteadyHigh", {
-        symbol: item.symbol,
-      });
-    default:
-      return t("briefingBaseline", {
-        symbol: item.symbol,
-      });
   }
 }
 

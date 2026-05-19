@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { HomeBelowFold } from "@/components/marketing/home-below-fold";
 import { Hero } from "@/components/marketing/hero";
+import { MarketStatusBanner } from "@/components/marketing/market-status-banner";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
+import { HomeFaqJsonLd } from "@/components/seo/home-faq-json-ld";
 import { CryptoCoverageSection } from "@/components/marketing/crypto-coverage-section";
 import { InstitutionalRibbon } from "@/components/marketing/institutional-ribbon";
 import { TrustStrip } from "@/components/marketing/trust-strip";
@@ -26,7 +28,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function HomePage() {
   return (
     <MarketingShell ticker showLanguageSwitcher>
+      <HomeFaqJsonLd />
       <Hero />
+      <MarketStatusBanner />
       <TrustStrip />
       <InstitutionalRibbon />
       <CryptoCoverageSection />

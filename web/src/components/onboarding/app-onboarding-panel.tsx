@@ -10,35 +10,42 @@ import { dismissOnboarding, isOnboardingDismissed } from "@/lib/onboarding/stora
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { titleKey: "step1Title", leadKey: "step1Lead", href: "/bolsa", ctaKey: "step1Cta" },
-  { titleKey: "step2Title", leadKey: "step2Lead", href: "/carteira", ctaKey: "step2Cta" },
-  { titleKey: "step3Title", leadKey: "step3Lead", href: "/ferramentas", ctaKey: "step3Cta" },
+  { titleKey: "step1Title", leadKey: "step1Lead", href: "/compare", ctaKey: "step1Cta" },
+  { titleKey: "step2Title", leadKey: "step2Lead", href: "/calendario", ctaKey: "step2Cta" },
+  {
+    titleKey: "step3Title",
+    leadKey: "step3Lead",
+    href: "/dashboard#mesa-fluxo",
+    ctaKey: "step3Cta",
+  },
 ] as const;
 
 export function AppOnboardingPanel({ userId }: { userId: string }) {
   const t = useTranslations("Onboarding");
   const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [step, setStep] = useState(0);
 
   useEffect(() => {
+    // Gate de hidratação: localStorage só existe no cliente.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    setVisible(!isOnboardingDismissed(userId));
-  }, [userId]);
+  }, []);
 
-  if (!mounted || !visible) return null;
+  if (!mounted) return null;
+  if (dismissed || isOnboardingDismissed(userId)) return null;
 
   const current = STEPS[step]!;
   const isLast = step === STEPS.length - 1;
 
   function close() {
     dismissOnboarding(userId);
-    setVisible(false);
+    setDismissed(true);
   }
 
   return (
     <section
-      className="relative overflow-hidden rounded-[1.75rem] border border-primary/25 bg-[linear-gradient(135deg,color-mix(in_oklch,var(--primary)_%,transparent),oklch(0.16_0.03_258))] px-5 py-6 md:px-7"
+      className="relative overflow-hidden rounded-[1.75rem] border border-primary/25 bg-[linear-gradient(135deg,color-mix(in oklch, var(--primary) 18%, transparent),oklch(0.16_0.03_258))] px-5 py-6 md:px-7"
       aria-labelledby="app-onboarding-title"
     >
       <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-primary/20 blur-3xl" />

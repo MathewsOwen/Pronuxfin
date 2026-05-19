@@ -57,7 +57,7 @@
     "titleAccent": "Neither should you.",
     "subtitle": "Top operators don't shout promises — they engineer <highlight>operational transparency</highlight>. PRONUXFIN pairs public markets (Brazilian equities, crypto in BRL, news with visible sources), scenario outlooks, and the private app under one philosophy — desk-grade language, explicit limits, and AI as an evidence organizer, not a crystal ball.",
     "ctaPrimary": "Start on the PRONUXFIN desk",
-    "ctaSecondary": "Preview the dashboard (demo)",
+    "ctaSecondary": "See product surfaces",
     "pillarRitmo": "Time",
     "pillarRitmoVal": "Short-cycle",
     "pillarRitmoDesc": "quotes & tape refresh where we promise freshness — less guessing, more market rhythm",
@@ -80,10 +80,15 @@
   },
   "HeroLive": {
     "badge": "Market · live",
+    "badgeLive": "Live",
+    "badgeSync": "Syncing",
     "synced": "Synced",
     "syncing": "Updating…",
     "unavailable": "Quotes unavailable — set BRAPI_TOKEN or wait for the feed.",
     "disclaimer": "Real prices via public feed; latency and coverage depend on the provider.",
+    "disclaimerCorner": "Visual reference · public feed when available",
+    "tapeTitle": "Reference tape",
+    "ctaDesk": "Open market desk",
     "cognitiveTitle": "Cognitive layer",
     "cognitiveBody": "The assistant frames hypotheses from your data in neutral tone — you validate before acting."
   },
@@ -352,19 +357,41 @@
     "colDay": "Day",
     "colTotal": "Total"
   },
-  "DashboardMock": {
-    "eyebrow": "Inside the product",
-    "title": "Dashboard — illustrative composition",
-    "description": "Before every brokerage API or Open Finance hook lands, you learn the system's anatomy: KPIs, flow & AI space. Values below are decorative — real decisions demand data you validate.",
-    "banner": "Visual demo · balances, bars & goals are placeholders — no real portfolio here",
-    "saldoLabel": "Consolidated balance (demo)",
-    "maskedSaldo": "$ ·······",
-    "varBadge": "Fictional move",
-    "fluxoTitle": "Monthly flow",
-    "iaSampleTitle": "AI card (sample)",
-    "iaSampleBody": "In production each insight arrives as a testable hypothesis — you choose what enters the plan. Neutral wording lowers confirmation bias.",
-    "metaTitle": "Goal (illustrative)",
-    "metaFooter": "Decorative bar — not real user progress"
+  "MarketStatus": {
+    "title": "Partial market coverage in this environment",
+    "missingBrapi": "BRAPI_TOKEN missing — B3 quotes and tape may be degraded.",
+    "missingFmp": "FMP_API_KEY missing — macro/earnings calendar and parts of the dossier are limited.",
+    "simulationOn": "MARKET_ALLOW_SIMULATION is on — not for public production.",
+    "hint": "Set keys on Vercel or in local .env (see web/.env.example). The UI always labels when a feed is not live."
+  },
+  "ProductDesk": {
+    "eyebrow": "Real surfaces",
+    "title": "What you open after signing up",
+    "description": "No invented balances on the landing page: each card below goes to a public route or account flow, with the same transparency policy as the app.",
+    "honestyBanner": "No fictional numbers in this section — only links to live desk, outlook, and tools",
+    "openDesk": "Open market desk",
+    "surfaces": {
+      "bolsa": {
+        "title": "Live equities desk",
+        "body": "Sectors, tape, and quotes with freshness badges — degraded when the provider fails.",
+        "cta": "Open desk"
+      },
+      "projecao": {
+        "title": "Outlook & scenarios",
+        "body": "Wealth simulator with bands and sensitivity matrix — hypotheses, not promises.",
+        "cta": "Explore outlook"
+      },
+      "carteira": {
+        "title": "Portfolio",
+        "body": "Build positions with live search; net worth only from assets you add.",
+        "cta": "Create account"
+      },
+      "calendario": {
+        "title": "Calendar",
+        "body": "Macro and earnings via FMP when the key is set; curated references when it is not.",
+        "cta": "View calendar"
+      }
+    }
   },
   "Cta": {
     "title": "Step up to the desk where method beats headlines",
@@ -464,14 +491,45 @@
     "linksMarket": "Live markets",
     "linksNews": "News",
     "linksProjecao": "Outlook & scenarios",
-    "linksDemo": "Demo",
+    "linksProduct": "Product surfaces",
     "linksEducation": "Education",
     "account": "Account",
     "login": "Sign in",
     "register": "Create account",
     "forgot": "Forgot password",
     "stack": "© {year} PRONUXFIN. Secure platform with auditable data and explicit limits.",
-    "disclaimer": "PRONUXFIN is not investment advice; demos are illustrative when marked."
+    "disclaimer": "PRONUXFIN is not investment advice or a recommendation to buy or sell assets.",
+    "trustTitle": "Data transparency",
+    "notAdvice": "Content, quotes, projections, and AI answers are informational. Investment decisions are yours alone.",
+    "dataSources": "Market: BRAPI (B3), CoinGecko (crypto), Financial Modeling Prep (macro/earnings/international dossier), RSS in news. Each block states live, partial, or unavailable.",
+    "latencyNote": "Prices and calendars may lag or fail per provider limits and your API configuration."
+  },
+  "HomeFaq": {
+    "eyebrow": "FAQ",
+    "title": "Clarity before you start",
+    "description": "Straight answers on live data, regulatory limits, and what PRONUXFIN is — and is not.",
+    "items": {
+      "live": {
+        "q": "Are quotes on the home page and market desk live?",
+        "a": "When BRAPI_TOKEN and upstreams respond, the desk shows recent readings with freshness badges. On failure or demo mode, the UI states it explicitly — no fictional numbers posing as market data."
+      },
+      "advice": {
+        "q": "Does PRONUXFIN recommend buying or selling assets?",
+        "a": "No. We provide reading infrastructure, educational projection, and cognitive organization. Projections and AI structure hypotheses; suitability and decisions are yours alone."
+      },
+      "sources": {
+        "q": "Where does public data come from?",
+        "a": "Brazilian equities via BRAPI, crypto in BRL via CoinGecko, macro and calendar via Financial Modeling Prep when configured, news via RSS with visible sources. Each block shows provider and state (live, partial, or unavailable)."
+      },
+      "account": {
+        "q": "Do I need an account for the market desk and news?",
+        "a": "Not for the public market layer, news, and open tools. The private desk (portfolio, alerts, dossier) requires sign-up with the same visual standard and security limits."
+      },
+      "ai": {
+        "q": "How does AI fit the desk?",
+        "a": "As an evidence and workflow organizer — not an oracle. Answers reference available context; when data is missing, the UI says so. You validate before acting."
+      }
+    }
   },
   "AuthLayout": {
     "headlineLead": "Sign-in that matches the",
@@ -680,15 +738,15 @@
     "skip": "Don't show again",
     "dismiss": "Close guide",
     "stepDot": "Go to step {step}",
-    "step1Title": "Open the market terminal",
-    "step1Lead": "Live quotes, watchlist, and per-asset dossiers — the starting point for what you track.",
-    "step1Cta": "Go to market",
-    "step2Title": "Build your simulated portfolio",
-    "step2Lead": "Nothing is pre-filled: you add ticker, quantity, and average cost. The desk only shows P&L for what you save.",
-    "step2Cta": "Open portfolio",
-    "step3Title": "Use the tools",
-    "step3Lead": "Calculators, economic calendar, and educational comparators live under Tools.",
-    "step3Cta": "Explore tools"
+    "step1Title": "Save symbols to your watchlist",
+    "step1Lead": "The private comparator feeds radar, briefing, and calendar — start here without auto-creating portfolio positions.",
+    "step1Cta": "Open comparator",
+    "step2Title": "Review your desk agenda",
+    "step2Lead": "Calendar with macro, earnings, and B3 windows filtered by the tickers you follow.",
+    "step2Cta": "Open calendar",
+    "step3Title": "Follow the desk flow",
+    "step3Lead": "On the dashboard, the daily briefing links each symbol to dossier and agenda — prioritize with context, not manufactured urgency.",
+    "step3Cta": "View desk workflow"
   },
   "AiHub": {
     "pageTitle": "Intelligence hub",
@@ -884,8 +942,25 @@
     "radarSummaryHigh": "High attention",
     "radarSummaryLive": "Live dossiers",
     "radarSummaryNews": "With linked news",
+    "deskJourneyEyebrow": "Desk workflow",
+    "deskJourneyTitle": "Watchlist → calendar → dossier",
+    "deskJourneyLead": "Three steps from noise to actionable context: save symbols, review your desk agenda, and open the dossier that deserves attention today.",
+    "deskJourneyProgress": "{completed}/{total} complete",
+    "deskJourneyStep": "Step {step}",
+    "deskJourneyWatchlistTitle": "Build your watchlist",
+    "deskJourneyWatchlistLead": "Save tickers in the comparator — it feeds radar, agenda, and briefing.",
+    "deskJourneyWatchlistCta": "Open comparator",
+    "deskJourneyCalendarTitle": "Desk agenda",
+    "deskJourneyCalendarLead": "Macro, earnings, and B3 windows filtered by the symbols you follow.",
+    "deskJourneyCalendarCta": "Open calendar",
+    "deskJourneyDossierTitle": "Asset dossier",
+    "deskJourneyDossierTitleFocus": "Dossier · {symbol}",
+    "deskJourneyDossierLead": "Private terminal with quote, linked news, and radar signals to decide your next step.",
+    "deskJourneyDossierCta": "Open dossier",
     "briefingTitle": "Automatic briefing",
     "briefingEmpty": "The radar is still building enough history to summarize changes.",
+    "briefingOpenDossier": "Dossier",
+    "briefingOpenCalendar": "Agenda",
     "alertCenterTitle": "Alert center",
     "alertCenterOpen": "Open center",
     "alertCenterEmpty": "No relevant events yet since the last stored read.",
@@ -1093,6 +1168,11 @@
       "utilities": "Utilities",
       "industrials": "Industrials"
     },
+    "tableCaptionEquitySector": "Sector book quotes by region and sector",
+    "tableCaptionCryptoMajors": "Major crypto quotes in BRL",
+    "tableCaptionCryptoSector": "Crypto sector book quotes by theme",
+    "sortDirAsc": "asc",
+    "sortDirDesc": "desc",
     "thTicker": "Ticker",
     "thDesc": "Description",
     "thLast": "Last",

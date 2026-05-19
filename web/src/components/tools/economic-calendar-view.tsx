@@ -23,10 +23,12 @@ export function EconomicCalendarView({
   calendarMode = "curated",
   groupByDay = false,
   showWatchlistFilter = false,
+  initialWatchlistOnly = false,
 }: {
   previewLimit?: number;
   loggedIn?: boolean;
   watchlistSymbols?: string[];
+  initialWatchlistOnly?: boolean;
   /** Quando definido (SSR), substitui o merge só-cliente. */
   serverEvents?: EconomicCalendarEvent[];
   fmpAvailable?: boolean;
@@ -37,7 +39,7 @@ export function EconomicCalendarView({
   const t = useTranslations("Tools.calendar");
   const locale = useLocale();
   const [region, setRegion] = useState<EconomicEventRegion | "all">("all");
-  const [watchlistOnly, setWatchlistOnly] = useState(false);
+  const [watchlistOnly, setWatchlistOnly] = useState(initialWatchlistOnly);
 
   const events = useMemo(() => {
     let list: EconomicCalendarEvent[];

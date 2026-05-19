@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { useId, useMemo, useState } from "react";
 import {
   chartInnerSize,
-  DEFAULT_CHART_PAD,
   formatAxisNumber,
   formatAxisPercent,
   linearScale,
@@ -249,7 +248,6 @@ export function ProfessionalBarChart({
 }: ProfessionalChartProps) {
   const [hover, setHover] = useState<number | null>(null);
   const layout = useChartLayout(data, height, valueMode);
-  const colors = ACCENTS[accent];
   const fmt =
     formatValue ??
     ((v: number) =>
@@ -343,7 +341,7 @@ export function ProfessionalLineChart(props: ProfessionalChartProps) {
     );
   }
 
-  const { points, pad } = layout;
+  const { points } = layout;
   const line = points.map((p) => `${p.x},${p.y}`).join(" ");
   const active = hover != null ? points[hover] : null;
 

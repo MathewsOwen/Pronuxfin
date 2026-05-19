@@ -41,7 +41,9 @@ function PortfolioLiveMarketPanelInner({
   const deskPayload = useQuotesStream();
   const deskQuotes = useMemo(() => collectDeskQuotes(deskPayload), [deskPayload]);
   const deskQuotesRef = useRef(deskQuotes);
-  deskQuotesRef.current = deskQuotes;
+  useEffect(() => {
+    deskQuotesRef.current = deskQuotes;
+  });
 
   const [search, setSearch] = useState(symbol);
   const debouncedSearch = useDebouncedValue(search, 220);
@@ -120,13 +122,17 @@ function PortfolioLiveMarketPanelInner({
     [applyDeskQuote, t],
   );
 
+  // Sincroniza input com a prop `symbol` quando o utilizador troca o ativo via outro componente.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearch(symbol);
   }, [symbol]);
 
+  // Quando a prop `symbol` muda, reseta lookup ou dispara fetch inicial.
   useEffect(() => {
     const clean = normalizeWatchlistSymbol(symbol);
     if (!clean) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLookupQuote(null);
       setLookupError(null);
       return;
@@ -140,10 +146,12 @@ function PortfolioLiveMarketPanelInner({
     return () => lookupAbortRef.current?.abort();
   }, [symbol, fetchLookup, applyDeskQuote]);
 
+  // Mantém o painel sincronizado com novas leituras do stream da mesa para o símbolo atual.
   useEffect(() => {
     const clean = normalizeWatchlistSymbol(symbol);
     if (!clean) return;
     const fromDesk = findDeskQuote(deskQuotes, clean);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (fromDesk?.regularMarketPrice != null) applyDeskQuote(fromDesk);
   }, [deskQuotes, symbol, applyDeskQuote]);
 

@@ -1,4 +1,4 @@
-import { APP_NAV_GROUPS, flattenAppNavItems } from "@/lib/navigation/app-nav";
+import { flattenAppNavItems } from "@/lib/navigation/app-nav";
 
 export function resolveActiveNavLabel(pathname: string, t: (key: string) => string): string {
   const match = flattenAppNavItems().find(

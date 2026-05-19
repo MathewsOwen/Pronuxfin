@@ -27,7 +27,7 @@ export function AmbientBackdrop() {
         }}
       />
       <motion.div
-        className="absolute -left-32 top-[18%] size-[420px] rounded-full bg-[radial-gradient(circle,color-mix(in_oklch,var(--primary)_%,transparent),transparent_68%)] blur-3xl motion-reduce:hidden"
+        className="absolute -left-32 top-[18%] size-[420px] rounded-full bg-[radial-gradient(circle,color-mix(in oklch, var(--primary) 18%, transparent),transparent_68%)] blur-3xl motion-reduce:hidden"
         animate={{ x: [0, 28, 0], y: [0, -18, 0] }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
