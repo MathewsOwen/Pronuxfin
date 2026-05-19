@@ -57,7 +57,7 @@
     "titleAccent": "Você também não deveria.",
     "subtitle": "Os melhores operadores não gritam promessas: constroem <highlight>transparência operacional</highlight>. Na PRONUXFIN, mercado público (ações BR, cripto em BRL, notícias com fonte), projeções em cenários e o app privado compartilham a mesma filosofia — linguagem de mesa, limites explícitos e IA como organizador de evidências, não como bola de cristal.",
     "ctaPrimary": "Começar na mesa PRONUXFIN",
-    "ctaSecondary": "Ver o painel em modo demo",
+    "ctaSecondary": "Ver superfícies do produto",
     "pillarRitmo": "Tempo",
     "pillarRitmoVal": "Em ciclo curto",
     "pillarRitmoDesc": "cotações e tape atualizados onde o produto promete frescor — menos suposição, mais ritmo de mercado",
@@ -80,10 +80,15 @@
   },
   "HeroLive": {
     "badge": "Mercado · ao vivo",
+    "badgeLive": "Ao vivo",
+    "badgeSync": "Sincronizando",
     "synced": "Sincronizado",
     "syncing": "Atualizando…",
     "unavailable": "Cotações indisponíveis — configure BRAPI_TOKEN ou aguarde o feed.",
     "disclaimer": "Preços reais via feed público; latência e cobertura dependem do provedor.",
+    "disclaimerCorner": "Referência visual · feed público quando disponível",
+    "tapeTitle": "Tape de referência",
+    "ctaDesk": "Abrir mesa de mercado",
     "cognitiveTitle": "Camada cognitiva",
     "cognitiveBody": "O assistente organiza hipóteses a partir dos seus dados em tom neutro — você valida antes de agir."
   },
@@ -352,19 +357,41 @@
     "colDay": "Dia",
     "colTotal": "Total"
   },
-  "DashboardMock": {
-    "eyebrow": "Dentro do produto",
-    "title": "Painel — composição ilustrativa",
-    "description": "Antes de ligarmos cada API de corretora ou Open Finance, você já navega a anatomia do sistema: KPIs, fluxo e espaço para IA. Valores abaixo são decorativos — qualquer decisão real exige dados validados por você.",
-    "banner": "Demo visual · saldos, barras e metas são placeholders — não há carteira real aqui",
-    "saldoLabel": "Saldo consolidado (demo)",
-    "maskedSaldo": "R$ ·······",
-    "varBadge": "Variação fictícia",
-    "fluxoTitle": "Fluxo mensal",
-    "iaSampleTitle": "Cartão IA (exemplo)",
-    "iaSampleBody": "Em produção, cada insight nasce como hipótese verificável — você escolhe o que entra no plano. Linguagem neutra reduz viés de confirmação.",
-    "metaTitle": "Meta (ilustrativa)",
-    "metaFooter": "Barra cosmética — não reflete progresso de usuário real"
+  "MarketStatus": {
+    "title": "Mercado parcial neste ambiente",
+    "missingBrapi": "BRAPI_TOKEN ausente — cotações B3 e tape podem ficar degradados.",
+    "missingFmp": "FMP_API_KEY ausente — calendário macro/resultados e partes do dossiê ficam limitados.",
+    "simulationOn": "MARKET_ALLOW_SIMULATION ativo — não use em produção pública.",
+    "hint": "Configure as chaves na Vercel ou no .env local (ver web/.env.example). A interface sempre rotula quando o feed não está ao vivo."
+  },
+  "ProductDesk": {
+    "eyebrow": "Superfícies reais",
+    "title": "O produto que você abre depois do cadastro",
+    "description": "Sem saldos inventados na landing: cada bloco abaixo leva a uma rota pública ou ao fluxo de conta, com a mesma política de transparência do app.",
+    "honestyBanner": "Nenhum número fictício nesta seção — apenas links para mesas ao vivo, projeção e ferramentas",
+    "openDesk": "Abrir mesa de mercado",
+    "surfaces": {
+      "bolsa": {
+        "title": "Bolsa ao vivo",
+        "body": "Setores, tape e cotações com selo de frescor — degradado quando o provedor falha.",
+        "cta": "Ver bolsa"
+      },
+      "projecao": {
+        "title": "Projeção & cenários",
+        "body": "Simulador patrimonial com faixas e matriz de sensibilidade — hipóteses, não promessa.",
+        "cta": "Explorar projeção"
+      },
+      "carteira": {
+        "title": "Carteira",
+        "body": "Monte posições com busca ao vivo; patrimônio consolidado só com os ativos que você cadastrar.",
+        "cta": "Criar conta"
+      },
+      "calendario": {
+        "title": "Calendário",
+        "body": "Macro e resultados via FMP quando a chave está ativa; referências curadas quando não está.",
+        "cta": "Ver calendário"
+      }
+    }
   },
   "Cta": {
     "title": "Suba para a mesa onde método vale mais que manchete",
@@ -464,14 +491,45 @@
     "linksMarket": "Mercado ao vivo",
     "linksNews": "Notícias",
     "linksProjecao": "Projeção & cenários",
-    "linksDemo": "Demonstração",
+    "linksProduct": "Superfícies do produto",
     "linksEducation": "Educação",
     "account": "Conta",
     "login": "Entrar",
     "register": "Cadastro",
     "forgot": "Recuperar senha",
     "stack": "© {year} PRONUXFIN. Plataforma segura com dados auditáveis e limites explícitos.",
-    "disclaimer": "PRONUXFIN não constitui assessoria de investimentos; demos são ilustrativas quando assim marcadas."
+    "disclaimer": "PRONUXFIN não constitui assessoria de investimentos nem recomendação de ativos.",
+    "trustTitle": "Transparência de dados",
+    "notAdvice": "Conteúdo, cotações, projeções e respostas de IA são informativos. Decisões de investimento são exclusivamente suas.",
+    "dataSources": "Mercado: BRAPI (B3), CoinGecko (cripto), Financial Modeling Prep (macro/resultados/dossiê internacional), feeds RSS em notícias. Cada bloco indica quando está ao vivo, parcial ou indisponível.",
+    "latencyNote": "Preços e calendários podem atrasar ou falhar conforme limites dos provedores e da sua configuração de API."
+  },
+  "HomeFaq": {
+    "eyebrow": "Perguntas frequentes",
+    "title": "Clareza antes de começar",
+    "description": "Respostas objetivas sobre dados ao vivo, limites regulatórios e o que a PRONUXFIN é — e não é.",
+    "items": {
+      "live": {
+        "q": "As cotações na home e na bolsa são ao vivo?",
+        "a": "Quando BRAPI_TOKEN e os upstreams respondem, a mesa mostra leituras recentes com selo de frescor. Em falha ou modo demo, a interface declara explicitamente — sem números fictícios disfarçados de mercado."
+      },
+      "advice": {
+        "q": "A PRONUXFIN recomenda comprar ou vender ativos?",
+        "a": "Não. Somos infraestrutura de leitura, projeção educativa e organização cognitiva. Projeções e IA organizam hipóteses; decisões e adequação ao seu perfil são exclusivamente suas."
+      },
+      "sources": {
+        "q": "De onde vêm os dados públicos?",
+        "a": "Ações BR via BRAPI, cripto em BRL via CoinGecko, macro e calendário via Financial Modeling Prep quando configurado, notícias via RSS com fonte visível. Cada bloco indica provedor e estado (ao vivo, parcial ou indisponível)."
+      },
+      "account": {
+        "q": "Preciso de conta para usar a bolsa e as notícias?",
+        "a": "Não para a camada pública de mercado, notícias e ferramentas abertas. O painel privado (carteira, alertas, dossiê) exige cadastro com o mesmo padrão visual e limites de segurança."
+      },
+      "ai": {
+        "q": "Como a IA se encaixa na mesa?",
+        "a": "Como organizador de evidências e ritmo de trabalho — não como oráculo. Respostas citam contexto disponível; quando faltam dados, a UI diz. Você valida antes de agir."
+      }
+    }
   },
   "AuthLayout": {
     "headlineLead": "Acesso com o mesmo padrão visual da",
@@ -680,15 +738,15 @@
     "skip": "Não mostrar de novo",
     "dismiss": "Fechar guia",
     "stepDot": "Ir para o passo {step}",
-    "step1Title": "Abra o terminal de mercado",
-    "step1Lead": "Cotações ao vivo, watchlist e dossiê por ativo — o ponto de partida para monitorar o que importa.",
-    "step1Cta": "Ir para o mercado",
-    "step2Title": "Monte sua carteira simulada",
-    "step2Lead": "Nada é pré-preenchido: você adiciona ticker, quantidade e preço médio. O painel só mostra P&L do que você guardar.",
-    "step2Cta": "Abrir carteira",
-    "step3Title": "Use as ferramentas",
-    "step3Lead": "Calculadoras, calendário econômico e comparadores educativos ficam na área de ferramentas.",
-    "step3Cta": "Explorar ferramentas"
+    "step1Title": "Guarde ativos na watchlist",
+    "step1Lead": "O comparador privado alimenta radar, briefing e calendário — comece por aí, sem posição automática na carteira.",
+    "step1Cta": "Abrir comparador",
+    "step2Title": "Veja a agenda da mesa",
+    "step2Lead": "Calendário com macro, resultados e temporada B3 filtrados pelos tickers que você acompanha.",
+    "step2Cta": "Abrir calendário",
+    "step3Title": "Siga o fluxo no painel",
+    "step3Lead": "No dashboard, o briefing diário liga cada ativo ao dossiê e à agenda — priorize com contexto, não com urgência fabricada.",
+    "step3Cta": "Ver fluxo da mesa"
   },
   "AiHub": {
     "pageTitle": "Central de inteligência",
@@ -884,8 +942,25 @@
     "radarSummaryHigh": "Alta atenção",
     "radarSummaryLive": "Dossiês ao vivo",
     "radarSummaryNews": "Com notícias ligadas",
+    "deskJourneyEyebrow": "Fluxo da mesa",
+    "deskJourneyTitle": "Watchlist → calendário → dossiê",
+    "deskJourneyLead": "Três passos para sair do ruído e chegar ao contexto acionável: guarde ativos, veja a agenda da sua mesa e abra o dossiê do que merece atenção hoje.",
+    "deskJourneyProgress": "{completed}/{total} concluídos",
+    "deskJourneyStep": "Passo {step}",
+    "deskJourneyWatchlistTitle": "Montar watchlist",
+    "deskJourneyWatchlistLead": "Guarde tickers no comparador — é a lista que alimenta radar, agenda e briefing.",
+    "deskJourneyWatchlistCta": "Abrir comparador",
+    "deskJourneyCalendarTitle": "Agenda da mesa",
+    "deskJourneyCalendarLead": "Macro, resultados e janelas B3 filtrados pelos símbolos que você acompanha.",
+    "deskJourneyCalendarCta": "Ver calendário",
+    "deskJourneyDossierTitle": "Dossiê do ativo",
+    "deskJourneyDossierTitleFocus": "Dossiê · {symbol}",
+    "deskJourneyDossierLead": "Terminal privado com cotação, notícias ligadas e sinais do radar para decidir o próximo passo.",
+    "deskJourneyDossierCta": "Abrir dossiê",
     "briefingTitle": "Briefing automático",
     "briefingEmpty": "O radar ainda está consolidando histórico suficiente para resumir mudanças.",
+    "briefingOpenDossier": "Dossiê",
+    "briefingOpenCalendar": "Agenda",
     "alertCenterTitle": "Centro de alertas",
     "alertCenterOpen": "Abrir central",
     "alertCenterEmpty": "Ainda sem eventos relevantes desde a última leitura guardada.",
@@ -1093,6 +1168,11 @@
       "utilities": "Utilities",
       "industrials": "Industriais"
     },
+    "tableCaptionEquitySector": "Cotações do livro setorial por região e setor",
+    "tableCaptionCryptoMajors": "Cotações das majors de cripto em BRL",
+    "tableCaptionCryptoSector": "Cotações do livro cripto por setor temático",
+    "sortDirAsc": "asc",
+    "sortDirDesc": "desc",
     "thTicker": "Ativo",
     "thDesc": "Descrição",
     "thLast": "Último",

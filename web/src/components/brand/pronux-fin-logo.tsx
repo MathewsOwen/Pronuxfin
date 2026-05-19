@@ -264,7 +264,7 @@ export function PronuxFinLogo({
       className={cn(
         "relative inline-flex items-center text-foreground",
         "motion-safe:hover:brightness-110 motion-safe:transition-[filter] motion-safe:duration-300",
-        "motion-safe:hover:drop-shadow-[0_0_12px_color-mix(in_oklch,var(--primary)_%,transparent)]",
+        "motion-safe:hover:drop-shadow-[0_0_12px_color-mix(in oklch, var(--primary) 18%, transparent)]",
         className,
       )}
       {...(reduceMotion

@@ -34,6 +34,7 @@ import {
   RevealOnce,
   RevealStaggerList,
 } from "@/components/marketing/landing-reveal";
+import { DeskQuoteMobileList } from "@/components/market/desk-quote-mobile-list";
 import { useQuotesStream } from "@/components/market/quotes-stream-provider";
 import { useCryptoSectorQuotesBook } from "@/hooks/use-crypto-sector-quotes";
 import { useSectorQuotesBook } from "@/hooks/use-sector-quotes";
@@ -683,8 +684,17 @@ export function BolsaLiveHub() {
           />
         </div>
 
-        <div className="overflow-x-auto">
+        <DeskQuoteMobileList
+          rows={visibleSectorRows}
+          locale={locale}
+          fallbackCurrency={sectorFallBackCur}
+          flash={flash}
+          caption={t("tableCaptionEquitySector")}
+          emptyLabel={t("searchNoMatches")}
+        />
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[680px] text-left text-sm">
+            <caption className="sr-only">{t("tableCaptionEquitySector")}</caption>
             <thead>
               <tr className="sticky top-0 z-20 border-b border-white/10 bg-zinc-950/95 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground backdrop-blur-md">
                 <SortableHeader
@@ -692,30 +702,35 @@ export function BolsaLiveHub() {
                   sortKey="symbol"
                   state={equitySort}
                   onToggle={updateEquitySort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thDesc")}
                   sortKey="name"
                   state={equitySort}
                   onToggle={updateEquitySort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thLast")}
                   sortKey="price"
                   state={equitySort}
                   onToggle={updateEquitySort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thDeltaAbs")}
                   sortKey="change"
                   state={equitySort}
                   onToggle={updateEquitySort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thDeltaPct")}
                   sortKey="pct"
                   state={equitySort}
                   onToggle={updateEquitySort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
               </tr>
             </thead>
@@ -792,8 +807,17 @@ export function BolsaLiveHub() {
             })}
           />
         </div>
-        <div className="overflow-x-auto">
+        <DeskQuoteMobileList
+          rows={visibleCryptoRows}
+          locale={locale}
+          fallbackCurrency="BRL"
+          flash={flash}
+          caption={t("tableCaptionCryptoMajors")}
+          emptyLabel={t("searchNoMatches")}
+        />
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[680px] text-left text-sm">
+            <caption className="sr-only">{t("tableCaptionCryptoMajors")}</caption>
             <thead>
               <tr className="sticky top-0 z-20 border-b border-white/10 bg-zinc-950/95 text-[10px] font-semibold uppercase tracking-[0.18em] text-cognitive/85 backdrop-blur-md">
                 <SortableHeader
@@ -801,30 +825,35 @@ export function BolsaLiveHub() {
                   sortKey="symbol"
                   state={cryptoMajorSort}
                   onToggle={updateCryptoMajorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thName")}
                   sortKey="name"
                   state={cryptoMajorSort}
                   onToggle={updateCryptoMajorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thLast")}
                   sortKey="price"
                   state={cryptoMajorSort}
                   onToggle={updateCryptoMajorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thDeltaBrl")}
                   sortKey="change"
                   state={cryptoMajorSort}
                   onToggle={updateCryptoMajorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thDeltaPct")}
                   sortKey="pct"
                   state={cryptoMajorSort}
                   onToggle={updateCryptoMajorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
               </tr>
             </thead>
@@ -948,8 +977,17 @@ export function BolsaLiveHub() {
           />
         </div>
 
-        <div className="overflow-x-auto">
+        <DeskQuoteMobileList
+          rows={visibleCryptoSectorRows}
+          locale={locale}
+          fallbackCurrency="BRL"
+          flash={flash}
+          caption={t("tableCaptionCryptoSector")}
+          emptyLabel={t("searchNoMatches")}
+        />
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[680px] text-left text-sm">
+            <caption className="sr-only">{t("tableCaptionCryptoSector")}</caption>
             <thead>
               <tr className="sticky top-0 z-20 border-b border-white/10 bg-zinc-950/95 text-[10px] font-semibold uppercase tracking-[0.18em] text-fuchsia-200/85 backdrop-blur-md">
                 <SortableHeader
@@ -957,30 +995,35 @@ export function BolsaLiveHub() {
                   sortKey="symbol"
                   state={cryptoSectorSort}
                   onToggle={updateCryptoSectorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thName")}
                   sortKey="name"
                   state={cryptoSectorSort}
                   onToggle={updateCryptoSectorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thLast")}
                   sortKey="price"
                   state={cryptoSectorSort}
                   onToggle={updateCryptoSectorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thDeltaBrl")}
                   sortKey="change"
                   state={cryptoSectorSort}
                   onToggle={updateCryptoSectorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
                 <SortableHeader
                   label={t("thDeltaPct")}
                   sortKey="pct"
                   state={cryptoSectorSort}
                   onToggle={updateCryptoSectorSort}
+                  directionLabels={{ asc: t("sortDirAsc"), desc: t("sortDirDesc") }}
                 />
               </tr>
             </thead>
@@ -1202,13 +1245,21 @@ function SortableHeader({
   sortKey,
   state,
   onToggle,
+  directionLabels,
 }: {
   label: string;
   sortKey: QuoteSortKey;
   state: QuoteSortState;
   onToggle: Dispatch<SetStateAction<QuoteSortState>>;
+  directionLabels?: { asc: string; desc: string };
 }) {
   const active = state.key === sortKey;
+  const dirLabel =
+    active && directionLabels
+      ? state.direction === "asc"
+        ? directionLabels.asc
+        : directionLabels.desc
+      : null;
 
   return (
     <th
@@ -1231,10 +1282,8 @@ function SortableHeader({
           )}
           aria-hidden
         />
-        {active ? (
-          <span className="text-[9px] text-muted-foreground">
-            {state.direction === "asc" ? "ASC" : "DESC"}
-          </span>
+        {dirLabel ? (
+          <span className="text-[9px] text-muted-foreground">{dirLabel}</span>
         ) : null}
       </button>
     </th>

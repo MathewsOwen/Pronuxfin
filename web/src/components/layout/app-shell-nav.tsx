@@ -23,7 +23,7 @@ export function AppShellSidebarNav({ onNavigate, onLogout }: AppShellSidebarNavP
     cn(
       "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-[transform,color,background-color,border-color] duration-200 motion-safe:hover:translate-x-px",
       active
-        ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px_color-mix(in_oklch,var(--primary)_%,transparent)]"
+        ? "bg-primary/15 text-primary shadow-[inset_0_0_0_1px_color-mix(in oklch, var(--primary) 18%, transparent)]"
         : "text-muted-foreground hover:bg-muted hover:text-foreground",
     );
 
@@ -46,7 +46,7 @@ export function AppShellSidebarNav({ onNavigate, onLogout }: AppShellSidebarNavP
                   className={navLinkClass(active)}
                 >
                   {active ? (
-                    <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_12px_color-mix(in_oklch,var(--primary)_%,transparent)]" />
+                    <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_12px_color-mix(in oklch, var(--primary) 18%, transparent)]" />
                   ) : null}
                   <Icon className="size-4 shrink-0" />
                   {t(labelKey)}

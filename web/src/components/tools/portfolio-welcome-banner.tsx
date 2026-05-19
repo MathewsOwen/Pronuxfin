@@ -8,6 +8,8 @@ export function PortfolioWelcomeBanner({ initialOpen = true }: { initialOpen?: b
   const t = useTranslations("Portfolio");
   const [visible, setVisible] = useState(initialOpen);
 
+  if (!visible) return null;
+
   return (
     <div
       className="relative overflow-hidden rounded-2xl border border-primary/25 bg-primary/10 px-4 py-4"

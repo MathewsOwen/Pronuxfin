@@ -43,7 +43,7 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.04] terminal-grid-bg" />
 
       <div className="pointer-events-none absolute inset-0 -z-10 md:hidden">
-        <div className="absolute left-1/2 top-0 h-[480px] w-full max-w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,color-mix(in_oklch,var(--primary)_%,transparent),transparent_68%)]" />
+        <div className="absolute left-1/2 top-0 h-[480px] w-full max-w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,color-mix(in oklch, var(--primary) 18%, transparent),transparent_68%)]" />
       </div>
 
       <div className="landing-tech-rail mx-auto mb-10 max-w-6xl rounded-full motion-reduce:hidden" aria-hidden />
@@ -106,7 +106,7 @@ export function Hero() {
               />
             </Link>
             <Link
-              href="#dashboard"
+              href="#produto"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
                 "h-11 border-white/15 bg-white/[0.03] px-7 text-sm backdrop-blur-md transition-colors hover:border-cognitive/30 hover:bg-cognitive/8",

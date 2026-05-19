@@ -26,10 +26,16 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-export default async function AppCalendarPage() {
+type CalendarioPageProps = {
+  searchParams: Promise<{ mesa?: string }>;
+};
+
+export default async function AppCalendarPage({ searchParams }: CalendarioPageProps) {
   const t = await getTranslations("Tools.calendar");
   const user = await getCurrentUser();
   if (!user) redirect("/login?from=%2Fcalendario");
+  const query = await searchParams;
+  const initialWatchlistOnly = query.mesa === "1";
 
   const [watchlistItems, portfolioPositions] = await Promise.all([
     listUserWatchlist(user.id),
@@ -82,6 +88,7 @@ export default async function AppCalendarPage() {
         calendarMode={mode}
         groupByDay
         showWatchlistFilter
+        initialWatchlistOnly={initialWatchlistOnly}
       />
     </div>
   );

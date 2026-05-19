@@ -39,6 +39,8 @@ export function ProjecaoMarketPulse() {
   }
 
   useEffect(() => {
+    // Carregamento inicial + polling de cotações.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
     const id = setInterval(() => void load(), 60_000);
     return () => clearInterval(id);

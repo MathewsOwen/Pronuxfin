@@ -415,6 +415,28 @@
       margin-right: auto;
     }
   }
+
+  .below-fold-stack > * {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 28rem;
+  }
+
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 28rem;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --market-up: oklch(0.38 0.14 155);
+    --market-down: oklch(0.42 0.2 25);
+  }
+
+  .dark {
+    --market-up: oklch(0.82 0.12 150);
+    --market-down: oklch(0.78 0.16 22);
+  }
 }
 
 @supports not selector(::-webkit-scrollbar) {

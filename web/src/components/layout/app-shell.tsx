@@ -46,6 +46,8 @@ export function AppShell({
   const activeLabel = resolveActiveNavLabel(pathname, t);
 
   useEffect(() => {
+    // Fecha o drawer ao navegar entre rotas.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(false);
   }, [pathname]);
 
@@ -211,7 +213,7 @@ export function AppShell({
 
           <PageEnter
             id={MAIN_CONTENT_ID}
-            className="flex-1 bg-[radial-gradient(circle_at_top,color-mix(in_oklch,var(--primary)_%,transparent),transparent_34%)] p-4 outline-none sm:p-6 lg:p-8"
+            className="flex-1 bg-[radial-gradient(circle_at_top,color-mix(in oklch, var(--primary) 18%, transparent),transparent_34%)] p-4 outline-none sm:p-6 lg:p-8"
             aria-hidden={open}
             inert={open}
           >

@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MAIN_CONTENT_ID } from "@/lib/content-anchor";
 import {
   HeaderMarketNavDesktop,
   HeaderMarketNavMobile,
@@ -59,6 +60,7 @@ export function SiteHeader({
   const t = useTranslations("Nav");
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
 
   const navItems = useMemo(
     () =>
@@ -71,7 +73,7 @@ export function SiteHeader({
         { href: "/assistant", label: t("ia") },
         { href: "/#beneficios", label: t("benefits") },
         { href: "/#recursos", label: t("features") },
-        { href: "/#dashboard", label: t("product") },
+        { href: "/#produto", label: t("product") },
       ] as const,
     [t],
   );
@@ -99,6 +101,31 @@ export function SiteHeader({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  useEffect(() => {
+    const main = document.getElementById(MAIN_CONTENT_ID);
+    if (!main) return;
+    if (open) {
+      main.setAttribute("inert", "");
+      main.setAttribute("aria-hidden", "true");
+    } else {
+      main.removeAttribute("inert");
+      main.removeAttribute("aria-hidden");
+    }
+    return () => {
+      main.removeAttribute("inert");
+      main.removeAttribute("aria-hidden");
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const panel = mobileNavRef.current;
+    const focusable = panel?.querySelector<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    focusable?.focus();
   }, [open]);
 
   return (
@@ -188,7 +215,11 @@ export function SiteHeader({
       </div>
 
       <div
+        ref={mobileNavRef}
         id="site-mobile-nav"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("navPrimaryAria")}
         className={cn(
           "border-t border-white/10 md:hidden",
           open ? "block" : "hidden",

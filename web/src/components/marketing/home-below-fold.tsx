@@ -31,10 +31,17 @@ const ToolsPreviewSection = dynamic(
     })),
   { loading: SectionPlaceholder },
 );
-const DashboardMockSection = dynamic(
+const ProductDeskPreviewSection = dynamic(
   () =>
-    import("@/components/marketing/landing-sections").then((m) => ({
-      default: m.DashboardMockSection,
+    import("@/components/marketing/product-desk-preview-section").then((m) => ({
+      default: m.ProductDeskPreviewSection,
+    })),
+  { loading: SectionPlaceholder },
+);
+const HomeFaqSection = dynamic(
+  () =>
+    import("@/components/marketing/home-faq-section").then((m) => ({
+      default: m.HomeFaqSection,
     })),
   { loading: SectionPlaceholder },
 );
@@ -45,13 +52,14 @@ const CtaSection = dynamic(
 
 export function HomeBelowFold() {
   return (
-    <>
+    <div className="below-fold-stack">
       <IaSection />
       <BenefitsSection />
       <FeaturesSection />
       <ToolsPreviewSection />
-      <DashboardMockSection />
+      <ProductDeskPreviewSection />
+      <HomeFaqSection />
       <CtaSection />
-    </>
+    </div>
   );
 }

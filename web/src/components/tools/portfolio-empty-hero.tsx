@@ -1,6 +1,7 @@
-import { LineChart, PlusCircle, Search } from "lucide-react";
+import { LineChart, PlusCircle, Search, Wallet } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { EmptyState } from "@/components/ui/empty-state";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -14,23 +15,19 @@ export async function PortfolioEmptyHero() {
   ] as const;
 
   return (
-    <section
-      className="rounded-[1.75rem] border border-dashed border-white/15 bg-white/[0.02] px-6 py-8"
-      aria-labelledby="portfolio-empty-title"
-    >
-      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary/90">
+    <section aria-labelledby="portfolio-empty-title">
+      <EmptyState icon={Wallet} title={t("emptyTitle")} description={t("empty")}>
+        <a href="#portfolio-add-form" className={cn(buttonVariants({ size: "sm" }), "glow-ring")}>
+          {t("emptyCtaAdd")}
+        </a>
+        <Link href="/bolsa" className={buttonVariants({ variant: "outline", size: "sm" })}>
+          {t("browseMarket")}
+        </Link>
+      </EmptyState>
+      <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.16em] text-primary/90">
         {t("emptyEyebrow")}
       </p>
-      <h2
-        id="portfolio-empty-title"
-        className="font-heading mt-2 text-2xl font-semibold tracking-tight md:text-3xl"
-      >
-        {t("emptyTitle")}
-      </h2>
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-        {t("empty")}
-      </p>
-      <ol className="mt-8 grid gap-4 sm:grid-cols-3">
+      <ol className="mt-4 grid gap-4 sm:grid-cols-3">
         {steps.map(({ icon: Icon, title, body }, index) => (
           <li
             key={title}
@@ -47,14 +44,6 @@ export async function PortfolioEmptyHero() {
           </li>
         ))}
       </ol>
-      <div className="mt-6 flex flex-wrap gap-2">
-        <a href="#portfolio-add-form" className={cn(buttonVariants({ size: "sm" }), "glow-ring")}>
-          {t("emptyCtaAdd")}
-        </a>
-        <Link href="/bolsa" className={buttonVariants({ variant: "outline", size: "sm" })}>
-          {t("browseMarket")}
-        </Link>
-      </div>
     </section>
   );
 }
