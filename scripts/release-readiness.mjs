@@ -25,6 +25,10 @@ const steps = [
   ["node", ["scripts/verify-env.mjs"]],
   ["npm", ["run", "validate"]],
 ];
+if (process.env.RELEASE_RUN_E2E === "1") {
+  steps.push(["npm", ["run", "build", "--prefix", "web"]]);
+  steps.push(["npm", ["run", "test:e2e"]]);
+}
 
 for (const [cmd, args] of steps) {
   if (!run(cmd, args)) {
@@ -42,6 +46,9 @@ Before public go-live, confirm in production:
   • SMTP for password reset on backend
   • /privacidade and /termos reachable
   • Register requires terms acceptance
+
+E2E Playwright (opt-in — define JWT_SECRET e DATABASE_URL como no CI do web):
+  npm run test:e2e:install && RELEASE_RUN_E2E=1 npm run release:check
 
 Smoke (production):
   WEB_BASE=https://www.seudominio.com.br \\

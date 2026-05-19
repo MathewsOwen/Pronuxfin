@@ -35,6 +35,8 @@ PRONUXFIN é uma plataforma de inteligência de mercado com front-end em Next.js
 - `npm run prisma:migrate`: aplica migrações do backend
 - `npm run validate`: templates `.env`, testes web + typecheck + testes backend
 - `npm run test`: testes do web (Vitest) + backend (Jest/e2e)
+- `npm run test:e2e`: Playwright no `web/` (exige `.next`; ver `docs/phase-4-e2e-playwright.md`)
+- `npm run test:e2e:ci`: `build` do web + E2E (CI local; defina `JWT_SECRET` ≥32 chars e `DATABASE_URL` como no workflow)
 - `npm run smoke`: checks HTTP rápidos (ver `docs/smoke-test.md`)
 - `npm run smoke:strict`: smoke em modo produção (503 = falha)
 - `npm run release:check`: validação do repo + checklist go-live (Fase 5)
@@ -64,7 +66,8 @@ PRONUXFIN é uma plataforma de inteligência de mercado com front-end em Next.js
 - **Fase 2 — dados reais (BRAPI/FMP):** `docs/phase-2-market-data.md`
 - **Fase 3 — UX (onboarding, menu, empty states):** `docs/phase-3-ux.md`
 - **Critérios 10/10 (Fases 2+3):** `docs/phases-2-3.md`
-- **Fase 4 — polish (SEO, a11y, performance):** `docs/phase-4-polish.md`
+- **Fase 4 — E2E Playwright (web):** `docs/phase-4-e2e-playwright.md`
+- **Fase 4 (doc) — polish SEO/a11y:** `docs/phase-4-polish.md`
 - **Fase 5 — go-live & confiança:** `docs/phase-5-go-live.md`
 - **Critérios 10/10 (Fases 4+5):** `docs/phases-4-5.md`
 - **Carteira simulada (do zero):** conta nova sem posições; `/carteira` com busca ao vivo (BRAPI/Yahoo) para adicionar ativos com cotação em tempo real
