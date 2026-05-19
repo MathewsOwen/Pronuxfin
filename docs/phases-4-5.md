@@ -17,6 +17,7 @@ Resumo único para auditoria de **polish** (Fase 4) e **go-live** (Fase 5). Deta
 | Performance | Network: chunks abaixo da dobra | `home-below-fold.tsx`, `bolsa-hub-loader.tsx` |
 | A11y | Tab → skip link; drawer com focus trap | `SkipLink`, `useDialogFocusTrap`, `PageEnter` |
 | Testes automáticos | `npm run validate` | `public-routes.test.ts`, `page-metadata.test.ts` |
+| E2E Playwright (web) | Job `web-e2e` no CI | `web/playwright.config.ts`, `web/e2e/*.spec.ts` |
 
 ---
 
