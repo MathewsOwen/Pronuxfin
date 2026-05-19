@@ -85,5 +85,6 @@ Para recrutadores e revisores:
 ## Próximo passo (opcional)
 
 - Domínio custom + e-mail de suporte dedicado
-- Playwright E2E no CI
 - Status page pública (`/status`) com probes agregados
+
+**E2E Playwright (web):** já integrado no CI (`web-e2e` em `.github/workflows/ci.yml`). Para correr localmente com o mesmo fluxo que `release:check` + E2E: `RELEASE_RUN_E2E=1 npm run release:check` (requer `JWT_SECRET` e `DATABASE_URL` como no workflow).
