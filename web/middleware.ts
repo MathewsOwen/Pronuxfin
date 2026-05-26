@@ -2,9 +2,22 @@ import createMiddleware from "next-intl/middleware";
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE } from "@/lib/constants";
+import { isJwtSecretConfigured, readTrimmedEnv } from "@/lib/env/server-env";
 import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
+
+function pathnameHasLocale(pathname: string): boolean {
+  return routing.locales.some(
+    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
+  );
+}
+
+function toInternalLocalePath(pathname: string): string {
+  if (pathnameHasLocale(pathname)) return pathname;
+  if (pathname === "/") return `/${routing.defaultLocale}`;
+  return `/${routing.defaultLocale}${pathname}`;
+}
 
 const protectedPrefixes = [
   "/dashboard",
@@ -45,9 +58,15 @@ export async function middleware(request: NextRequest) {
   const isAuthEntry = authEntryPaths.includes(pathname);
 
   if (isProtected || isAuthEntry) {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      console.error("JWT_SECRET não configurado no frontend");
+    if (!isJwtSecretConfigured()) {
+      console.error("JWT_SECRET ausente ou curto no frontend");
+      if (isAuthEntry) {
+        const res = await Promise.resolve(
+          intlMiddleware(new NextRequest(request, { headers: requestHeaders })),
+        );
+        res.headers.set("x-request-id", rid);
+        return res;
+      }
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("from", pathname);
@@ -56,6 +75,7 @@ export async function middleware(request: NextRequest) {
       return res;
     }
 
+    const secret = readTrimmedEnv("JWT_SECRET");
     const token = request.cookies.get(AUTH_COOKIE)?.value;
 
     if (isAuthEntry && token) {
@@ -93,6 +113,16 @@ export async function middleware(request: NextRequest) {
         return res;
       }
     }
+  }
+
+  if (!pathnameHasLocale(pathname) && pathname !== "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = toInternalLocalePath(pathname);
+    const rewriteRes = NextResponse.rewrite(url, {
+      request: { headers: requestHeaders },
+    });
+    rewriteRes.headers.set("x-request-id", rid);
+    return rewriteRes;
   }
 
   const withRid = new NextRequest(request, { headers: requestHeaders });
