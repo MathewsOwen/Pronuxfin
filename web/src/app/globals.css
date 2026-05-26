@@ -139,6 +139,12 @@
   --sidebar-ring: oklch(0.7 0.09 168);
 }
 
+/* Oculta indicador de dev do Next.js durante a intro cinematográfica */
+html[data-pronux-intro] #devtools-indicator,
+html[data-pronux-intro] .nextjs-toast {
+  display: none !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

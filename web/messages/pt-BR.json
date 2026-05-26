@@ -51,6 +51,23 @@
     "newsGlobalLabel": "Mundo",
     "newsAllSources": "Radar completo · todas"
   },
+  "SiteIntro": {
+    "eyebrow": "PRONUXFIN · experiência de entrada",
+    "taglineEn": "WHERE UNDERSTANDING BECOMES ADVANTAGE",
+    "taglinePt": "Onde o entendimento vira vantagem",
+    "subline": "Infraestrutura financeira com padrão de mesa global: leitura de mercado em tempo real, notícias com fonte visível, projeções por cenário, carteira privada e IA cognitiva no centro da decisão. Cada camada orbita o núcleo NUX — o ponto onde contexto, método e execução convergem com transparência total.",
+    "interactionHint": "Arraste para girar · cursor inclina o cosmos",
+    "enterSite": "Entrar no site",
+    "skip": "Pular apresentação",
+    "offeringNux": "NUX · núcleo",
+    "offeringNuxSub": "Centro gravitacional do ecossistema",
+    "offeringAi": "IA cognitiva",
+    "offeringMarkets": "Mercado ao vivo",
+    "offeringProjection": "Projeção & cenários",
+    "offeringNews": "Notícias com fonte",
+    "offeringPortfolio": "Carteira privada",
+    "offeringTools": "Ferramentas de mesa"
+  },
   "Hero": {
     "badge": "PRONUXFIN · mesa cognitiva para mercados e vida financeira",
     "titleLead": "O mercado não espera.",
@@ -705,6 +722,7 @@
     "projecao": "Projeção",
     "news": "Notícias",
     "assistant": "IA de mercado",
+    "decisionOs": "Decision OS",
     "compare": "Comparador",
     "alerts": "Alertas",
     "education": "Educação",
@@ -1090,6 +1108,10 @@
     "assistant": {
       "title": "Central de inteligência",
       "description": "Linhas de trabalho para PF e instituição — chat PRONUX e atalhos externos."
+    },
+    "decisionOs": {
+      "title": "Decision OS",
+      "description": "Mesa NEXUS-CENTURIAN — ciclos cognitivos auditáveis, confluência e rede neural 3D."
     },
     "login": {
       "title": "Entrar",

@@ -7,6 +7,7 @@ import { getContentSecurityPolicyReportOnly } from "./src/lib/security/csp-repor
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   turbopack: {
     root: path.resolve(process.cwd()),
   },

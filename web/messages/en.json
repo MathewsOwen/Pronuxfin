@@ -51,6 +51,23 @@
     "newsGlobalLabel": "Global",
     "newsAllSources": "Full radar · all feeds"
   },
+  "SiteIntro": {
+    "eyebrow": "PRONUXFIN · entry experience",
+    "taglineEn": "WHERE UNDERSTANDING BECOMES ADVANTAGE",
+    "taglinePt": "Onde o entendimento vira vantagem",
+    "subline": "Financial infrastructure at global desk standard: real-time market reading, source-visible news, scenario projections, private portfolio, and cognitive AI at the center of every decision. Every layer orbits the NUX core — where context, method, and execution converge with full transparency.",
+    "interactionHint": "Drag to spin · cursor tilts the cosmos",
+    "enterSite": "Enter the site",
+    "skip": "Skip presentation",
+    "offeringNux": "NUX · core",
+    "offeringNuxSub": "Gravitational center of the ecosystem",
+    "offeringAi": "Cognitive AI",
+    "offeringMarkets": "Live markets",
+    "offeringProjection": "Scenarios & outlook",
+    "offeringNews": "Sourced news",
+    "offeringPortfolio": "Private portfolio",
+    "offeringTools": "Desk tools"
+  },
   "Hero": {
     "badge": "PRONUXFIN · cognitive desk for markets & personal finance",
     "titleLead": "The market doesn't wait.",
@@ -705,6 +722,7 @@
     "projecao": "Outlook",
     "news": "News",
     "assistant": "Market AI",
+    "decisionOs": "Decision OS",
     "compare": "Comparator",
     "alerts": "Alerts",
     "education": "Education",
@@ -1090,6 +1108,10 @@
     "assistant": {
       "title": "Intelligence hub",
       "description": "Worklanes for retail and institution — PRONUX chat plus shortcuts to external tooling."
+    },
+    "decisionOs": {
+      "title": "Decision OS",
+      "description": "NEXUS-CENTURIAN desk — auditable cognitive cycles, confluence, and 3D neural mind."
     },
     "login": {
       "title": "Sign in",
