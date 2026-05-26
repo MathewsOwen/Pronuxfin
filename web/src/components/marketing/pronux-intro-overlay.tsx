@@ -317,7 +317,7 @@ export function PronuxIntroOverlay() {
 
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-4 p-4 sm:p-6 md:p-8">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:p-6 md:p-8">
             <motion.div
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
@@ -337,7 +337,7 @@ export function PronuxIntroOverlay() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.85, ease: INTRO_EASE }}
-              className="pointer-events-auto group relative mx-2 hidden max-w-2xl flex-1 rounded-2xl border border-white/[0.08] bg-black/26 px-6 py-5 shadow-[0_0_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl lg:block"
+              className="pointer-events-auto w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-black/26 px-4 py-4 shadow-[0_0_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:px-6 sm:py-5 lg:mx-2 lg:flex-1"
             >
               <motion.div
                 {...panelShimmer}
@@ -345,7 +345,7 @@ export function PronuxIntroOverlay() {
               />
               <p
                 id="pronux-intro-desc"
-                className="text-pretty text-sm leading-[1.75] text-[#e8dcc8]/20 transition-opacity duration-300 group-hover:text-[#e8dcc8]/92 sm:text-[0.95rem]"
+                className="text-pretty text-sm leading-[1.75] text-[#e8dcc8]/20 transition-opacity duration-300 max-lg:group-hover:text-[#e8dcc8]/92 max-lg:opacity-20 lg:opacity-20 sm:text-[0.95rem]"
               >
                 {t("subline")}
               </p>
@@ -361,7 +361,7 @@ export function PronuxIntroOverlay() {
               onClick={dismiss}
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "pointer-events-auto group relative h-12 overflow-hidden gap-2.5 border border-[#d4c4a8]/35 bg-gradient-to-b from-[#141a22]/90 to-[#0a0e14]/95 px-9 text-sm font-medium tracking-wide text-[#faf6ee] shadow-[0_0_64px_color-mix(in_oklch,var(--primary)_18%,transparent),0_0_32px_rgba(212,196,168,0.12),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-xl transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-[#ede4d4]/50 hover:shadow-[0_0_80px_color-mix(in_oklch,var(--primary)_28%,transparent),0_0_40px_rgba(212,196,168,0.2)] sm:h-[3.35rem]",
+                "pointer-events-auto group relative h-12 w-full overflow-hidden gap-2.5 border border-[#d4c4a8]/35 bg-gradient-to-b from-[#141a22]/90 to-[#0a0e14]/95 px-9 text-sm font-medium tracking-wide text-[#faf6ee] shadow-[0_0_64px_color-mix(in_oklch,var(--primary)_18%,transparent),0_0_32px_rgba(212,196,168,0.12),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-xl transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-[#ede4d4]/50 hover:shadow-[0_0_80px_color-mix(in_oklch,var(--primary)_28%,transparent),0_0_40px_rgba(212,196,168,0.2)] sm:h-[3.35rem] sm:w-auto sm:max-w-none",
               )}
             >
               <span

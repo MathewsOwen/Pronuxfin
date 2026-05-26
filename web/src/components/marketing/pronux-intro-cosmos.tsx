@@ -672,11 +672,12 @@ export function PronuxIntroCosmos({
       canvas.style.height = `${rect.height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const starCount = Math.floor(area / 1500);
-      const dustCount = Math.floor(area / 18000);
-      const photonCount = Math.floor(area / 90000) + 96;
+      const isMobile = rect.width < 768;
+      const starCount = Math.floor(area / (isMobile ? 2200 : 1500));
+      const dustCount = Math.floor(area / (isMobile ? 12000 : 18000));
+      const photonCount = Math.floor(area / (isMobile ? 50000 : 90000)) + (isMobile ? 48 : 96);
 
-      stars = Array.from({ length: Math.min(starCount, 2600) }, () => ({
+      stars = Array.from({ length: Math.min(starCount, isMobile ? 1400 : 2600) }, () => ({
         x: rand(),
         y: rand(),
         z: 0.15 + rand() * 0.85,
@@ -691,7 +692,7 @@ export function PronuxIntroCosmos({
         speed: 0.00005 + rand() * 0.00018,
         drift: 0.5 + rand() * 1.1,
       }));
-      photons = Array.from({ length: Math.min(photonCount, 220) }, () => ({
+      photons = Array.from({ length: Math.min(photonCount, isMobile ? 120 : 220) }, () => ({
         angle: rand() * Math.PI * 2,
         radius: 0.12 + rand() * 0.42,
         speed: 0.0012 + rand() * 0.002,
