@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Move3d, Sparkles } from "lucide-react";
+import { ArrowRight, Hand, Move3d, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import { PronuxFinLogo } from "@/components/brand/pronux-fin-logo";
@@ -89,18 +89,38 @@ function FilmGrain() {
 
 function PremiumHud({
   labels,
+  orbitChips,
 }: {
   labels: { nux: string; ai: string; markets: string };
+  orbitChips: string[];
 }) {
   return (
     <>
-      <div className="pointer-events-none absolute left-4 top-4 z-30 sm:left-6 sm:top-6">
+      <div className="pointer-events-none absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-30 sm:left-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-black/28 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-[#d6c5a4]/70 backdrop-blur-md sm:text-[10px]">
           <span className="relative inline-flex size-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
             <span className="relative inline-flex size-2 rounded-full bg-primary/80" />
           </span>
           Live Intro Session
+        </div>
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-0 top-[calc(max(1rem,env(safe-area-inset-top))+2.75rem)] z-20 px-4 md:hidden">
+        <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {orbitChips.map((item, idx) => (
+            <motion.div
+              key={item}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45 + idx * 0.08, duration: 0.5, ease: INTRO_EASE }}
+              className="shrink-0 rounded-full border border-white/10 bg-black/35 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md"
+            >
+              <p className="whitespace-nowrap font-mono text-[8px] uppercase tracking-[0.14em] text-[#d9c9ab]/78">
+                {item}
+              </p>
+            </motion.div>
+          ))}
         </div>
       </div>
 
@@ -118,6 +138,114 @@ function PremiumHud({
         ))}
       </div>
     </>
+  );
+}
+
+function IntroDescPanel({
+  text,
+  revealHint,
+  revealHintMobile,
+  reduceMotion,
+}: {
+  text: string;
+  revealHint: string;
+  revealHintMobile: string;
+  reduceMotion: boolean | null;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [coarsePointer, setCoarsePointer] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: none), (pointer: coarse)");
+    const sync = () => setCoarsePointer(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const touchMode = coarsePointer;
+  const showFull = touchMode ? expanded : false;
+
+  const panelShimmer = reduceMotion ? null : (
+    <motion.div
+      initial={{ x: "-120%" }}
+      animate={{ x: ["-120%", "120%"] }}
+      transition={{ duration: 2.4, repeat: Infinity, ease: INTRO_EASE }}
+      className="pointer-events-none absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#ede4d4]/45 to-transparent"
+      aria-hidden
+    />
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.55, duration: 0.85, ease: INTRO_EASE }}
+      className={cn(
+        "pointer-events-auto relative w-full max-w-2xl overflow-hidden rounded-2xl border bg-black/26 shadow-[0_0_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-[border-color,box-shadow] duration-300 lg:mx-2 lg:flex-1",
+        touchMode
+          ? expanded
+            ? "border-[#ede4d4]/28 shadow-[0_0_48px_rgba(212,196,168,0.12)]"
+            : "border-white/[0.08]"
+          : "group/desc border-white/[0.08] hover:border-[#ede4d4]/22 hover:shadow-[0_0_56px_rgba(212,196,168,0.1)]",
+      )}
+      onClick={touchMode ? () => setExpanded((v) => !v) : undefined}
+      onKeyDown={
+        touchMode
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setExpanded((v) => !v);
+              }
+            }
+          : undefined
+      }
+      role={touchMode ? "button" : undefined}
+      tabIndex={touchMode ? 0 : undefined}
+      aria-expanded={touchMode ? expanded : undefined}
+    >
+      {panelShimmer}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 bg-gradient-to-t from-[#030508]/55 via-transparent to-transparent md:hidden",
+          touchMode && !expanded ? "opacity-100" : "opacity-0",
+        )}
+        aria-hidden
+      />
+      <div className="relative px-4 py-4 sm:px-6 sm:py-5">
+        <p
+          className={cn(
+            "font-mono text-[8px] uppercase tracking-[0.16em] transition-colors duration-300",
+            touchMode
+              ? "text-[#c9b896]/55"
+              : "text-[#c9b896]/35 group-hover/desc:text-[#d4c4a8]/65",
+          )}
+        >
+          {touchMode ? revealHintMobile : revealHint}
+        </p>
+        <p
+          id="pronux-intro-desc"
+          className={cn(
+            "text-pretty text-sm leading-[1.75] transition-[color,opacity] duration-300 sm:text-[0.95rem]",
+            touchMode
+              ? showFull
+                ? "mt-2 text-[#e8dcc8]/94"
+                : "mt-2 line-clamp-3 text-[#e8dcc8]/88"
+              : "mt-2 text-[#e8dcc8]/22 group-hover/desc:text-[#e8dcc8]/92",
+          )}
+        >
+          {text}
+        </p>
+        {touchMode && !expanded && !reduceMotion ? (
+          <motion.span
+            className="mt-3 block h-px w-full bg-gradient-to-r from-transparent via-[#ede4d4]/35 to-transparent"
+            animate={{ opacity: [0.35, 0.85, 0.35] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+            aria-hidden
+          />
+        ) : null}
+      </div>
+    </motion.div>
   );
 }
 
@@ -147,6 +275,13 @@ export function PronuxIntroOverlay() {
     ai: t("offeringAi"),
     markets: t("offeringMarkets"),
   };
+  const mobileOrbitChips = [
+    t("offeringAi"),
+    t("offeringMarkets"),
+    t("offeringProjection"),
+    t("offeringNews"),
+    t("offeringPortfolio"),
+  ];
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -193,15 +328,6 @@ export function PronuxIntroOverlay() {
       : {
           animate: { opacity: [0.55, 0.95, 0.55], scale: [1, 1.02, 1] },
           transition: { duration: 2.8, repeat: Infinity, ease: INTRO_EASE },
-        };
-
-  const panelShimmer =
-    reduceMotion
-      ? {}
-      : {
-          initial: { x: "-120%" },
-          animate: { x: ["-120%", "120%"] },
-          transition: { duration: 2.4, repeat: Infinity, ease: INTRO_EASE },
         };
 
   return (
@@ -255,17 +381,22 @@ export function PronuxIntroOverlay() {
             aria-hidden
           />
           <FilmGrain />
-          <PremiumHud labels={hudLabels} />
+          <PremiumHud labels={hudLabels} orbitChips={mobileOrbitChips} />
+
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-44 bg-gradient-to-t from-[#030508] via-[#030508]/88 to-transparent md:h-36"
+            aria-hidden
+          />
 
           <button
             type="button"
             onClick={dismiss}
-            className="pointer-events-auto absolute right-4 top-4 z-30 font-mono text-[10px] uppercase tracking-[0.2em] text-[#c9b896]/40 transition-colors hover:text-[#ede4d4] sm:right-6 sm:top-6"
+            className="pointer-events-auto absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 min-h-11 min-w-11 px-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#c9b896]/50 transition-colors hover:text-[#ede4d4] sm:right-6"
           >
             {t("skip")}
           </button>
 
-          <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-center px-5 pb-28 pt-14 text-center sm:px-8 sm:pb-32">
+          <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-center px-5 pb-[max(7rem,calc(6.5rem+env(safe-area-inset-bottom)))] pt-[max(5.5rem,calc(4.5rem+env(safe-area-inset-top)))] text-center sm:px-8 sm:pb-32 sm:pt-14">
             <motion.p
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -317,39 +448,30 @@ export function PronuxIntroOverlay() {
 
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col gap-3 p-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:p-6 md:p-8">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:p-6 md:p-8">
             <motion.div
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.55, ease: INTRO_EASE }}
-              className="pointer-events-none max-w-[min(100%,17rem)]"
+              className="pointer-events-none max-w-full sm:max-w-[min(100%,17rem)]"
             >
               <motion.p
                 {...hintPulse}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/[0.06] bg-black/20 px-3.5 py-2.5 font-mono text-[9px] uppercase leading-snug tracking-[0.17em] text-[#c9b896]/50 backdrop-blur-md sm:text-[10px]"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/[0.06] bg-black/28 px-3.5 py-2.5 font-mono text-[9px] uppercase leading-snug tracking-[0.17em] text-[#c9b896]/58 backdrop-blur-md sm:text-[10px]"
               >
-                <Move3d className="size-3 shrink-0 text-primary/45" aria-hidden />
-                {t("interactionHint")}
+                <Hand className="size-3 shrink-0 text-primary/55 md:hidden" aria-hidden />
+                <Move3d className="hidden size-3 shrink-0 text-primary/45 md:block" aria-hidden />
+                <span className="md:hidden">{t("interactionHintMobile")}</span>
+                <span className="hidden md:inline">{t("interactionHint")}</span>
               </motion.p>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55, duration: 0.85, ease: INTRO_EASE }}
-              className="pointer-events-auto w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-black/26 px-4 py-4 shadow-[0_0_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:px-6 sm:py-5 lg:mx-2 lg:flex-1"
-            >
-              <motion.div
-                {...panelShimmer}
-                className="pointer-events-none absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#ede4d4]/45 to-transparent"
-              />
-              <p
-                id="pronux-intro-desc"
-                className="text-pretty text-sm leading-[1.75] text-[#e8dcc8]/20 transition-opacity duration-300 max-lg:group-hover:text-[#e8dcc8]/92 max-lg:opacity-20 lg:opacity-20 sm:text-[0.95rem]"
-              >
-                {t("subline")}
-              </p>
-            </motion.div>
+            <IntroDescPanel
+              text={t("subline")}
+              revealHint={t("descRevealHint")}
+              revealHintMobile={t("descRevealHintMobile")}
+              reduceMotion={reduceMotion}
+            />
 
             <motion.button
               key="interactive-cta"
@@ -361,7 +483,7 @@ export function PronuxIntroOverlay() {
               onClick={dismiss}
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "pointer-events-auto group relative h-12 w-full overflow-hidden gap-2.5 border border-[#d4c4a8]/35 bg-gradient-to-b from-[#141a22]/90 to-[#0a0e14]/95 px-9 text-sm font-medium tracking-wide text-[#faf6ee] shadow-[0_0_64px_color-mix(in_oklch,var(--primary)_18%,transparent),0_0_32px_rgba(212,196,168,0.12),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-xl transition-[transform,box-shadow,border-color] hover:-translate-y-0.5 hover:border-[#ede4d4]/50 hover:shadow-[0_0_80px_color-mix(in_oklch,var(--primary)_28%,transparent),0_0_40px_rgba(212,196,168,0.2)] sm:h-[3.35rem] sm:w-auto sm:max-w-none",
+                "pointer-events-auto group relative h-12 w-full overflow-hidden gap-2.5 border border-[#d4c4a8]/35 bg-gradient-to-b from-[#141a22]/90 to-[#0a0e14]/95 px-9 text-sm font-medium tracking-wide text-[#faf6ee] shadow-[0_0_64px_color-mix(in_oklch,var(--primary)_18%,transparent),0_0_32px_rgba(212,196,168,0.12),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-xl transition-[transform,box-shadow,border-color] active:scale-[0.98] hover:-translate-y-0.5 hover:border-[#ede4d4]/50 hover:shadow-[0_0_80px_color-mix(in_oklch,var(--primary)_28%,transparent),0_0_40px_rgba(212,196,168,0.2)] sm:h-[3.35rem] sm:w-auto sm:max-w-none",
               )}
             >
               <span

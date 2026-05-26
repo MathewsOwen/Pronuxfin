@@ -664,8 +664,10 @@ export function PronuxIntroCosmos({
     const resize = () => {
       const rect = wrap.getBoundingClientRect();
       const area = rect.width * rect.height;
-      // 4K locked profile: keep high pixel density and heavy scene budget.
-      const dpr = Math.max(2, Math.min(window.devicePixelRatio || 1, 3));
+      const isMobileViewport = rect.width < 768;
+      const dpr = isMobileViewport
+        ? Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2.25)
+        : Math.max(2, Math.min(window.devicePixelRatio || 1, 3));
       canvas.width = Math.floor(rect.width * dpr);
       canvas.height = Math.floor(rect.height * dpr);
       canvas.style.width = `${rect.width}px`;
@@ -794,7 +796,8 @@ export function PronuxIntroCosmos({
 
       if (state.dragging) {
         const dx = e.clientX - state.lastX;
-        state.spinVel += dx * 0.0055;
+        const spinGain = rect.width < 768 ? 0.0088 : 0.0055;
+        state.spinVel += dx * spinGain;
         state.lastX = e.clientX;
       }
     };
