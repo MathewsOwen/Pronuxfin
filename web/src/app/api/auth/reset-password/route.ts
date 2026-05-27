@@ -3,6 +3,7 @@ import { jsonPayloadHeaders } from "@/lib/auth/forward-request-headers";
 import { normalizeUpstreamAuthError } from "@/lib/auth/upstream-auth-error";
 import { attachRequestId } from "@/lib/http/request-id";
 import { readRequestJson } from "@/lib/http/read-json-body";
+import { apiBaseUrl, fetchAuthUpstream } from "@/lib/http/upstream-auth-fetch";
 import {
   authRateLimitedResponse,
   getRateLimitClientKey,
@@ -22,8 +23,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const apiUrl = process.env.API_URL;
-  if (!apiUrl) {
+  if (!apiBaseUrl()) {
     return attachRequestId(
       req,
       NextResponse.json(
@@ -41,11 +41,22 @@ export async function POST(req: Request) {
     return attachRequestId(req, parsedBody.response);
   }
 
-  const res = await fetch(`${apiUrl}/auth/reset-password`, {
-    method: "POST",
-    headers: jsonPayloadHeaders(req),
-    body: JSON.stringify(parsedBody.value),
-  });
+  let res: Response;
+  try {
+    res = await fetchAuthUpstream("/auth/reset-password", {
+      method: "POST",
+      headers: jsonPayloadHeaders(req),
+      body: JSON.stringify(parsedBody.value),
+    });
+  } catch {
+    return attachRequestId(
+      req,
+      NextResponse.json(
+        { message: "Auth service unavailable.", code: "UPSTREAM_UNAVAILABLE" },
+        { status: 502 },
+      ),
+    );
+  }
 
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   if (!res.ok) {
