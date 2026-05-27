@@ -90,7 +90,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mt-10 flex flex-wrap items-center gap-4"
+            className="mt-10 flex flex-wrap items-center gap-3"
           >
             <Link
               href="/register"
@@ -113,6 +113,12 @@ export function Hero() {
               )}
             >
               {t("ctaSecondary")}
+            </Link>
+            <Link
+              href="/login"
+              className="h-11 rounded-md px-3 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              {t("ctaTertiary")}
             </Link>
           </motion.div>
 
