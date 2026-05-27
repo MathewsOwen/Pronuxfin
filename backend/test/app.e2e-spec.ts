@@ -32,11 +32,16 @@ describe('Health (e2e)', () => {
           live: '/health/live',
           ready: '/health/ready',
         });
-        expect(body.capabilities).toMatchObject({
-          password_reset: expect.any(Boolean),
-          password_reset_mode: expect.stringMatching(/^(smtp|dev_log|unavailable)$/),
-          frontend_url_configured: expect.any(Boolean),
-        });
+        const capabilities = body.capabilities as {
+          password_reset?: unknown;
+          password_reset_mode?: unknown;
+          frontend_url_configured?: unknown;
+        };
+        expect(typeof capabilities.password_reset).toBe('boolean');
+        expect(capabilities.password_reset_mode).toMatch(
+          /^(smtp|dev_log|unavailable)$/,
+        );
+        expect(typeof capabilities.frontend_url_configured).toBe('boolean');
       });
   });
 
