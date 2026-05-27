@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/auth/session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { parseZodBody } from "@/lib/http/parse-zod-body";
 import {
   clearUserPortfolio,
@@ -22,25 +22,22 @@ export const dynamic = "force-dynamic";
 
 const MAX_PORTFOLIO_POSITIONS = 100;
 
-const unauthorized = NextResponse.json(
-  { ok: false as const, message: "Sessão necessária." },
-  { status: 401 },
-);
-
 const upsertSchema = portfolioUpsertBodySchema;
 const deleteSchema = portfolioDeleteBodySchema;
 
 export async function GET() {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const items = await listUserPortfolioPositions(userId);
   return NextResponse.json({ ok: true as const, items });
 }
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const parsed = await parseBody(req, upsertSchema);
   if (!parsed.ok) return parsed.response;
@@ -85,8 +82,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const parsed = await parseBody(req, deleteSchema);
   if (!parsed.ok) return parsed.response;

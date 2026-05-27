@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/auth/session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { prisma } from "@/lib/prisma";
 import {
   detectWatchlistRegion,
@@ -15,18 +15,14 @@ export const dynamic = "force-dynamic";
 
 const MAX_WATCHLIST_ITEMS = 50;
 
-const unauthorized = NextResponse.json(
-  { ok: false as const, message: "Sessão necessária." },
-  { status: 401 },
-);
-
 const mutationSchema = z.object({
   symbol: z.string().min(1).max(16),
 });
 
 export async function GET() {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const items = await listUserWatchlist(userId);
   return NextResponse.json({
@@ -36,8 +32,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const parsed = await parseMutationBody(req);
   if (!parsed.ok) return parsed.response;
@@ -86,8 +83,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const parsed = await parseMutationBody(req);
   if (!parsed.ok) return parsed.response;

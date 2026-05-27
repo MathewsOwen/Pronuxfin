@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/auth/session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { persistWatchlistSignalSnapshots } from "@/lib/user-watchlist/history";
 import { listUserWatchlist } from "@/lib/user-watchlist/load";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const unauthorized = NextResponse.json(
-  { ok: false as const, message: "Sessão necessária." },
-  { status: 401 },
-);
 
 const signalSchema = z.object({
   symbol: z.string().min(1).max(16),
@@ -42,8 +37,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   let body: z.infer<typeof bodySchema>;
   try {

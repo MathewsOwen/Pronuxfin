@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/auth/session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { readRequestJson } from "@/lib/http/read-json-body";
 import { prisma } from "@/lib/prisma";
 
@@ -13,10 +13,9 @@ const schema = z.object({
 });
 
 export async function PATCH(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) {
-    return NextResponse.json({ ok: false, message: "Sessão necessária." }, { status: 401 });
-  }
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const raw = await readRequestJson(req);
   if (!raw.ok) {

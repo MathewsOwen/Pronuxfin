@@ -33,6 +33,32 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 .vercel/
+.idea/
+.vscode/
 
 # TypeScript
 *.tsbuildinfo
+
+# Python / data-science artifacts
+**/.venv/
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/*.pyc
+**/*.pyo
+
+# Mobile generated assets (Capacitor/Cordova outputs)
+**/android/app/src/main/assets/public/assets/
+**/android/app/src/main/assets/public/workbox-*.js
+**/android/app/src/main/assets/public/sw.js
+**/android/app/src/main/assets/public/registerSW.js
+**/android/app/src/main/assets/capacitor.config.json
+**/android/app/src/main/assets/capacitor.plugins.json
+**/android/capacitor-cordova-android-plugins/
+**/ios/App/App/public/assets/
+**/ios/App/App/public/workbox-*.js
+**/ios/App/App/public/sw.js
+**/ios/App/App/public/registerSW.js
+**/ios/App/App/capacitor.config.json
+**/ios/capacitor-cordova-ios-plugins/

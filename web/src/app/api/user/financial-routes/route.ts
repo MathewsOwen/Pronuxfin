@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/auth/session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { parseZodBody } from "@/lib/http/parse-zod-body";
 import {
   deleteUserFinancialRoute,
@@ -18,11 +18,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_FINANCIAL_ROUTES = 12;
-
-const unauthorized = NextResponse.json(
-  { ok: false as const, message: "Sessão necessária." },
-  { status: 401 },
-);
 
 const routeSchema = z.object({
   id: z.string().cuid().optional(),
@@ -41,8 +36,9 @@ const routeSchema = z.object({
 const deleteSchema = z.object({ id: z.string().cuid() });
 
 export async function GET() {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const evaluated = await evaluateUserFinancialRoutes(userId);
   await syncRouteAlerts(userId, evaluated);
@@ -56,8 +52,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const parsed = await parseBody(req, routeSchema);
   if (!parsed.ok) return parsed.response;
@@ -108,8 +105,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const parsed = await parseBody(req, deleteSchema);
   if (!parsed.ok) return parsed.response;

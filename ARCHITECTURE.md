@@ -29,6 +29,23 @@ Monorepo for a **Next.js** public desk + private authenticated workspace, backed
 | `scripts/` | `verify-env`, `smoke`, `release-readiness` |
 | `docs/` | Phased go-live guides (0–5) |
 
+## Source-of-truth boundaries
+
+- **Auth ownership**: credential validation, token issuing and password recovery are owned by `backend/`.  
+  `web/` acts as a BFF/proxy for browser-safe cookies and request normalization.
+- **User data ownership**: while both `web/` and `backend/` currently touch Postgres, product behavior should not diverge.  
+  Any new user-domain write flow must define a single owner service before implementation.
+- **Generated artifacts**: native mobile generated assets (`capacitor-cordova-*`, `android/.../assets/public/assets`, `ios/.../public/assets`) are build outputs, not business source.
+- **Side projects** (`grafyco-*`, `dashboard-*`, `nexus-centurian`, `projeto_ong`): must declare one of:
+  - integrated module in this monorepo, or
+  - external repo linked by contract/docs.
+  Hidden nested repos are not allowed unless explicitly declared as submodule.
+
+## Repo hygiene guardrail
+
+- Run `npm run repo:hygiene` before opening PRs that touch architecture or project structure.
+- Use strict mode in CI with `npm run repo:hygiene:strict`.
+
 ## Key flows
 
 1. **Quotes** — `GET /api/quotes` → `market-data-gateway` → BRAPI + CoinGecko; policy blocks silent simulation in production.

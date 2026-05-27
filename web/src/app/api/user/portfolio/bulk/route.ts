@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/auth/session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { parseZodBody } from "@/lib/http/parse-zod-body";
 import {
   bulkUpsertUserPortfolio,
@@ -10,11 +10,6 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const unauthorized = NextResponse.json(
-  { ok: false as const, message: "Sessão necessária." },
-  { status: 401 },
-);
 
 const rowSchema = z.object({
   symbol: z.string().min(1).max(16),
@@ -27,8 +22,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const parsed = await parseZodBody(req, bodySchema);
   if (!parsed.ok) return parsed.response;

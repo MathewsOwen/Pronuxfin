@@ -19,6 +19,8 @@
     "test:e2e:install": "npm run test:e2e:install --prefix web",
     "validate": "node scripts/verify-env.mjs && npm run test:web && npm run typecheck --prefix web && npm test --prefix backend",
     "verify:env": "node scripts/verify-env.mjs",
+    "repo:hygiene": "node scripts/repo-hygiene.mjs",
+    "repo:hygiene:strict": "node scripts/repo-hygiene.mjs --strict",
     "smoke": "node scripts/smoke.mjs",
     "smoke:strict": "node scripts/smoke-strict.mjs",
     "smoke:ps1": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke.ps1",

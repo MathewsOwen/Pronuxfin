@@ -23,6 +23,9 @@ jobs:
       - name: Verify .env.example templates (Fase 0)
         run: node scripts/verify-env.mjs
 
+      - name: Repo hygiene (strict)
+        run: node scripts/repo-hygiene.mjs --strict
+
   web:
     needs: quality-gates
     runs-on: ubuntu-latest

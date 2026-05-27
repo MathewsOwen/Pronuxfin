@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/auth/session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import {
   normalizeAlertRuleScope,
   type WatchlistAlertRuleType,
@@ -14,11 +14,6 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const unauthorized = NextResponse.json(
-  { ok: false as const, message: "Sessão necessária." },
-  { status: 401 },
-);
 
 const mutationSchema = z.object({
   rules: z
@@ -49,8 +44,9 @@ const deleteSchema = z.object({
 });
 
 export async function GET() {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const rules = await listEffectiveWatchlistAlertRules(userId);
   return NextResponse.json({
@@ -60,8 +56,9 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   let body: z.infer<typeof mutationSchema>;
   try {
@@ -105,8 +102,9 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   let body: z.infer<typeof deleteSchema>;
   try {

@@ -3,11 +3,9 @@ import { NextResponse } from "next/server";
 import { secureAuthCookie } from "@/lib/auth/cookie-settings";
 import { AUTH_COOKIE } from "@/lib/constants";
 import { readPositiveIntEnv } from "@/lib/env/numeric-env";
-import { jsonPayloadHeaders } from "@/lib/auth/forward-request-headers";
+import { forwardAuthPost } from "@/lib/auth/auth-upstream-proxy";
 import { normalizeUpstreamAuthError } from "@/lib/auth/upstream-auth-error";
 import { attachRequestId } from "@/lib/http/request-id";
-import { readRequestJson } from "@/lib/http/read-json-body";
-import { apiBaseUrl, fetchAuthUpstream } from "@/lib/http/upstream-auth-fetch";
 import {
   authRateLimitedResponse,
   getRateLimitClientKey,
@@ -24,53 +22,22 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!apiBaseUrl()) {
-    return attachRequestId(
-      req,
-      NextResponse.json(
-        {
-          message: "API_URL is not configured on this server.",
-          code: "API_MISCONFIGURED",
-        },
-        { status: 500 },
-      ),
-    );
+  const forwarded = await forwardAuthPost(req, "/auth/login");
+  if (forwarded.error) {
+    return attachRequestId(req, forwarded.error);
   }
-
-  const parsedBody = await readRequestJson(req);
-  if (!parsedBody.ok) {
-    return attachRequestId(req, parsedBody.response);
-  }
-
-  let res: Response;
-  try {
-    res = await fetchAuthUpstream("/auth/login", {
-      method: "POST",
-      headers: jsonPayloadHeaders(req),
-      body: JSON.stringify(parsedBody.value),
-    });
-  } catch {
-    return attachRequestId(
-      req,
-      NextResponse.json(
-        {
-          message: "Auth service unavailable.",
-          code: "UPSTREAM_UNAVAILABLE",
-        },
-        { status: 502 },
-      ),
-    );
-  }
-
-  const data = (await res.json().catch(() => ({}))) as Record<string, unknown> & {
+  const data = forwarded.data as Record<string, unknown> & {
     access_token?: string;
   };
 
-  if (!res.ok) {
+  if (!forwarded.upstream.ok) {
     const { message, code } = normalizeUpstreamAuthError(data, "Unable to sign in.");
     return attachRequestId(
       req,
-      NextResponse.json({ message, ...(code ? { code } : {}) }, { status: res.status }),
+      NextResponse.json(
+        { message, ...(code ? { code } : {}) },
+        { status: forwarded.upstream.status },
+      ),
     );
   }
 

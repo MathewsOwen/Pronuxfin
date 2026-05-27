@@ -10,8 +10,12 @@ PRONUXFIN é uma plataforma de inteligência de mercado com front-end em Next.js
 
 - `web/`: app Next.js com interface pública, autenticação, terminal privado, watchlist, comparador e IA de mercado
 - `backend/`: API NestJS com auth JWT, Prisma e serviços de suporte
+- `nexus-centurian/`: **Decision OS (NEXUS-CENTURIAN)** — API REST, pacote comitê, Mind 3D; ver visão de produto em `docs/PRONUXFYN_DECISION_OS.md`
+- `dashboard-planilha/`: **PRONUXFIN Sheets** — painel analítico a partir de CSV (HTML offline + Streamlit); ver [README.en.md](dashboard-planilha/README.en.md)
+- `docs/PRONUXFYN_DECISION_OS.md`: manifesto do produto
 - `docs/`: prompts, notas operacionais e material de apoio
 - `docker-compose*.yml`: infraestrutura local e base para operação self-hosted
+- `docs/repo-governance.md`: governança de projetos top-level e política anti-frankenstein
 
 ## Stack principal
 
@@ -39,6 +43,8 @@ PRONUXFIN é uma plataforma de inteligência de mercado com front-end em Next.js
 - `npm run test:e2e:ci`: `build` do web + E2E (CI local; defina `JWT_SECRET` ≥32 chars e `DATABASE_URL` como no workflow)
 - `npm run smoke`: checks HTTP rápidos (ver `docs/smoke-test.md`)
 - `npm run smoke:strict`: smoke em modo produção (503 = falha)
+- `npm run repo:hygiene`: varredura de higiene estrutural (artefatos, nested repos)
+- `npm run repo:hygiene:strict`: mesma varredura em modo bloqueante
 - `npm run release:check`: validação do repo + checklist go-live (Fase 5)
 
 ## Setup local

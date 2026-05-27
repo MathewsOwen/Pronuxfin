@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getSessionUserId } from "@/lib/auth/session-user";
+import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { prisma } from "@/lib/prisma";
 import type { CompoundScenarioPayload } from "@/lib/tools/compound-interest";
 
@@ -9,11 +9,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MAX_COMPOUND_SCENARIOS = 20;
-
-const unauthorized = NextResponse.json(
-  { ok: false as const, message: "Sessão necessária." },
-  { status: 401 },
-);
 
 const payloadSchema = z.object({
   initial: z.number().min(0),
@@ -33,8 +28,9 @@ const deleteSchema = z.object({
 });
 
 export async function GET() {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   const rows = await prisma.userCompoundScenario.findMany({
     where: { userId },
@@ -54,8 +50,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   let body: unknown;
   try {
@@ -112,8 +109,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const userId = await getSessionUserId();
-  if (!userId) return unauthorized;
+  const session = await requireSessionUser();
+  if (!session.ok) return session.response;
+  const { userId } = session;
 
   let body: unknown;
   try {
