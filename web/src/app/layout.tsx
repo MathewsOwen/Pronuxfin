@@ -3,15 +3,21 @@ import type { ReactNode } from "react";
 import { getSiteOrigin } from "@/lib/page-metadata";
 import "./globals.css";
 
+const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+const bingSiteVerification = process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION;
+
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteOrigin()),
-  verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
-    other: {
-      "msvalidate.01":
-        process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || undefined,
-    },
-  },
+  ...(googleSiteVerification || bingSiteVerification
+    ? {
+        verification: {
+          ...(googleSiteVerification ? { google: googleSiteVerification } : {}),
+          ...(bingSiteVerification
+            ? { other: { "msvalidate.01": bingSiteVerification } }
+            : {}),
+        },
+      }
+    : {}),
 };
 
 type Props = {
