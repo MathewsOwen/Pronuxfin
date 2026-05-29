@@ -73,7 +73,13 @@ Thumbs.db
 **/data/models/
 **/*.db
 
-# External mirrors governed in .repo-governance.json
+# External projects (separate repos / folders on disk — never commit here)
+/nexus-centurian/
+/grafyco-app/
+/grafyco-platform/
+/dashboard-financeiro/
 /dashboard-planilha/
 /github-profile-MathewsOwen/
 /projeto_ong/
+
+# Legacy mirror paths (kept for hygiene scripts)

@@ -792,7 +792,6 @@
     "projecao": "Projeção",
     "news": "Notícias",
     "assistant": "IA de mercado",
-    "decisionOs": "Decision OS",
     "compare": "Comparador",
     "alerts": "Alertas",
     "education": "Educação",
@@ -1178,10 +1177,6 @@
     "assistant": {
       "title": "Central de inteligência",
       "description": "Linhas de trabalho para PF e instituição — chat PRONUX e atalhos externos."
-    },
-    "decisionOs": {
-      "title": "Decision OS",
-      "description": "Mesa NEXUS-CENTURIAN — ciclos cognitivos auditáveis, confluência e rede neural 3D."
     },
     "login": {
       "title": "Entrar",

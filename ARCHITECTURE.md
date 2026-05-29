@@ -36,10 +36,7 @@ Monorepo for a **Next.js** public desk + private authenticated workspace, backed
 - **User data ownership**: while both `web/` and `backend/` currently touch Postgres, product behavior should not diverge.  
   Any new user-domain write flow must define a single owner service before implementation.
 - **Generated artifacts**: native mobile generated assets (`capacitor-cordova-*`, `android/.../assets/public/assets`, `ios/.../public/assets`) are build outputs, not business source.
-- **Side projects** (`grafyco-*`, `dashboard-*`, `nexus-centurian`, `projeto_ong`): must declare one of:
-  - integrated module in this monorepo, or
-  - external repo linked by contract/docs.
-  Hidden nested repos are not allowed unless explicitly declared as submodule.
+- **Side projects** (NEXUS, Grafyco, planilhas, ONG, etc.): **outside this repo** — separate folders or GitHub repos; see root `.gitignore`.
 
 ## Repo hygiene guardrail
 

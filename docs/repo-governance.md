@@ -1,31 +1,22 @@
 # Repo Governance
 
-This document defines how top-level projects are managed to avoid architecture drift and "frankenstein" coupling.
+This monorepo contains **only** the PRONUXFIN product:
 
-## Project Modes
+| Path | Mode |
+|------|------|
+| `web/` | integrated |
+| `backend/` | integrated |
 
-- `integrated`: source of truth is this monorepo.
-- `external-mirror`: folder mirrors another repository and keeps its own Git history.
-- `incubator`: experimental module not yet production-owned.
+## External projects
 
-## Current Classification
-
-- `web`: integrated
-- `backend`: integrated
-- `dashboard-planilha`: external-mirror
-- `github-profile-MathewsOwen`: external-mirror
-- `projeto_ong`: external-mirror
-
-The machine-readable source of truth is `.repo-governance.json`.
+NEXUS-CENTURIAN, Grafyco, dashboard-planilha, projeto_ong, and similar tools live in **separate directories or repositories** on the developer machine. They must **not** be copied into `PronuxFin/` — root `.gitignore` blocks them.
 
 ## Rules
 
-1. Any nested `.git` directory must be declared in `.repo-governance.json`.
-2. Generated artifacts and runtime environments (`.venv`, `__pycache__`, mobile generated assets) must not be tracked in this repository.
-3. Any new top-level folder must declare:
-   - owner
-   - mode
-   - source repository (if external)
-4. Architecture-sensitive changes should run:
+1. No nested `.git` directories under this repo (except the root).
+2. Generated artifacts and runtime environments (`.venv`, `__pycache__`, mobile generated assets) must not be tracked.
+3. Before architecture-sensitive PRs, run:
    - `npm run repo:hygiene`
-   - `npm run repo:hygiene:strict` (CI-safe mode)
+   - `npm run repo:hygiene:strict` (CI)
+
+Machine-readable config: `.repo-governance.json`.

@@ -792,7 +792,6 @@
     "projecao": "Outlook",
     "news": "News",
     "assistant": "Market AI",
-    "decisionOs": "Decision OS",
     "compare": "Comparator",
     "alerts": "Alerts",
     "education": "Education",
@@ -1178,10 +1177,6 @@
     "assistant": {
       "title": "Intelligence hub",
       "description": "Worklanes for retail and institution — PRONUX chat plus shortcuts to external tooling."
-    },
-    "decisionOs": {
-      "title": "Decision OS",
-      "description": "NEXUS-CENTURIAN desk — auditable cognitive cycles, confluence, and 3D neural mind."
     },
     "login": {
       "title": "Sign in",

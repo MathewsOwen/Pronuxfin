@@ -10,12 +10,11 @@ PRONUXFIN é uma plataforma de inteligência de mercado com front-end em Next.js
 
 - `web/`: app Next.js com interface pública, autenticação, terminal privado, watchlist, comparador e IA de mercado
 - `backend/`: API NestJS com auth JWT, Prisma e serviços de suporte
-- `nexus-centurian/`: **Decision OS (NEXUS-CENTURIAN)** — API REST, pacote comitê, Mind 3D; ver visão de produto em `docs/PRONUXFYN_DECISION_OS.md`
-- `dashboard-planilha/`: **PRONUXFIN Sheets** — painel analítico a partir de CSV (HTML offline + Streamlit); ver [README.en.md](dashboard-planilha/README.en.md)
-- `docs/PRONUXFYN_DECISION_OS.md`: manifesto do produto
-- `docs/`: prompts, notas operacionais e material de apoio
+- `docs/`: prompts, notas operacionais, segurança e material de apoio
 - `docker-compose*.yml`: infraestrutura local e base para operação self-hosted
-- `docs/repo-governance.md`: governança de projetos top-level e política anti-frankenstein
+- `docs/repo-governance.md`: governança do monorepo (apenas `web/` + `backend/`)
+
+Projetos satélite (NEXUS, Grafyco, planilhas, etc.) vivem em **repositórios/pastas separados** no teu PC — não entram neste repo.
 
 ## Stack principal
 

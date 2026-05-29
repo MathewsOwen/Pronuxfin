@@ -1,9 +1,5 @@
 {
-  "allowedNestedGit": [
-    "dashboard-planilha",
-    "github-profile-MathewsOwen",
-    "projeto_ong"
-  ],
+  "allowedNestedGit": [],
   "projects": [
     {
       "path": "web",
@@ -14,21 +10,6 @@
       "path": "backend",
       "mode": "integrated",
       "owner": "pronux-core"
-    },
-    {
-      "path": "dashboard-planilha",
-      "mode": "external-mirror",
-      "repo": "https://github.com/MathewsOwen/Planilha-Painel"
-    },
-    {
-      "path": "github-profile-MathewsOwen",
-      "mode": "external-mirror",
-      "repo": "https://github.com/MathewsOwen/MathewsOwen"
-    },
-    {
-      "path": "projeto_ong",
-      "mode": "external-mirror",
-      "repo": "https://github.com/Tiagoliveira505/projeto_ong"
     }
   ]
 }
