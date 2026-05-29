@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import { cn } from "@/lib/utils";
 import { displayNameForUser } from "@/lib/user-display";
 
@@ -40,7 +41,7 @@ export function ProfileSettingsForm({
     setPending(true);
     setError(null);
     setSaved(false);
-    const res = await fetch("/api/user/profile", {
+    const res = await apiMutation("/api/user/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: name.trim() }),

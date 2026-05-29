@@ -1,3 +1,5 @@
+import { fetchMarket } from "@/lib/http/fetch-with-timeout";
+import { safeExternalUrl } from "@/lib/http/safe-external-url";
 import { isFmpProviderEnabled } from "@/lib/market/fmp-config";
 import {
   canUseMarketProvider,
@@ -61,7 +63,7 @@ export async function fetchIntlCompanyProfileFromFmp(
     const url = `https://financialmodelingprep.com/api/v3/profile/${encodeURIComponent(
       symbol,
     )}?apikey=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
+    const res = await fetchMarket(url, {
       headers: {
         Accept: "application/json",
         "User-Agent":
@@ -95,7 +97,7 @@ export async function fetchIntlStockPeersFromFmp(symbol: string): Promise<string
     const url = `https://financialmodelingprep.com/api/v4/stock_peers?symbol=${encodeURIComponent(
       symbol,
     )}&apikey=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
+    const res = await fetchMarket(url, {
       headers: {
         Accept: "application/json",
         "User-Agent":
@@ -145,7 +147,7 @@ export async function fetchIntlKeyMetricsTtmFromFmp(
     const url = `https://financialmodelingprep.com/api/v3/key-metrics-ttm/${encodeURIComponent(
       symbol,
     )}?apikey=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
+    const res = await fetchMarket(url, {
       headers: {
         Accept: "application/json",
         "User-Agent":
@@ -214,8 +216,7 @@ function joinLocation(...parts: Array<string | undefined>) {
 function normalizeWebsite(value: unknown) {
   const text = cleanText(value);
   if (!text) return null;
-  if (/^https?:\/\//i.test(text)) return text;
-  return `https://${text}`;
+  return safeExternalUrl(text);
 }
 
 function normalizeDate(value: unknown) {
@@ -236,7 +237,7 @@ async function fmpFetchAnnualRow(
   const url = `https://financialmodelingprep.com/api/v3/${path}/${encodeURIComponent(
     symbol,
   )}?period=annual&limit=1&apikey=${encodeURIComponent(apiKey)}`;
-  const res = await fetch(url, {
+  const res = await fetchMarket(url, {
     headers: {
       Accept: "application/json",
       "User-Agent":
@@ -263,7 +264,7 @@ export async function fetchStockDividendHistoryFromFmp(
     const url = `https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/${encodeURIComponent(
       symbol,
     )}?apikey=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
+    const res = await fetchMarket(url, {
       headers: {
         Accept: "application/json",
         "User-Agent":

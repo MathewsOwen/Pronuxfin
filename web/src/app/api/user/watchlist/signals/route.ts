@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { persistWatchlistSignalSnapshots } from "@/lib/user-watchlist/history";
 import { listUserWatchlist } from "@/lib/user-watchlist/load";
+import { assertMutationAllowed } from "@/lib/security/mutation-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,6 +38,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;

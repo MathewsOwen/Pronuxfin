@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { evaluateEnterpriseSecurityHints } from "@/lib/env/enterprise-security";
 import { evaluateWebReadiness } from "@/lib/health/web-readiness";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export async function GET(req: Request) {
         check: "ready" as const,
         timestamp,
         checks,
+        enterprise_hints: evaluateEnterpriseSecurityHints(),
       }
     : {
         ok,

@@ -1,3 +1,4 @@
+import { fetchLlm } from "@/lib/http/fetch-with-timeout";
 import type { MarketInferProviderId } from "@/lib/market/market-ai-providers";
 
 type GeminiPart = { text: string };
@@ -69,7 +70,7 @@ export async function runGeminiMarketInfer(
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`;
 
-  const res = await fetch(url, {
+  const res = await fetchLlm(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

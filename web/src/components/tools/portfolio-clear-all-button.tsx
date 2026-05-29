@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 
 export function PortfolioClearAllButton({ positionCount }: { positionCount: number }) {
   const t = useTranslations("Portfolio");
@@ -19,9 +20,8 @@ export function PortfolioClearAllButton({ positionCount }: { positionCount: numb
     if (!window.confirm(t("clearAllConfirm", { count: positionCount }))) return;
     setPending(true);
     setError(null);
-    const res = await fetch("/api/user/portfolio", {
+    const res = await apiMutation("/api/user/portfolio", {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ clearAll: true }),
     });
     setPending(false);

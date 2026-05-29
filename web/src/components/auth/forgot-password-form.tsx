@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
 import { isAuthApiCode } from "@/lib/auth/api-error-codes";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import {
   createForgotPasswordSchema,
   type ForgotPasswordValues,
@@ -52,7 +53,7 @@ export function ForgotPasswordForm() {
 
   const onSubmit = async (data: ForgotPasswordValues) => {
     setApiError(null);
-    const res = await fetch("/api/auth/forgot-password", {
+    const res = await apiMutation("/api/auth/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

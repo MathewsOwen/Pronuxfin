@@ -13,8 +13,11 @@ describe('resolveCorsOrigins', () => {
     process.env = env;
   });
 
-  it('defaults to localhost when unset', () => {
-    expect(resolveCorsOrigins()).toEqual(['http://localhost:3000']);
+  it('defaults to localhost and 127.0.0.1 when unset', () => {
+    expect(resolveCorsOrigins()).toEqual([
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+    ]);
   });
 
   it('merges FRONTEND_URL and FRONTEND_URLS', () => {

@@ -8,6 +8,8 @@ import {
   parseMasterKeyHex,
 } from "@/lib/crypto/ai-keys-crypto";
 import { prisma } from "@/lib/prisma";
+import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,9 +54,15 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "ai-keys", 12);
+  if (limited) return limited;
 
   const master = parseMasterKeyHex();
   if (!master) {

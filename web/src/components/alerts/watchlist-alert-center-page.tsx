@@ -26,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
 import { formatRelativeTime } from "@/lib/market/time";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import {
   normalizeAlertRuleScope,
   resolveAlertRuleThreshold,
@@ -163,9 +164,8 @@ export function WatchlistAlertCenterPage({
         ? buildScopeRules(rules, scope)
         : rules.filter((rule) => normalizeAlertRuleScope(rule.symbol) === scope);
     try {
-      const res = await fetch("/api/user/watchlist/alert-rules", {
+      const res = await apiMutation("/api/user/watchlist/alert-rules", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           rules: scopeRules.map((rule) => ({
             ruleType: rule.ruleType,
@@ -208,9 +208,8 @@ export function WatchlistAlertCenterPage({
 
   async function deleteScopedRule(scopeSymbol: string, ruleType: WatchlistAlertRuleType) {
     try {
-      const res = await fetch("/api/user/watchlist/alert-rules", {
+      const res = await apiMutation("/api/user/watchlist/alert-rules", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ruleType,
           symbol: scopeSymbol,

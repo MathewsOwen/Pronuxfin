@@ -23,7 +23,7 @@ export function MarketingShell({
   return (
     <>
       <AmbientBackdrop />
-      <div className="relative flex min-h-screen flex-col">
+      <div id="marketing-shell" className="relative flex min-h-screen flex-col">
         <SiteHeaderShell showLanguageSwitcher={showLanguageSwitcher} />
         {ticker ? (
           <QuotesStreamProvider>

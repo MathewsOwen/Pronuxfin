@@ -11,6 +11,7 @@
     "build:api": "npm run build --prefix backend",
     "build": "npm run build:api && npm run build:web",
     "prisma:migrate": "npm run prisma:migrate --prefix backend",
+    "migrate:deploy": "node scripts/migrate-deploy.mjs",
     "test": "npm run test --prefix web && npm test --prefix backend",
     "test:web": "npm run test --prefix web",
     "test:api": "npm test --prefix backend",

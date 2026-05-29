@@ -16,6 +16,7 @@ import {
   portfolioDeleteBodySchema,
   portfolioUpsertBodySchema,
 } from "@/lib/user-portfolio/portfolio-api-schemas";
+import { assertMutationAllowed } from "@/lib/security/mutation-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +36,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
@@ -82,6 +86,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;

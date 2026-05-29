@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import type { EvaluatedFinancialRoute } from "@/lib/financial-route/types";
 import type { StoredRouteAlert } from "@/lib/financial-route/load";
 import type { MacroRouteContext } from "@/lib/financial-route/macro-route-context";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import type { FinancialGoalType } from "@/lib/financial-route/types";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +81,7 @@ export function FinancialRouteDesk({
     e.preventDefault();
     setPending(true);
     setMessage(null);
-    const res = await fetch("/api/user/financial-routes", {
+    const res = await apiMutation("/api/user/financial-routes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -107,7 +108,7 @@ export function FinancialRouteDesk({
 
   async function handleDelete(id: string) {
     setPending(true);
-    await fetch("/api/user/financial-routes", {
+    await apiMutation("/api/user/financial-routes", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
@@ -117,7 +118,7 @@ export function FinancialRouteDesk({
   }
 
   async function dismissAlert(id: string) {
-    await fetch("/api/user/financial-routes/alerts", {
+    await apiMutation("/api/user/financial-routes/alerts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),

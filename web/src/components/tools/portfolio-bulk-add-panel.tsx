@@ -21,6 +21,7 @@ import {
   findDeskQuote,
 } from "@/lib/market/portfolio-live-search";
 import type { QuoteSnapshot } from "@/lib/market/types";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import { parseSymbolsInput } from "@/lib/user-portfolio/parse-symbols-input";
 import { cn } from "@/lib/utils";
 
@@ -116,7 +117,7 @@ export function PortfolioBulkAddPanel({
     setQuotesPending(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/quotes/lookup/batch", {
+      const res = await apiMutation("/api/quotes/lookup/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbols: rows.map((r) => r.symbol) }),
@@ -125,6 +126,11 @@ export function PortfolioBulkAddPanel({
         ok?: boolean;
         results?: Array<{ symbol: string; quote: QuoteSnapshot | null }>;
       };
+      if (res.status === 401) {
+        setMessageTone("error");
+        setMessage(t("bulkQuotesSession"));
+        return;
+      }
       if (!res.ok || !data.ok || !data.results) {
         setMessageTone("error");
         setMessage(t("bulkQuotesError"));
@@ -176,7 +182,7 @@ export function PortfolioBulkAddPanel({
     }
 
     try {
-      const res = await fetch("/api/user/portfolio/bulk", {
+      const res = await apiMutation("/api/user/portfolio/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ positions }),

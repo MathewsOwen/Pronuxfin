@@ -1,16 +1,14 @@
-import { jwtVerify } from "jose";
 import type { SessionUser } from "@/lib/session";
+import { verifyAccessJwt } from "@/lib/auth/jwt-crypto";
 
 const PLATFORM_ADMIN_ROLE = "platform_admin";
 
 export async function sessionUserFromJwt(
   token: string,
 ): Promise<SessionUser | null> {
-  const secret = process.env.JWT_SECRET?.trim();
-  if (!secret) return null;
-
   try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+    const payload = await verifyAccessJwt(token);
+    if (!payload) return null;
     const sub = payload.sub;
     const email = payload.email;
     if (typeof sub !== "string" || typeof email !== "string") return null;

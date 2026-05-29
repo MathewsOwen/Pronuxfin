@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { HomeBelowFold } from "@/components/marketing/home-below-fold";
+import { HomeIntroOverlay } from "@/components/marketing/home-intro-overlay";
 import { Hero } from "@/components/marketing/hero";
-import { PronuxIntroOverlay } from "@/components/marketing/pronux-intro-overlay";
 import { MarketStatusBanner } from "@/components/marketing/market-status-banner";
 import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { HomeFaqJsonLd } from "@/components/seo/home-faq-json-ld";
@@ -28,15 +28,17 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function HomePage() {
   return (
-    <MarketingShell ticker showLanguageSwitcher>
-      <PronuxIntroOverlay />
-      <HomeFaqJsonLd />
-      <Hero />
-      <MarketStatusBanner />
-      <TrustStrip />
-      <InstitutionalRibbon />
-      <CryptoCoverageSection />
-      <HomeBelowFold />
-    </MarketingShell>
+    <>
+      <HomeIntroOverlay />
+      <MarketingShell ticker showLanguageSwitcher>
+        <HomeFaqJsonLd />
+        <Hero />
+        <MarketStatusBanner />
+        <TrustStrip />
+        <InstitutionalRibbon />
+        <CryptoCoverageSection />
+        <HomeBelowFold />
+      </MarketingShell>
+    </>
   );
 }

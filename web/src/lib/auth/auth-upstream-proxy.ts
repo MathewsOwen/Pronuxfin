@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 
 import { jsonPayloadHeaders } from "@/lib/auth/forward-request-headers";
 import { readRequestJson } from "@/lib/http/read-json-body";
-import { apiBaseUrl, fetchAuthUpstream } from "@/lib/http/upstream-auth-fetch";
+import {
+  apiBaseUrl,
+  AuthUpstreamTimeoutError,
+  fetchAuthUpstream,
+} from "@/lib/http/upstream-auth-fetch";
 
 type ForwardAuthPostResult =
   | {
@@ -44,7 +48,19 @@ export async function forwardAuthPost(
       headers: jsonPayloadHeaders(req),
       body: JSON.stringify(parsedBody.value),
     });
-  } catch {
+  } catch (err) {
+    if (err instanceof AuthUpstreamTimeoutError) {
+      return {
+        error: NextResponse.json(
+          {
+            message:
+              "The authentication service is taking too long to respond. Please try again.",
+            code: "UPSTREAM_TIMEOUT",
+          },
+          { status: 504 },
+        ),
+      };
+    }
     return {
       error: NextResponse.json(
         { message: "Auth service unavailable.", code: "UPSTREAM_UNAVAILABLE" },

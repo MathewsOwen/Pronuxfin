@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
 import { isAuthApiCode } from "@/lib/auth/api-error-codes";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import {
   createResetPasswordSchema,
   type ResetPasswordValues,
@@ -62,7 +63,7 @@ export function ResetPasswordForm() {
 
   const onSubmit = async (data: ResetPasswordValues) => {
     setApiError(null);
-    const res = await fetch("/api/auth/reset-password", {
+    const res = await apiMutation("/api/auth/reset-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

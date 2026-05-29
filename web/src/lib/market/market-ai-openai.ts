@@ -1,3 +1,4 @@
+import { fetchLlm } from "@/lib/http/fetch-with-timeout";
 import type { MarketInferProviderId } from "@/lib/market/market-ai-providers";
 
 type OpenAiChatResponse = {
@@ -30,7 +31,7 @@ export async function runOpenAiMarketInfer(
     })),
   ];
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetchLlm("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

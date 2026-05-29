@@ -21,6 +21,7 @@ import { pickOfflineSnippetKey } from "@/lib/assistant/chat-offline-heuristics";
 import type { AiLocale } from "@/lib/assistant/market-ai-locale";
 import { isMarketAiApiCode } from "@/lib/auth/api-error-codes";
 import type { MarketAiEngineId } from "@/lib/market/market-ai-providers";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import { cn } from "@/lib/utils";
 
 type Msg = { role: "user" | "assistant"; text: string };
@@ -139,7 +140,7 @@ export function AssistantChat({
         content: m.text,
       }));
 
-      const res = await fetch("/api/market-ai", {
+      const res = await apiMutation("/api/market-ai", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },

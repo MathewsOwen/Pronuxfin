@@ -5,6 +5,7 @@ import { Bookmark, BookmarkCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 
 export function WatchlistToggleButton({
   symbol,
@@ -27,9 +28,8 @@ export function WatchlistToggleButton({
 
   async function mutateWatchlist() {
     try {
-      const res = await fetch("/api/user/watchlist", {
+      const res = await apiMutation("/api/user/watchlist", {
         method: saved ? "DELETE" : "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbol }),
       });
       if (!res.ok) {

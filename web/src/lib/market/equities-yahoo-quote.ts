@@ -1,3 +1,4 @@
+import { fetchMarket } from "@/lib/http/fetch-with-timeout";
 import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import { simulatedIntlEquitiesForSymbols } from "@/lib/market/equities-sim";
 import type { QuoteSnapshot } from "@/lib/market/types";
@@ -75,7 +76,7 @@ export async function fetchYahooQuotesForSymbols(
       if (batch.length === 0) continue;
       const qs = encodeURIComponent(batch.join(","));
       const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${qs}`;
-      const res = await fetch(url, {
+      const res = await fetchMarket(url, {
         headers: {
           Accept: "application/json",
           "User-Agent":

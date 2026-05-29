@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 
 type Status = {
   cryptoReady: boolean;
@@ -80,7 +81,7 @@ export function AssistantByokCard() {
       if (!clrOpenAi && openaiDraft.trim()) body.openaiKey = openaiDraft.trim();
       if (!clrGemini && geminiDraft.trim()) body.geminiKey = geminiDraft.trim();
 
-      const res = await fetch("/api/user/ai-keys", {
+      const res = await apiMutation("/api/user/ai-keys", {
         method: "PATCH",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },

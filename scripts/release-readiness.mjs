@@ -47,6 +47,15 @@ Before public go-live, confirm in production:
   • /privacidade and /termos reachable
   • Register requires terms acceptance
 
+P10 enterprise (after code deploy):
+  • npm run migrate:deploy   (backend + web Prisma)
+  • INTERNAL_API_SECRET identical in web + backend (>= 32 chars)
+  • JWT_ALGORITHM=RS256 + JWT_PRIVATE_KEY (backend) + JWT_PUBLIC_KEY (web)
+  • REFRESH_STRICT_BIND=1 on backend
+  • AUTH_LOGIN_NOTIFY=1 + SMTP_URL (login alerts)
+  • WEBAUTHN_RP_ID + WEBAUTHN_ORIGIN (hostname + https URL, no trailing slash)
+  • Perfil: passkeys, sessões, registo de segurança — smoke manual
+
 E2E Playwright (opt-in — define JWT_SECRET e DATABASE_URL como no CI do web):
   npm run test:e2e:install && RELEASE_RUN_E2E=1 npm run release:check
 
@@ -56,5 +65,5 @@ Smoke (production):
   EXPECT_PASSWORD_RESET=1 EXPECT_MARKET_LIVE=1 \\
   npm run smoke:strict
 
-Docs: docs/phase-5-go-live.md
+Docs: docs/phase-5-go-live.md · docs/deploy-passo-a-passo.md (Parte 9)
 `);

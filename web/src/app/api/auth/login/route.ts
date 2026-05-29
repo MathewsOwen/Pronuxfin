@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { secureAuthCookie } from "@/lib/auth/cookie-settings";
-import { AUTH_COOKIE } from "@/lib/constants";
-import { readPositiveIntEnv } from "@/lib/env/numeric-env";
+import { applyAuthCookies } from "@/lib/auth/auth-session-cookies";
 import { forwardAuthPost } from "@/lib/auth/auth-upstream-proxy";
 import { normalizeUpstreamAuthError } from "@/lib/auth/upstream-auth-error";
 import { attachRequestId } from "@/lib/http/request-id";
@@ -11,10 +9,14 @@ import {
   getRateLimitClientKey,
   rateLimitLogin,
 } from "@/lib/security/auth-rate-limit";
+import { assertAuthEntryAllowed } from "@/lib/security/mutation-guard";
 
 export async function POST(req: Request) {
+  const entryBlocked = assertAuthEntryAllowed(req);
+  if (entryBlocked) return attachRequestId(req, entryBlocked);
+
   const clientKey = getRateLimitClientKey(req);
-  const limited = rateLimitLogin(clientKey);
+  const limited = await rateLimitLogin(clientKey);
   if (!limited.ok) {
     return attachRequestId(
       req,
@@ -26,9 +28,7 @@ export async function POST(req: Request) {
   if (forwarded.error) {
     return attachRequestId(req, forwarded.error);
   }
-  const data = forwarded.data as Record<string, unknown> & {
-    access_token?: string;
-  };
+  const data = forwarded.data as Record<string, unknown>;
 
   if (!forwarded.upstream.ok) {
     const { message, code } = normalizeUpstreamAuthError(data, "Unable to sign in.");
@@ -41,8 +41,20 @@ export async function POST(req: Request) {
     );
   }
 
-  const token = data.access_token;
-  if (!token || typeof token !== "string") {
+  if (data.webauthnRequired === true && typeof data.challengeId === "string") {
+    return attachRequestId(
+      req,
+      NextResponse.json({
+        ok: true,
+        webauthnRequired: true,
+        challengeId: data.challengeId,
+        expiresIn: data.expiresIn ?? 300,
+      }),
+    );
+  }
+
+  const response = NextResponse.json({ ok: true });
+  if (!applyAuthCookies(response, data)) {
     return attachRequestId(
       req,
       NextResponse.json(
@@ -54,15 +66,6 @@ export async function POST(req: Request) {
       ),
     );
   }
-
-  const response = NextResponse.json({ ok: true });
-  response.cookies.set(AUTH_COOKIE, token, {
-    httpOnly: true,
-    secure: secureAuthCookie(),
-    sameSite: "lax",
-    path: "/",
-    maxAge: readPositiveIntEnv("JWT_COOKIE_MAX_AGE", 604800),
-  });
 
   return attachRequestId(req, response);
 }

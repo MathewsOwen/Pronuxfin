@@ -1,12 +1,12 @@
-import { rememberWithTtl } from "@/lib/market/market-server-cache";
-import { lookupSymbolQuote } from "@/lib/market/lookup-symbol-quote";
+import { fetchBrapiQuotesForSymbols } from "@/lib/market/equities-brapi";
+import { fetchYahooQuotesForSymbols } from "@/lib/market/equities-yahoo-quote";
 import type { QuoteSnapshot } from "@/lib/market/types";
 import {
+  detectWatchlistRegion,
   isValidWatchlistSymbol,
   normalizeWatchlistSymbol,
 } from "@/lib/user-watchlist/load";
 
-const BATCH_TTL_MS = 20_000;
 const MAX_BATCH = 15;
 
 export type BatchQuoteResult = {
@@ -15,6 +15,19 @@ export type BatchQuoteResult = {
   simulated: boolean;
 };
 
+function indexQuotesBySymbol(rows: QuoteSnapshot[]): Map<string, QuoteSnapshot> {
+  const map = new Map<string, QuoteSnapshot>();
+  for (const row of rows) {
+    const key = row.symbol.trim().toUpperCase();
+    if (key) map.set(key, row);
+  }
+  return map;
+}
+
+/**
+ * Resolves many symbols with at most one BRAPI book + one Yahoo book (per region),
+ * instead of one upstream call per symbol.
+ */
 export async function lookupSymbolQuotesBatch(
   symbolsInput: readonly string[],
 ): Promise<{ results: BatchQuoteResult[]; truncated: boolean }> {
@@ -28,17 +41,43 @@ export async function lookupSymbolQuotesBatch(
 
   const truncated = symbolsInput.length > MAX_BATCH;
 
-  const results = await Promise.all(
-    symbols.map(async (symbol) => {
-      const cacheKey = `quote-lookup:${symbol}:v1`;
-      const lookup = await rememberWithTtl(cacheKey, BATCH_TTL_MS, () => lookupSymbolQuote(symbol));
+  const brSymbols: string[] = [];
+  const intlSymbols: string[] = [];
+  for (const symbol of symbols) {
+    if (detectWatchlistRegion(symbol) === "br") {
+      brSymbols.push(symbol);
+    } else {
+      intlSymbols.push(symbol);
+    }
+  }
+
+  const [brBook, intlBook] = await Promise.all([
+    brSymbols.length > 0
+      ? fetchBrapiQuotesForSymbols(brSymbols, { sortOrder: brSymbols })
+      : null,
+    intlSymbols.length > 0
+      ? fetchYahooQuotesForSymbols(intlSymbols, intlSymbols)
+      : null,
+  ]);
+
+  const brBySymbol = indexQuotesBySymbol(brBook?.rows ?? []);
+  const intlBySymbol = indexQuotesBySymbol(intlBook?.rows ?? []);
+
+  const results: BatchQuoteResult[] = symbols.map((symbol) => {
+    const region = detectWatchlistRegion(symbol);
+    if (region === "br") {
       return {
         symbol,
-        quote: lookup.quote,
-        simulated: lookup.simulated,
+        quote: brBySymbol.get(symbol) ?? null,
+        simulated: brBook?.simulated ?? false,
       };
-    }),
-  );
+    }
+    return {
+      symbol,
+      quote: intlBySymbol.get(symbol) ?? null,
+      simulated: intlBook?.simulated ?? false,
+    };
+  });
 
   return { results, truncated };
 }

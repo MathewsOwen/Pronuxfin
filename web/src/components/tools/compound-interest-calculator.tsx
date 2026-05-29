@@ -19,6 +19,7 @@ import {
   type CompoundInterestInput,
   type CompoundScenarioPayload,
 } from "@/lib/tools/compound-interest";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_INPUT: CompoundInterestInput = {
@@ -122,7 +123,7 @@ export function CompoundInterestCalculator({
     const payload: CompoundScenarioPayload = { ...input, label };
 
     if (loggedIn) {
-      const res = await fetch("/api/user/compound-scenarios", {
+      const res = await apiMutation("/api/user/compound-scenarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ label, payload: input }),
@@ -151,7 +152,7 @@ export function CompoundInterestCalculator({
 
   async function handleDelete(id: string) {
     if (loggedIn) {
-      await fetch("/api/user/compound-scenarios", {
+      await apiMutation("/api/user/compound-scenarios", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),

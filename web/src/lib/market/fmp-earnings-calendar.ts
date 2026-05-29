@@ -1,3 +1,4 @@
+import { fetchMarket } from "@/lib/http/fetch-with-timeout";
 import { isFmpProviderEnabled } from "@/lib/market/fmp-config";
 import {
   canUseMarketProvider,
@@ -41,7 +42,7 @@ async function fetchFmpEarningsCalendarRaw(
     const url = `https://financialmodelingprep.com/api/v3/earning_calendar?from=${encodeURIComponent(
       fromIso,
     )}&to=${encodeURIComponent(toIso)}&apikey=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
+    const res = await fetchMarket(url, {
       headers: {
         Accept: "application/json",
         "User-Agent":

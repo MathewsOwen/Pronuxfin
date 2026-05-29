@@ -3,6 +3,8 @@
  * chat/completions nem serviços centrados na OpenAI.
  */
 
+import { fetchLlm } from "@/lib/http/fetch-with-timeout";
+
 export type MarketAiInferProvider = "pronux-ollama";
 
 /** Resposta JSON do Ollama com stream:false (campos omitidos são ignorados). */
@@ -66,7 +68,7 @@ export async function runMarketInferModel(options: {
   const token = process.env.PRONUX_MARKET_AI_OLLAMA_TOKEN?.trim();
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  const res = await fetch(url, {
+  const res = await fetchLlm(url, {
     method: "POST",
     headers,
     body: JSON.stringify({

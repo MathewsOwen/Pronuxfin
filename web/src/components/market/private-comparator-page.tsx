@@ -32,6 +32,7 @@ import {
 } from "@/lib/user-watchlist/intelligence";
 import { formatRelativeTime } from "@/lib/market/time";
 import { buildPortfolioHref } from "@/lib/market/portfolio-links";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import type { WatchlistAlertRule } from "@/lib/user-watchlist/alerts";
 import type { WatchlistSignalSnapshot } from "@/lib/user-watchlist/history";
 import type { UserWatchlistItemView } from "@/lib/user-watchlist/load";
@@ -88,9 +89,8 @@ export function PrivateComparatorPage({
     setRemovingSymbol(symbol);
     setMutationError(null);
     try {
-      const res = await fetch("/api/user/watchlist", {
+      const res = await apiMutation("/api/user/watchlist", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbol }),
       });
       if (!res.ok) {

@@ -51,6 +51,7 @@ Thumbs.db
 **/*.pyo
 
 # Mobile generated assets (Capacitor/Cordova outputs)
+**/android/app/src/main/assets/public/*
 **/android/app/src/main/assets/public/assets/
 **/android/app/src/main/assets/public/workbox-*.js
 **/android/app/src/main/assets/public/sw.js
@@ -58,9 +59,21 @@ Thumbs.db
 **/android/app/src/main/assets/capacitor.config.json
 **/android/app/src/main/assets/capacitor.plugins.json
 **/android/capacitor-cordova-android-plugins/
+**/android/app/src/main/res/xml/config.xml
+**/ios/App/App/public/*
 **/ios/App/App/public/assets/
 **/ios/App/App/public/workbox-*.js
 **/ios/App/App/public/sw.js
 **/ios/App/App/public/registerSW.js
 **/ios/App/App/capacitor.config.json
+**/ios/App/App/config.xml
 **/ios/capacitor-cordova-ios-plugins/
+
+# Runtime artifacts (models/db snapshots)
+**/data/models/
+**/*.db
+
+# External mirrors governed in .repo-governance.json
+/dashboard-planilha/
+/github-profile-MathewsOwen/
+/projeto_ong/

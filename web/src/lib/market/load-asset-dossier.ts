@@ -1,3 +1,5 @@
+import { fetchMarket } from "@/lib/http/fetch-with-timeout";
+import { safeExternalUrl } from "@/lib/http/safe-external-url";
 import { computeAssetDossierHistoricalInsights } from "@/lib/market/asset-dossier-historical-insights";
 import { extractMarketExtrasFromQuoteRow } from "@/lib/market/asset-dossier-market-extras";
 import {
@@ -208,7 +210,7 @@ async function fetchBrAssetDossier(symbol: string) {
       throw new Error("brapi_budget_soft_cap");
     }
 
-    const res = await fetch(url, {
+    const res = await fetchMarket(url, {
       headers: { Accept: "application/json" },
       cache: "no-store",
     });
@@ -318,7 +320,7 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       throw new Error("yahoo_budget_soft_cap");
     }
 
-    const quoteRes = await fetch(
+    const quoteRes = await fetchMarket(
       `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbol)}`,
       {
         headers: {
@@ -461,7 +463,7 @@ function mapBrapiProfile(row: Record<string, unknown>): IntlCompanyProfile | nul
     headquarters,
     country: readString(summaryProfile?.country) ?? "Brasil",
     exchange: readString(summaryProfile?.exchange) ?? "B3",
-    website: readString(summaryProfile?.website),
+    website: safeExternalUrl(readString(summaryProfile?.website) ?? undefined),
     imageUrl: readString(row.logourl) ?? readString(summaryProfile?.image),
     ipoDate: readString(summaryProfile?.ipoDate),
     ceoName: readString(summaryProfile?.ceo),
@@ -544,7 +546,7 @@ async function fetchYahooChartHistory(
   range: string = "10y",
 ): Promise<AssetHistoryPoint[]> {
   try {
-    const res = await fetch(
+    const res = await fetchMarket(
       `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${encodeURIComponent(range)}&interval=1d`,
       {
         headers: {

@@ -13,6 +13,20 @@ type ResetMailPayload = {
   expiresMinutes: number;
 };
 
+type AccountExistsPayload = {
+  email: string;
+  loginUrl: string;
+  locale: 'pt-BR' | 'en';
+};
+
+type NewLoginAlertPayload = {
+  email: string;
+  locale: 'pt-BR' | 'en';
+  ip: string | null;
+  userAgent: string | null;
+  sessionsUrl: string;
+};
+
 @Injectable()
 export class AuthMailerService {
   private readonly logger = new Logger(AuthMailerService.name);
@@ -58,6 +72,106 @@ export class AuthMailerService {
     }
 
     throw new Error('Password reset mail transport is unavailable.');
+  }
+
+  /**
+   * Sent when someone tries to register with an email that already has an
+   * account. Lets us return a generic response (no account enumeration) while
+   * still notifying the real owner.
+   */
+  async sendAccountExistsEmail(payload: AccountExistsPayload): Promise<void> {
+    const subject =
+      payload.locale === 'en'
+        ? 'PRONUXFIN · about your account'
+        : 'PRONUXFIN · sobre a sua conta';
+    const text =
+      payload.locale === 'en'
+        ? [
+            'Someone (possibly you) tried to create a PRONUXFIN account with this email.',
+            'You already have an account, so we did not create a new one.',
+            `Sign in here: ${payload.loginUrl}`,
+            '',
+            'If this was not you, no action is needed — your account is unchanged.',
+          ].join('\n')
+        : [
+            'Alguém (possivelmente você) tentou criar uma conta PRONUXFIN com este e-mail.',
+            'Você já tem uma conta, então não criamos uma nova.',
+            `Entre por aqui: ${payload.loginUrl}`,
+            '',
+            'Se não foi você, nenhuma ação é necessária — sua conta segue intacta.',
+          ].join('\n');
+
+    if (this.isSmtpReady()) {
+      await this.transporter!.sendMail({
+        from: this.config.getOrThrow<string>('SMTP_FROM'),
+        to: payload.email,
+        subject,
+        text,
+      });
+      return;
+    }
+
+    if (this.canUseDevLogFallback()) {
+      this.logger.warn(
+        `Account-exists notice (dev) for ${payload.email}: ${payload.loginUrl}`,
+      );
+      return;
+    }
+
+    throw new Error('Account notice mail transport is unavailable.');
+  }
+
+  canSendLoginAlerts(): boolean {
+    if (this.config.get<string>('AUTH_LOGIN_NOTIFY') === '0') return false;
+    return this.isSmtpReady() || this.canUseDevLogFallback();
+  }
+
+  /** Alerta de novo acesso (dispositivo/IP não visto nas últimas 24h). */
+  async sendNewLoginAlert(payload: NewLoginAlertPayload): Promise<void> {
+    if (!this.canSendLoginAlerts()) return;
+
+    const subject =
+      payload.locale === 'en'
+        ? 'PRONUXFIN · new sign-in'
+        : 'PRONUXFIN · novo acesso';
+    const device = payload.userAgent?.trim() || '—';
+    const ip = payload.ip?.trim() || '—';
+    const text =
+      payload.locale === 'en'
+        ? [
+            'We detected a new sign-in to your PRONUXFIN account.',
+            '',
+            `Device: ${device}`,
+            `IP: ${ip}`,
+            '',
+            `Review active sessions: ${payload.sessionsUrl}`,
+            'If this was not you, revoke other sessions and reset your password.',
+          ].join('\n')
+        : [
+            'Detetámos um novo acesso à sua conta PRONUXFIN.',
+            '',
+            `Dispositivo: ${device}`,
+            `IP: ${ip}`,
+            '',
+            `Rever sessões ativas: ${payload.sessionsUrl}`,
+            'Se não foi você, revogue outras sessões e redefina a senha.',
+          ].join('\n');
+
+    if (this.isSmtpReady()) {
+      await this.transporter!.sendMail({
+        from: this.config.getOrThrow<string>('SMTP_FROM'),
+        to: payload.email,
+        subject,
+        text,
+      });
+      return;
+    }
+
+    if (this.canUseDevLogFallback()) {
+      this.logger.warn(
+        `New login alert (dev) for ${payload.email} ip=${ip}\n${payload.sessionsUrl}`,
+      );
+    }
   }
 
   private isSmtpReady(): boolean {

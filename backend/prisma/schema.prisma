@@ -12,10 +12,14 @@ model User {
   email               String               @unique
   passwordHash        String
   name                String?
+  /// Bumped to invalidate every previously issued access token at once
+  /// (logout-all, password reset, suspected compromise).
+  tokenVersion        Int                  @default(0)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   aiKeys              UserAiKeys?
   passwordResetTokens PasswordResetToken[]
+  refreshTokens       RefreshToken[]
   watchlistItems      UserWatchlistItem[]
   watchlistAlertRules UserWatchlistAlertRule[]
   watchlistSignals    UserWatchlistSignalHistory[]
@@ -23,6 +27,55 @@ model User {
   compoundScenarios   UserCompoundScenario[]
   financialRoutes     UserFinancialRoute[]
   financialRouteAlerts UserFinancialRouteAlert[]
+  securityEvents       SecurityEvent[]
+  webAuthnCredentials  WebAuthnCredential[]
+  webAuthnChallenges   WebAuthnChallenge[]
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  eventType String
+  ip        String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([createdAt])
+}
+
+model WebAuthnCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String    @unique
+  publicKey    Bytes
+  counter      BigInt    @default(0)
+  deviceType   String?
+  backedUp     Boolean   @default(false)
+  transports   String?
+  friendlyName String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([userId])
+}
+
+model WebAuthnChallenge {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String
+  challenge  String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
 }
 
 /// Chaves externas BYOK guardadas AES-256-GCM ( ciphertext em Base64 ).
@@ -33,6 +86,31 @@ model UserAiKeys {
   geminiCipher  String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+/// Rotating refresh tokens. The raw token never touches the DB — only its
+/// SHA-256 hash. Rotation links each token to its replacement so that
+/// presenting an already-rotated (revoked) token reveals theft and lets us
+/// revoke the whole family.
+model RefreshToken {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// SHA-256 hex of the opaque refresh token.
+  tokenHash    String    @unique
+  /// Rotation lineage — all tokens minted from one login share a familyId.
+  familyId     String
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  /// Id of the token that replaced this one on rotation (reuse detection).
+  replacedById String?
+  createdAt    DateTime  @default(now())
+  userAgent    String?
+  ip           String?
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {

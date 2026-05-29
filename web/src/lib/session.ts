@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
 import { sessionUserFromJwt } from "@/lib/auth/jwt-session";
-import { AUTH_COOKIE } from "@/lib/constants";
+import { readAuthCookieValue } from "@/lib/auth/auth-cookie-names";
+import { internalApiHeaders } from "@/lib/http/internal-api-headers";
 
 export async function getSessionToken(): Promise<string | undefined> {
-  return (await cookies()).get(AUTH_COOKIE)?.value;
+  return readAuthCookieValue(await cookies());
 }
 
 export type SessionUser = {
@@ -23,7 +24,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
   try {
     const res = await fetch(`${apiUrl.replace(/\/+$/, "")}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, ...internalApiHeaders() },
       cache: "no-store",
     });
 

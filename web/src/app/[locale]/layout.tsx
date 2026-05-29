@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import type { ReactNode } from "react";
+import { PronuxIntroBootScript } from "@/components/marketing/pronux-intro-boot";
 import { AppMotionRoot } from "@/components/providers/app-motion-root";
 import { SkipLink } from "@/components/layout/skip-link";
 import { OrganizationJsonLd } from "@/components/seo/organization-json-ld";
@@ -11,6 +12,7 @@ import { WebsiteJsonLd } from "@/lib/seo/website-json-ld";
 import { getSiteOrigin } from "@/lib/page-metadata";
 import type { AppLocale } from "@/i18n/routing";
 import { routing } from "@/i18n/routing";
+import { getCspNonce } from "@/lib/security/csp-nonce";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -96,6 +98,7 @@ export default async function LocaleLayout({
   const resolvedLocale = locale as AppLocale;
   const messages = await getMessages();
   const tSeo = await getTranslations("Seo");
+  const cspNonce = await getCspNonce();
 
   return (
     <html
@@ -103,12 +106,18 @@ export default async function LocaleLayout({
       className={`dark ${inter.variable} ${sora.variable} ${geistMono.variable} h-full`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background">
-        <OrganizationJsonLd siteUrl={siteOrigin} description={tSeo("siteDescription")} />
+      <body className="min-h-full flex flex-col bg-background" suppressHydrationWarning>
+        <PronuxIntroBootScript nonce={cspNonce} />
+        <OrganizationJsonLd
+          siteUrl={siteOrigin}
+          description={tSeo("siteDescription")}
+          nonce={cspNonce}
+        />
         <WebsiteJsonLd
           siteUrl={siteOrigin}
           name="PRONUXFIN"
           description={tSeo("siteDescription")}
+          nonce={cspNonce}
         />
         <NextIntlClientProvider locale={resolvedLocale} messages={messages}>
           <AppMotionRoot>

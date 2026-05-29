@@ -1,8 +1,9 @@
-import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { AUTH_COOKIE } from "@/lib/constants";
+import { readAuthCookieValue } from "@/lib/auth/auth-cookie-names";
+import { verifyAccessJwt } from "@/lib/auth/jwt-crypto";
+import { isJwtSecretConfigured } from "@/lib/env/server-env";
 import { fetchAggregatedNews } from "@/lib/market/fetch-news";
 import { AI_CHANNEL_IDS_ZOD, type AiChannelId } from "@/lib/assistant/ai-channels";
 import { normalizeAiLocale, type AiLocale } from "@/lib/assistant/market-ai-locale";
@@ -27,6 +28,7 @@ import {
   summarizeQuotesForAi,
 } from "@/lib/market/market-ai-context";
 import { loadDecryptedAiKeys } from "@/lib/user-ai-keys/load";
+import { assertMutationAllowed } from "@/lib/security/mutation-guard";
 import { allowWithinWindow } from "@/lib/security/simple-rate-limit";
 
 export const runtime = "nodejs";
@@ -96,8 +98,7 @@ async function assertSession(
   locale: AiLocale,
 ): Promise<NextResponse | null> {
   const msgs = HTTP_MSG[locale];
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
+  if (!isJwtSecretConfigured()) {
     return NextResponse.json(
       {
         ok: false as const,
@@ -109,7 +110,7 @@ async function assertSession(
   }
 
   const jar = await cookies();
-  const token = jar.get(AUTH_COOKIE)?.value;
+  const token = readAuthCookieValue(jar);
   if (!token) {
     return NextResponse.json(
       {
@@ -121,9 +122,8 @@ async function assertSession(
     );
   }
 
-  try {
-    await jwtVerify(token, new TextEncoder().encode(secret));
-  } catch {
+  const payload = await verifyAccessJwt(token);
+  if (!payload) {
     return NextResponse.json(
       {
         ok: false as const,
@@ -151,6 +151,9 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const al = req.headers.get("accept-language");
 
   let rawUnknown: unknown;

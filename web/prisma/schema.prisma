@@ -13,10 +13,16 @@ model User {
   email               String               @unique
   passwordHash        String
   name                String?
+  /// Invalidates every previously issued access JWT (logout-all, reset).
+  tokenVersion        Int                  @default(0)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   aiKeys              UserAiKeys?
   passwordResetTokens PasswordResetToken[]
+  refreshTokens       RefreshToken[]
+  securityEvents      SecurityEvent[]
+  webAuthnCredentials WebAuthnCredential[]
+  webAuthnChallenges  WebAuthnChallenge[]
   watchlistItems      UserWatchlistItem[]
   watchlistAlertRules UserWatchlistAlertRule[]
   watchlistSignals    UserWatchlistSignalHistory[]
@@ -33,6 +39,82 @@ model UserAiKeys {
   geminiCipher  String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+/// Distributed (DB-backed) fixed-window rate-limit counters. Works across
+/// serverless instances, unlike the in-memory fallback. `id` encodes the
+/// route + client key + time bucket; rows expire and are swept opportunistically.
+model AuthRateLimit {
+  id        String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+/// Rotating refresh tokens (opaque token stored only as SHA-256 hash).
+model RefreshToken {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String    @unique
+  familyId     String
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  createdAt    DateTime  @default(now())
+  userAgent    String?
+  ip           String?
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([expiresAt])
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  eventType String
+  ip        String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([eventType, createdAt])
+  @@index([createdAt])
+}
+
+model WebAuthnCredential {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialId String    @unique
+  publicKey    Bytes
+  counter      BigInt    @default(0)
+  deviceType   String?
+  backedUp     Boolean   @default(false)
+  transports   String?
+  friendlyName String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  @@index([userId])
+}
+
+model WebAuthnChallenge {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String
+  challenge  String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {

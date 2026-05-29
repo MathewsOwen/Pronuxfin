@@ -1,4 +1,6 @@
-const DEFAULT_JWT_EXPIRES_SEC = 604_800;
+// Short-lived access token. Renewal is handled by the rotating refresh token,
+// and a short window bounds the damage of a stolen access token.
+const DEFAULT_JWT_EXPIRES_SEC = 3_600;
 
 export function resolveJwtExpiresSec(raw: string | number | undefined): number {
   if (typeof raw === 'number') {

@@ -179,8 +179,67 @@ Faz na ordem:
 
 ---
 
+## Parte 9 — P10 enterprise (segurança avançada)
+
+**O que és:** activar WebAuthn/passkeys, audit log, refresh rotativo e alertas de login **depois** de API + Vercel estarem no ar.
+
+### 9.1 Migrações (obrigatório)
+
+Na máquina com `DATABASE_URL` de produção (ou CI/Vercel build):
+
+```bash
+npm run migrate:deploy
+```
+
+Isto corre `prisma migrate deploy` no **backend** (tabelas `RefreshToken`, `SecurityEvent`, `WebAuthn*`) e no **web** (`AuthRateLimit`).
+
+### 9.2 Backend — variáveis adicionais
+
+| Variável | Valor |
+|----------|--------|
+| `INTERNAL_API_SECRET` | String longa (≥ 32 chars) — **igual** no web |
+| `JWT_ALGORITHM` | `RS256` |
+| `JWT_PRIVATE_KEY` | PEM (só no backend) |
+| `REFRESH_STRICT_BIND` | `1` |
+| `AUTH_LOGIN_NOTIFY` | `1` (omitir ou `=0` para desligar) |
+| `SMTP_URL`, `SMTP_FROM` | Para reset de senha **e** alertas de login |
+| `WEBAUTHN_RP_ID` | `www.pronuxfin.com.br` (hostname público) |
+| `WEBAUTHN_ORIGIN` | `https://www.pronuxfin.com.br` (sem `/` final) |
+| `WEBAUTHN_RP_NAME` | `PRONUXFIN` |
+
+### 9.3 Vercel (web) — variáveis adicionais
+
+| Variável | Valor |
+|----------|--------|
+| `INTERNAL_API_SECRET` | **Igual** ao backend |
+| `JWT_ALGORITHM` | `RS256` |
+| `JWT_PUBLIC_KEY` | PEM (só chave pública) |
+
+Opcional: `AUTH_SESSION_VERSION_CHECK=1` (padrão), `CSRF_ENFORCE=1` (padrão em prod).
+
+### 9.4 Smoke P10 (manual)
+
+1. **Perfil → Adicionar passkey** (biometria/PIN).  
+2. Logout → login com password → confirmar passkey.  
+3. **Perfil → Registo de segurança** — eventos `LOGIN_SUCCESS`, `WEBAUTHN_*`.  
+4. Login noutro browser/dispositivo → email de novo acesso (se SMTP activo).  
+5. **Perfil → Sessões** → revogar outro dispositivo.
+
+### 9.5 Readiness (operador)
+
+Com `HEALTH_PROBE_SECRET` definido:
+
+```bash
+curl -H "Authorization: Bearer $HEALTH_PROBE_SECRET" \\
+  https://www.pronuxfin.com.br/api/health/ready
+```
+
+Resposta inclui `checks` + `enterprise_hints` (avisos RS256, strict bind, SMTP, WebAuthn).
+
+---
+
 ## Ordem sugerida (resumo numa frase)
 
-**Postgres → API com envs + HTTPS → Vercel (web) com envs → CORS → DNS www → (opcional) api. → smoke tests.**
+**Postgres → API com envs + HTTPS → Vercel (web) com envs → CORS → DNS www → (opcional) api. → `npm run migrate:deploy` → envs P10 → smoke tests.**
 
 Se quiseres, no próximo mensagem diz em **que parte estás** (ex.: “já tenho Postgres”) e afinamos só essa parte (valores concretos, erros que aparecem, etc.).

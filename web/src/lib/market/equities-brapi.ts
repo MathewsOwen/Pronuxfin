@@ -1,3 +1,4 @@
+import { fetchMarket } from "@/lib/http/fetch-with-timeout";
 import { QUOTE_TICKERS, sortQuotesForDesk } from "@/lib/market/indices";
 import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import type { QuoteSnapshot } from "@/lib/market/types";
@@ -61,7 +62,7 @@ async function fetchBrapiChunk(
     ? `https://brapi.dev/api/quote/${qs}?token=${encodeURIComponent(token)}`
     : `https://brapi.dev/api/quote/${qs}`;
 
-  const res = await fetch(url, {
+  const res = await fetchMarket(url, {
     headers: { Accept: "application/json" },
     cache: "no-store",
   });

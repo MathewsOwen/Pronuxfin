@@ -1,3 +1,4 @@
+import { fetchMarket } from "@/lib/http/fetch-with-timeout";
 import {
   CORE_CRYPTO_ASSETS,
   listCryptoSectorAssets,
@@ -67,7 +68,7 @@ async function fetchCoinGeckoQuotesBrlForAssets(
       batches.map(async (batch) => {
         const ids = batch.map((c) => c.id).join(",");
         const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=brl&ids=${ids}&sparkline=false&price_change_percentage=24h`;
-        const res = await fetch(url, {
+        const res = await fetchMarket(url, {
           headers: {
             Accept: "application/json",
             "User-Agent":

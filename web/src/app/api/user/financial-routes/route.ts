@@ -13,6 +13,7 @@ import {
   upsertUserFinancialRoute,
 } from "@/lib/financial-route/load";
 import type { FinancialGoalType } from "@/lib/financial-route/types";
+import { assertMutationAllowed } from "@/lib/security/mutation-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,9 +41,10 @@ export async function GET() {
   if (!session.ok) return session.response;
   const { userId } = session;
 
-  const evaluated = await evaluateUserFinancialRoutes(userId);
-  await syncRouteAlerts(userId, evaluated);
-  const alerts = await listActiveRouteAlerts(userId);
+  const [evaluated, alerts] = await Promise.all([
+    evaluateUserFinancialRoutes(userId),
+    listActiveRouteAlerts(userId),
+  ]);
 
   return NextResponse.json({
     ok: true as const,
@@ -52,6 +54,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
@@ -105,6 +110,9 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;

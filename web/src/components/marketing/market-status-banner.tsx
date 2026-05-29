@@ -14,6 +14,9 @@ export async function MarketStatusBanner() {
 
   if (issues.length === 0) return null;
 
+  const showInDev = process.env.SHOW_MARKET_STATUS === "1";
+  if (process.env.NODE_ENV !== "production" && !showInDev) return null;
+
   const partial = caps.brapi.configured || caps.fmp.configured;
 
   return (

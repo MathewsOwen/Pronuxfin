@@ -1,4 +1,8 @@
-import { fetchAggregatedNews } from "@/lib/market/fetch-news";
+import {
+  fetchAggregatedNews,
+  fetchAggregatedNewsWithDiagnostics,
+  type NewsFetchDiagnostics,
+} from "@/lib/market/fetch-news";
 import { fetchCryptoSectorQuotesBrl, fetchCryptoQuotesBrl, simulatedCryptoQuotes, simulatedCryptoSectorQuotes } from "@/lib/market/crypto";
 import { fetchBrapiQuotesForSymbols, fetchEquitiesFromBrapi, simulatedEquities } from "@/lib/market/equities-brapi";
 import { fetchYahooQuotesForSymbols } from "@/lib/market/equities-yahoo-quote";
@@ -233,6 +237,30 @@ export async function loadCachedAggregatedNews(
     {
       shortTtlMs: 30_000,
       shouldRetain: (articles) => articles.length > 0,
+    },
+  );
+}
+
+/**
+ * Same cache as {@link loadCachedAggregatedNews} but preserves per-source
+ * diagnostics so the UI can distinguish "feed offline" from "no fresh items".
+ */
+export async function loadCachedAggregatedNewsDiagnostics(
+  limit = 72,
+): Promise<NewsFetchDiagnostics> {
+  return rememberWithTtl(
+    `market-gateway:related-news-diag:${limit}:v1`,
+    CACHE_TTL.relatedNewsMs,
+    async () => {
+      const diag = await fetchAggregatedNewsWithDiagnostics(limit);
+      if (diag.articles.length > 0) {
+        noteMarketProviderUsage("rss_public");
+      }
+      return diag;
+    },
+    {
+      shortTtlMs: 30_000,
+      shouldRetain: (diag) => diag.articles.length > 0,
     },
   );
 }

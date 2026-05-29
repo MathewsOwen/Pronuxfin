@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ShieldCheck, UserRound } from "lucide-react";
 import { ProfileSettingsForm } from "@/components/auth/profile-settings-form";
+import { ProfilePasskeysCard } from "@/components/auth/profile-passkeys-card";
+import { ProfileSecurityEventsCard } from "@/components/auth/profile-security-events-card";
+import { ProfileSessionsCard } from "@/components/auth/profile-sessions-card";
 import type { AppLocale } from "@/i18n/routing";
 import { privateAppMetadata } from "@/lib/page-metadata";
 import { getCurrentUser } from "@/lib/session";
@@ -21,6 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PerfilPage() {
   const t = await getTranslations("Profile");
+  const locale = (await getLocale()) as AppLocale;
   const user = await getCurrentUser();
   if (!user) redirect("/login?from=%2Fperfil");
 
@@ -55,6 +59,12 @@ export default async function PerfilPage() {
         initialName={user.name?.trim() ?? ""}
         variant="page"
       />
+
+      <ProfilePasskeysCard />
+
+      <ProfileSessionsCard locale={locale} />
+
+      <ProfileSecurityEventsCard locale={locale} />
 
       <div className="flex gap-3 rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-muted-foreground">
         <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />

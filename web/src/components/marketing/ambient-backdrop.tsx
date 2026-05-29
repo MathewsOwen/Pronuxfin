@@ -1,14 +1,19 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
+import dynamic from "next/dynamic";
 
-/** Fundo cinematográfico leve — grids + orbes lentos (respeita reduced-motion via CSS). */
-export function AmbientBackdrop() {
+const SiteSingularityBackdrop = dynamic(
+  () =>
+    import("@/components/marketing/site-singularity-backdrop").then((mod) => ({
+      default: mod.SiteSingularityBackdrop,
+    })),
+  { ssr: false },
+);
+
+function CssAmbientFallback() {
   return (
-    <div
-      className="pointer-events-none fixed inset-0 -z-20 overflow-hidden"
-      aria-hidden
-    >
+    <>
       <div className="absolute inset-0 bg-[linear-gradient(oklch(0.1_0.038_262)_0%,transparent_40%,oklch(0.09_0.045_262)_100%)]" />
       <div
         className="absolute inset-0 bg-[radial-gradient(ellipse_95%_85%_at_50%_45%,transparent_20%,oklch(0.055_0.045_262/0.72)_100%)]"
@@ -36,15 +41,45 @@ export function AmbientBackdrop() {
         animate={{ x: [0, -22, 0], y: [0, 14, 0] }}
         transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.div
-        className="absolute left-[42%] top-[52%] size-[280px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,oklch(0.78_0.1_195/0.08),transparent_70%)] blur-3xl motion-reduce:hidden"
-        animate={{ opacity: [0.45, 0.75, 0.45], scale: [1, 1.06, 1] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-      />
+    </>
+  );
+}
+
+/** Fundo 3D contínuo (buraco negro) + camadas de legibilidade para o conteúdo. */
+export function AmbientBackdrop() {
+  const reduceMotion = useReducedMotion();
+
+  return (
+    <div
+      className="pointer-events-none fixed inset-0 -z-20 overflow-hidden"
+      data-marketing-ambient
+      aria-hidden
+    >
+      {reduceMotion ? <CssAmbientFallback /> : <SiteSingularityBackdrop />}
+
+      <div className="absolute inset-0 bg-[#010103]/55" />
+
       <div
-        className="noise-overlay absolute inset-0 opacity-[0.035]"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_90%_75%_at_50%_42%,transparent_0%,rgba(1,1,3,0.55)_55%,rgba(1,1,3,0.92)_100%)]"
         aria-hidden
       />
+
+      <div className="absolute inset-0 bg-gradient-to-b from-background/72 via-background/28 to-background/88" />
+
+      <div
+        className="absolute inset-0 opacity-[0.22] motion-safe:animate-pulse-soft"
+        style={{
+          backgroundImage: `
+            linear-gradient(var(--primary) / 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, var(--primary) / 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: "72px 72px",
+          maskImage:
+            "radial-gradient(ellipse 85% 60% at 50% 12%, black 15%, transparent 72%)",
+        }}
+      />
+
+      <div className="noise-overlay absolute inset-0 opacity-[0.028]" aria-hidden />
     </div>
   );
 }

@@ -12,7 +12,10 @@ import type {
   FinancialRouteRecord,
 } from "@/lib/financial-route/types";
 import { listUserPortfolioPositions } from "@/lib/user-portfolio/load";
-import { buildPortfolioSummary } from "@/lib/user-portfolio/snapshot";
+import {
+  buildPortfolioSummary,
+  type PortfolioSummary,
+} from "@/lib/user-portfolio/snapshot";
 
 const GOAL_TYPES = new Set<FinancialGoalType>([
   "freedom",
@@ -105,24 +108,16 @@ export async function deleteUserFinancialRoute(userId: string, id: string) {
   await prisma.userFinancialRoute.deleteMany({ where: { id, userId } });
 }
 
-async function resolveCurrentWealth(
-  userId: string,
+function wealthFromPortfolioSummary(
   route: FinancialRouteRecord,
-): Promise<{ wealth: number; portfolioReturnPct: number | null }> {
+  summary: PortfolioSummary | null,
+): { wealth: number; portfolioReturnPct: number | null } {
   if (!route.linkPortfolio) {
     return { wealth: route.initialAmount, portfolioReturnPct: null };
   }
-
-  const positions = await listUserPortfolioPositions(userId);
-  if (positions.length === 0) {
-    return { wealth: route.initialAmount, portfolioReturnPct: null };
-  }
-
-  const summary = await buildPortfolioSummary(positions);
   if (!summary) {
     return { wealth: route.initialAmount, portfolioReturnPct: null };
   }
-
   return {
     wealth: summary.marketValue > 0 ? summary.marketValue : route.initialAmount,
     portfolioReturnPct: summary.totalPnlPercent,
@@ -135,10 +130,22 @@ export async function evaluateUserFinancialRoutes(
 ): Promise<EvaluatedFinancialRoute[]> {
   const routes = await listUserFinancialRoutes(userId);
   const macro = options?.macro ?? (await loadMacroRouteContextForUser(userId));
+
+  let portfolioSummary: PortfolioSummary | null = null;
+  if (routes.some((r) => r.linkPortfolio)) {
+    const positions = await listUserPortfolioPositions(userId);
+    if (positions.length > 0) {
+      portfolioSummary = await buildPortfolioSummary(positions);
+    }
+  }
+
   const evaluated: EvaluatedFinancialRoute[] = [];
 
   for (const route of routes) {
-    const { wealth, portfolioReturnPct } = await resolveCurrentWealth(userId, route);
+    const { wealth, portfolioReturnPct } = wealthFromPortfolioSummary(
+      route,
+      portfolioSummary,
+    );
     const status = computeRouteNavigationStatus(route, {
       currentWealth: wealth,
       portfolioReturnPct,

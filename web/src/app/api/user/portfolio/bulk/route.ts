@@ -7,6 +7,8 @@ import {
   bulkUpsertUserPortfolio,
   MAX_BULK_PORTFOLIO_ITEMS,
 } from "@/lib/user-portfolio/bulk";
+import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,9 +24,15 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "portfolio-bulk", 15);
+  if (limited) return limited;
 
   const parsed = await parseZodBody(req, bodySchema);
   if (!parsed.ok) return parsed.response;

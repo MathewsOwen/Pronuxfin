@@ -1,15 +1,19 @@
 import path from "path";
+import { fileURLToPath } from "url";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
-import { getContentSecurityPolicyReportOnly } from "./src/lib/security/csp-report-only";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+/** Project root (directory of this config). Must match `outputFileTracingRoot` and `turbopack.root`. */
+const webDir = path.dirname(fileURLToPath(import.meta.url));
+
 const nextConfig: NextConfig = {
   devIndicators: false,
+  outputFileTracingRoot: webDir,
   turbopack: {
-    root: path.resolve(process.cwd()),
+    root: webDir,
   },
   images: {
     remotePatterns: [
@@ -33,6 +37,7 @@ const nextConfig: NextConfig = {
         key: "Permissions-Policy",
         value: "camera=(), microphone=(), geolocation=()",
       },
+      { key: "Cross-Origin-Resource-Policy", value: "same-site" },
     ];
     if (process.env.NODE_ENV === "production") {
       base.push({
@@ -42,19 +47,6 @@ const nextConfig: NextConfig = {
       base.push({
         key: "Cross-Origin-Opener-Policy",
         value: "same-origin",
-      });
-    }
-    if (process.env.ENABLE_CSP_REPORT_ONLY === "1") {
-      const sentryBrowser =
-        process.env.NEXT_PUBLIC_SENTRY_BUILD_CSP_HINT === "1" ||
-        !!process.env.NEXT_PUBLIC_SENTRY_DSN?.trim();
-
-      base.push({
-        key: "Content-Security-Policy-Report-Only",
-        value: getContentSecurityPolicyReportOnly(
-          process.env.NODE_ENV === "production",
-          { sentryBrowser },
-        ),
       });
     }
     return [{ source: "/:path*", headers: base }];

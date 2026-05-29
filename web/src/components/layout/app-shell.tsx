@@ -23,6 +23,7 @@ import {
 } from "@/lib/sentry/platform-status-fingerprint";
 import type { SessionUser } from "@/lib/session";
 import { displayNameForUser, initialsForUser } from "@/lib/user-display";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 
 export function AppShell({
   user,
@@ -99,7 +100,7 @@ export function AppShell({
   }, [degradedReason]);
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await apiMutation("/api/auth/logout", { method: "POST" });
     router.push("/");
     router.refresh();
   }

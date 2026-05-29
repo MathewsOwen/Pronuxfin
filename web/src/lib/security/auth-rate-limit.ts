@@ -1,49 +1,30 @@
 import { NextResponse } from "next/server";
 
-/** Janela deslizante em memória (por instância Node). Adequado a VPS/Node; serverless diminui alcance mas ainda corta rajadas. */
+import { consumeRateLimit } from "@/lib/security/distributed-rate-limit";
 
-const LOGIN_WINDOW_MS = Number(
-  process.env.AUTH_RATE_LIMIT_LOGIN_WINDOW_MS ?? 60_000,
-);
-const LOGIN_MAX = Number(process.env.AUTH_RATE_LIMIT_LOGIN_MAX ?? 25);
+/** Janela fixa distribuída (Postgres) — vale entre instâncias serverless. */
 
-const REGISTER_WINDOW_MS = Number(
-  process.env.AUTH_RATE_LIMIT_REGISTER_WINDOW_MS ?? 300_000,
-);
-const REGISTER_MAX = Number(process.env.AUTH_RATE_LIMIT_REGISTER_MAX ?? 15);
-
-const FORGOT_WINDOW_MS = Number(
-  process.env.AUTH_RATE_LIMIT_FORGOT_PASSWORD_WINDOW_MS ?? 300_000,
-);
-const FORGOT_MAX = Number(process.env.AUTH_RATE_LIMIT_FORGOT_PASSWORD_MAX ?? 8);
-
-const RESET_WINDOW_MS = Number(
-  process.env.AUTH_RATE_LIMIT_RESET_PASSWORD_WINDOW_MS ?? 300_000,
-);
-const RESET_MAX = Number(process.env.AUTH_RATE_LIMIT_RESET_PASSWORD_MAX ?? 12);
-
-type Entry = Map<string, number[]>;
-
-function prune(ts: number[], now: number, windowMs: number): number[] {
-  return ts.filter((t) => now - t < windowMs);
+function envMs(name: string, fallback: number): number {
+  const n = Number(process.env[name]);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-function allow(entries: Entry, key: string, windowMs: number, max: number) {
-  const now = Date.now();
-  let list = prune(entries.get(key) ?? [], now, windowMs);
-  if (list.length >= max) {
-    entries.set(key, list);
-    return { ok: false as const, retryAfterSec: Math.ceil(windowMs / 1000) };
-  }
-  list = [...list, now];
-  entries.set(key, list);
-  return { ok: true as const };
+function envMax(name: string, fallback: number): number {
+  const n = Number(process.env[name]);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 }
 
-const loginHits: Entry = new Map();
-const registerHits: Entry = new Map();
-const forgotHits: Entry = new Map();
-const resetHits: Entry = new Map();
+const LOGIN_WINDOW_MS = envMs("AUTH_RATE_LIMIT_LOGIN_WINDOW_MS", 60_000);
+const LOGIN_MAX = envMax("AUTH_RATE_LIMIT_LOGIN_MAX", 25);
+
+const REGISTER_WINDOW_MS = envMs("AUTH_RATE_LIMIT_REGISTER_WINDOW_MS", 300_000);
+const REGISTER_MAX = envMax("AUTH_RATE_LIMIT_REGISTER_MAX", 15);
+
+const FORGOT_WINDOW_MS = envMs("AUTH_RATE_LIMIT_FORGOT_PASSWORD_WINDOW_MS", 300_000);
+const FORGOT_MAX = envMax("AUTH_RATE_LIMIT_FORGOT_PASSWORD_MAX", 8);
+
+const RESET_WINDOW_MS = envMs("AUTH_RATE_LIMIT_RESET_PASSWORD_WINDOW_MS", 300_000);
+const RESET_MAX = envMax("AUTH_RATE_LIMIT_RESET_PASSWORD_MAX", 12);
 
 export function getRateLimitClientKey(req: Request): string {
   const xf = req.headers.get("x-forwarded-for");
@@ -57,19 +38,23 @@ export function getRateLimitClientKey(req: Request): string {
 }
 
 export function rateLimitLogin(key: string) {
-  return allow(loginHits, key, LOGIN_WINDOW_MS, LOGIN_MAX);
+  return consumeRateLimit(`auth:login:${key}`, LOGIN_MAX, LOGIN_WINDOW_MS);
 }
 
 export function rateLimitRegister(key: string) {
-  return allow(registerHits, key, REGISTER_WINDOW_MS, REGISTER_MAX);
+  return consumeRateLimit(
+    `auth:register:${key}`,
+    REGISTER_MAX,
+    REGISTER_WINDOW_MS,
+  );
 }
 
 export function rateLimitForgotPassword(key: string) {
-  return allow(forgotHits, key, FORGOT_WINDOW_MS, FORGOT_MAX);
+  return consumeRateLimit(`auth:forgot:${key}`, FORGOT_MAX, FORGOT_WINDOW_MS);
 }
 
 export function rateLimitResetPassword(key: string) {
-  return allow(resetHits, key, RESET_WINDOW_MS, RESET_MAX);
+  return consumeRateLimit(`auth:reset:${key}`, RESET_MAX, RESET_WINDOW_MS);
 }
 
 export function authRateLimitedResponse(

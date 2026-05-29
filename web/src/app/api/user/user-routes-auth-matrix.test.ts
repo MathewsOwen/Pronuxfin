@@ -34,6 +34,9 @@ import {
 import { GET as aiKeysGet, PATCH as aiKeysPatch } from "@/app/api/user/ai-keys/route";
 import { POST as routeAlertsPost } from "@/app/api/user/financial-routes/alerts/route";
 import { POST as watchlistSignalsPost } from "@/app/api/user/watchlist/signals/route";
+import { GET as sessionsGet } from "@/app/api/user/sessions/route";
+import { POST as sessionsRevokePost } from "@/app/api/user/sessions/revoke/route";
+import { POST as sessionsRevokeAllPost } from "@/app/api/user/sessions/revoke-all/route";
 
 type CaseItem = {
   name: string;
@@ -154,6 +157,21 @@ describe("User API auth matrix", () => {
     {
       name: "POST /api/user/watchlist/signals",
       run: () => watchlistSignalsPost(jsonReq("/api/user/watchlist/signals", { signals: [] })),
+    },
+    {
+      name: "GET /api/user/sessions",
+      run: () => sessionsGet(),
+    },
+    {
+      name: "POST /api/user/sessions/revoke",
+      run: () =>
+        sessionsRevokePost(
+          jsonReq("/api/user/sessions/revoke", { familyId: "family-test-id-01" }),
+        ),
+    },
+    {
+      name: "POST /api/user/sessions/revoke-all",
+      run: () => sessionsRevokeAllPost(jsonReq("/api/user/sessions/revoke-all", {})),
     },
   ];
 

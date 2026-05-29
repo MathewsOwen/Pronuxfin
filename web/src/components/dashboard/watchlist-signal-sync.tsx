@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 
 import type { WatchlistRadarSignal } from "@/lib/user-watchlist/intelligence";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 
 export function WatchlistSignalSync({
   items,
@@ -18,9 +19,8 @@ export function WatchlistSignalSync({
     if (sentRef.current || items.length === 0) return;
     sentRef.current = true;
 
-    void fetch("/api/user/watchlist/signals", {
+    void apiMutation("/api/user/watchlist/signals", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         signals: items.map((item) => ({
           symbol: item.symbol,

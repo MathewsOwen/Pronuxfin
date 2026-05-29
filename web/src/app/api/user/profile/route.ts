@@ -4,6 +4,8 @@ import { z } from "zod";
 import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { readRequestJson } from "@/lib/http/read-json-body";
 import { prisma } from "@/lib/prisma";
+import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,9 +15,15 @@ const schema = z.object({
 });
 
 export async function PATCH(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "profile", 20);
+  if (limited) return limited;
 
   const raw = await readRequestJson(req);
   if (!raw.ok) {

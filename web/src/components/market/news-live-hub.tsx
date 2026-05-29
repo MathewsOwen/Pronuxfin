@@ -22,6 +22,14 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { RevealOnce } from "@/components/marketing/landing-reveal";
 
+type NewsSourceStatus = {
+  source: string;
+  region?: NewsArticle["region"];
+  ok: boolean;
+  count: number;
+  error?: string;
+};
+
 type NewsApiResponse = {
   ok: boolean;
   articles?: NewsArticle[];
@@ -30,6 +38,8 @@ type NewsApiResponse = {
   error?: string;
   feedsSucceeded?: number;
   feedsAttempted?: number;
+  degraded?: boolean;
+  sources?: NewsSourceStatus[];
 };
 
 const EMPTY_ARTICLES: NewsArticle[] = [];
@@ -94,6 +104,8 @@ export function NewsLiveHub({
         message: json.message,
         feedsSucceeded: json.feedsSucceeded,
         feedsAttempted: json.feedsAttempted,
+        degraded: json.degraded,
+        sources: json.sources,
       });
     } catch {
       setPayload({
@@ -124,6 +136,15 @@ export function NewsLiveHub({
     if (filterUnknown || !filterApplied) return articles;
     return articles.filter((a) => a.source === trimmedFilter);
   }, [articles, filterApplied, filterUnknown, trimmedFilter]);
+  const selectedSourceOffline = useMemo(
+    () =>
+      filterApplied
+        ? payload?.sources?.some(
+            (s) => s.source === trimmedFilter && s.ok === false,
+          ) ?? false
+        : false,
+    [filterApplied, payload, trimmedFilter],
+  );
   const visibleSourceCount = useMemo(
     () => new Set(visibleArticles.map((article) => article.source)).size,
     [visibleArticles],
@@ -288,7 +309,11 @@ export function NewsLiveHub({
           <Newspaper className="mx-auto size-10 opacity-40" />
           <p className="mt-4">
             {filterApplied && trimmedFilter ? (
-              <>{tf("noHeadlinesChannel", { channel: trimmedFilter })}</>
+              selectedSourceOffline ? (
+                <>{tf("sourceOffline", { channel: trimmedFilter })}</>
+              ) : (
+                <>{tf("noHeadlinesChannel", { channel: trimmedFilter })}</>
+              )
             ) : payload === null ? (
               <>{t("loadingHint")}</>
             ) : !payload.ok ? (

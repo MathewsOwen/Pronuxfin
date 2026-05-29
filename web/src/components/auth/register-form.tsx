@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
 import { isAuthApiCode } from "@/lib/auth/api-error-codes";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import {
   createRegisterSchema,
   type RegisterValues,
@@ -63,11 +64,18 @@ export function RegisterForm() {
       password: data.password,
       name: data.name.trim(),
     };
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    let res: Response;
+    try {
+      res = await apiMutation("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(16_000),
+      });
+    } catch {
+      setApiError(t("errorTimeout"));
+      return;
+    }
     const json = (await res.json().catch(() => ({}))) as {
       message?: string;
       code?: string;
@@ -86,7 +94,7 @@ export function RegisterForm() {
       }
       return;
     }
-    router.push("/carteira?welcome=1");
+    router.push("/login?registered=1");
     router.refresh();
   };
 

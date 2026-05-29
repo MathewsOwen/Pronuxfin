@@ -12,12 +12,13 @@ export function resolveCorsOrigins(): string[] {
     try {
       origins.add(new URL(value).origin);
     } catch {
-      origins.add(value.replace(/\/+$/, ''));
+      /* ignora entradas inválidas (ex.: host sem scheme) */
     }
   }
 
   if (origins.size === 0) {
     origins.add('http://localhost:3000');
+    origins.add('http://127.0.0.1:3000');
   }
 
   return [...origins];

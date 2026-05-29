@@ -145,6 +145,32 @@ html[data-pronux-intro] .nextjs-toast {
   display: none !important;
 }
 
+/* Home: intro imediata — sem flash do header/Hero antes do overlay */
+html[data-pronux-intro-pending],
+html[data-pronux-intro] {
+  background: #030508 !important;
+}
+
+html[data-pronux-intro-pending] body,
+html[data-pronux-intro] body {
+  overflow: hidden;
+  background: #030508 !important;
+}
+
+html[data-pronux-intro-pending] #marketing-shell,
+html[data-pronux-intro] #marketing-shell,
+html[data-pronux-intro-pending] [data-marketing-ambient],
+html[data-pronux-intro] [data-marketing-ambient] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+html[data-pronux-intro-pending] [data-pronux-intro-root],
+html[data-pronux-intro] [data-pronux-intro-root] {
+  visibility: visible;
+  pointer-events: auto;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -313,6 +339,24 @@ html[data-pronux-intro] .nextjs-toast {
     }
     to {
       transform: translateX(-50%);
+    }
+  }
+
+  @keyframes pronux-orbit {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pronux-orbit-counter {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(-360deg);
     }
   }
 

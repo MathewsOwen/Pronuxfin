@@ -6,7 +6,12 @@ import { UsersModule } from '../users/users.module';
 import { AuthMailerService } from './auth-mailer.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { buildJwtModuleConfig } from './jwt-crypto.util';
 import { JwtStrategy } from './jwt.strategy';
+import { RefreshTokenService } from './refresh-token.service';
+import { InternalApiGuard } from './internal-api.guard';
+import { SecurityEventService } from './security-event.service';
+import { WebAuthnService } from './webauthn.service';
 
 @Module({
   imports: [
@@ -15,16 +20,32 @@ import { JwtStrategy } from './jwt.strategy';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.getOrThrow<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: Number(config.get('JWT_EXPIRES_SEC') ?? 604800),
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const built = buildJwtModuleConfig(config);
+        if (built.algorithm === 'RS256') {
+          return {
+            privateKey: built.privateKey,
+            publicKey: built.publicKey,
+            signOptions: built.signOptions,
+          };
+        }
+        return {
+          secret: built.secret,
+          signOptions: built.signOptions,
+        };
+      },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthMailerService, JwtStrategy],
+  providers: [
+    AuthService,
+    AuthMailerService,
+    JwtStrategy,
+    RefreshTokenService,
+    SecurityEventService,
+    WebAuthnService,
+    InternalApiGuard,
+  ],
   exports: [AuthService, AuthMailerService],
 })
 export class AuthModule {}

@@ -7,10 +7,14 @@ import {
   getRateLimitClientKey,
   rateLimitResetPassword,
 } from "@/lib/security/auth-rate-limit";
+import { assertAuthEntryAllowed } from "@/lib/security/mutation-guard";
 
 export async function POST(req: Request) {
+  const entryBlocked = assertAuthEntryAllowed(req);
+  if (entryBlocked) return attachRequestId(req, entryBlocked);
+
   const clientKey = getRateLimitClientKey(req);
-  const limited = rateLimitResetPassword(clientKey);
+  const limited = await rateLimitResetPassword(clientKey);
   if (!limited.ok) {
     return attachRequestId(
       req,

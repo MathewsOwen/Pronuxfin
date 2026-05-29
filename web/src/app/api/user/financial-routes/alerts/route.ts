@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { dismissRouteAlert } from "@/lib/financial-route/load";
+import { assertMutationAllowed } from "@/lib/security/mutation-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,6 +11,9 @@ export const dynamic = "force-dynamic";
 const dismissSchema = z.object({ id: z.string().cuid() });
 
 export async function POST(req: Request) {
+  const csrfBlocked = assertMutationAllowed(req);
+  if (csrfBlocked) return csrfBlocked;
+
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;

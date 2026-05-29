@@ -1,4 +1,6 @@
 import Parser from "rss-parser";
+import { FetchTimeoutError, fetchMarket } from "@/lib/http/fetch-with-timeout";
+import { safeExternalUrl } from "@/lib/http/safe-external-url";
 import { NEWS_FEEDS } from "@/lib/market/news-feeds-config";
 import type { NewsArticle } from "@/lib/market/types";
 
@@ -6,14 +8,13 @@ const FETCH_HEADERS = {
   "User-Agent":
     "PRONUXFIN/1.0 (+https://pronuxfin.com.br; agrega feeds públicos RSS)",
   Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
+  "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
 } as const;
 
 const parser = new Parser({
   timeout: 12_000,
   headers: FETCH_HEADERS,
 });
-
-const FEED_TIMEOUT_MS = 12_000;
 
 function slugId(title: string, link: string): string {
   const base = `${title}|${link}`.slice(0, 96);
@@ -44,10 +45,9 @@ function toHttpsFeedUrl(url: string): string {
 }
 
 async function fetchFeedXml(url: string): Promise<string> {
-  const res = await fetch(toHttpsFeedUrl(url), {
+  const res = await fetchMarket(toHttpsFeedUrl(url), {
     cache: "no-store",
     headers: FETCH_HEADERS,
-    signal: AbortSignal.timeout(FEED_TIMEOUT_MS),
   });
   if (!res.ok) {
     throw new Error(`feed_status_${res.status}`);
@@ -65,7 +65,8 @@ async function loadFeedArticles(
   const items = feed.items ?? [];
   return items.map((item) => {
     const title = (item.title ?? "").trim();
-    const link = (item.link ?? item.guid ?? "").toString().trim();
+    const rawLink = (item.link ?? item.guid ?? "").toString().trim();
+    const link = safeExternalUrl(rawLink) ?? "#";
     const rawDate = item.isoDate ?? item.pubDate ?? null;
     const summary = (item.contentSnippet ?? item.content ?? "")
       .replace(/<[^>]+>/g, " ")
@@ -85,11 +86,86 @@ async function loadFeedArticles(
   });
 }
 
+export type NewsSourceStatus = {
+  source: string;
+  region: NewsArticle["region"];
+  /** Feed responded with parseable RSS. */
+  ok: boolean;
+  /** Items returned by the feed (before global dedup). */
+  count: number;
+  /** Short reason when the feed failed (e.g. feed_status_403, timeout). */
+  error?: string;
+};
+
 export type NewsFetchDiagnostics = {
   articles: NewsArticle[];
   feedsAttempted: number;
   feedsSucceeded: number;
+  sources: NewsSourceStatus[];
 };
+
+function publishedAtMs(article: NewsArticle): number {
+  return article.publishedAt ? new Date(article.publishedAt).getTime() : 0;
+}
+
+function feedErrorReason(reason: unknown): string {
+  if (reason instanceof Error) {
+    if (
+      reason instanceof FetchTimeoutError ||
+      reason.name === "TimeoutError" ||
+      reason.name === "AbortError"
+    ) {
+      return "timeout";
+    }
+    return reason.message.slice(0, 80);
+  }
+  return "feed_error";
+}
+
+/**
+ * Keeps each source represented instead of letting the most prolific feeds
+ * crowd out the rest of the global top-N. Without this, a per-source tab can
+ * be empty even though its feed worked, because the client filters a globally
+ * recency-sorted slice. We reserve a per-source quota, then fill the remaining
+ * slots by recency, and finally re-sort so the hero is still the newest item.
+ */
+function selectWithSourceQuota(
+  articles: NewsArticle[],
+  limit: number,
+): NewsArticle[] {
+  if (articles.length <= limit) return articles;
+
+  const bySource = new Map<string, NewsArticle[]>();
+  for (const a of articles) {
+    const arr = bySource.get(a.source);
+    if (arr) arr.push(a);
+    else bySource.set(a.source, [a]);
+  }
+
+  const quota = Math.max(1, Math.ceil(limit / Math.max(bySource.size, 1)));
+  const chosen: NewsArticle[] = [];
+  const chosenIds = new Set<string>();
+
+  for (const bucket of bySource.values()) {
+    for (const a of bucket.slice(0, quota)) {
+      if (!chosenIds.has(a.id)) {
+        chosen.push(a);
+        chosenIds.add(a.id);
+      }
+    }
+  }
+
+  for (const a of articles) {
+    if (chosen.length >= limit) break;
+    if (!chosenIds.has(a.id)) {
+      chosen.push(a);
+      chosenIds.add(a.id);
+    }
+  }
+
+  chosen.sort((a, b) => publishedAtMs(b) - publishedAtMs(a));
+  return chosen.slice(0, limit);
+}
 
 export async function fetchAggregatedNewsWithDiagnostics(
   limit = 72,
@@ -101,13 +177,30 @@ export async function fetchAggregatedNewsWithDiagnostics(
   );
 
   const merged: NewsArticle[] = [];
+  const sources: NewsSourceStatus[] = [];
   let feedsSucceeded = 0;
-  for (const b of batches) {
+
+  batches.forEach((b, i) => {
+    const feed = NEWS_FEEDS[i]!;
     if (b.status === "fulfilled") {
       feedsSucceeded += 1;
       merged.push(...b.value);
+      sources.push({
+        source: feed.source,
+        region: feed.region,
+        ok: true,
+        count: b.value.length,
+      });
+    } else {
+      sources.push({
+        source: feed.source,
+        region: feed.region,
+        ok: false,
+        count: 0,
+        error: feedErrorReason(b.reason),
+      });
     }
-  }
+  });
 
   const seen = new Set<string>();
   const deduped: NewsArticle[] = [];
@@ -119,16 +212,13 @@ export async function fetchAggregatedNewsWithDiagnostics(
     deduped.push(article);
   }
 
-  deduped.sort((a, b) => {
-    const ta = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-    const tb = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-    return tb - ta;
-  });
+  deduped.sort((a, b) => publishedAtMs(b) - publishedAtMs(a));
 
   return {
-    articles: deduped.slice(0, limit),
+    articles: selectWithSourceQuota(deduped, limit),
     feedsAttempted: NEWS_FEEDS.length,
     feedsSucceeded,
+    sources,
   };
 }
 

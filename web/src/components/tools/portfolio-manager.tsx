@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { PortfolioLiveMarketPanel } from "@/components/tools/portfolio-live-market-panel";
 import type { QuoteSnapshot } from "@/lib/market/types";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
 import { cn } from "@/lib/utils";
 
 export function PortfolioManager({
@@ -74,7 +75,7 @@ export function PortfolioManager({
       setMessage(t("saveError"));
       return;
     }
-    const res = await fetch("/api/user/portfolio", {
+    const res = await apiMutation("/api/user/portfolio", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -215,7 +216,7 @@ export function PortfolioRemoveButton({ symbol }: { symbol: string }) {
     if (!window.confirm(t("removeConfirm", { symbol }))) return;
     setPending(true);
     setError(null);
-    const res = await fetch("/api/user/portfolio", {
+    const res = await apiMutation("/api/user/portfolio", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ symbol }),

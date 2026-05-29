@@ -28,6 +28,22 @@ export class UsersService {
     });
   }
 
+  /** Invalidates every access token previously issued for this user. */
+  async bumpTokenVersion(userId: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { tokenVersion: { increment: 1 } },
+    });
+  }
+
+  /** Transparent bcrypt → Argon2id upgrade after a successful login. */
+  async updatePasswordHash(userId: string, passwordHash: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+  }
+
   async replacePasswordResetToken(data: {
     userId: string;
     tokenHash: string;
@@ -71,13 +87,20 @@ export class UsersService {
     passwordHash: string;
   }): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
+      const consumed = await tx.passwordResetToken.updateMany({
+        where: { id: data.tokenId, userId: data.userId, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+      if (consumed.count !== 1) {
+        throw new Error('PASSWORD_RESET_TOKEN_CONSUMED');
+      }
       await tx.user.update({
         where: { id: data.userId },
-        data: { passwordHash: data.passwordHash },
-      });
-      await tx.passwordResetToken.update({
-        where: { id: data.tokenId },
-        data: { usedAt: new Date() },
+        // Resetting the password invalidates all existing sessions.
+        data: {
+          passwordHash: data.passwordHash,
+          tokenVersion: { increment: 1 },
+        },
       });
       await tx.passwordResetToken.deleteMany({
         where: {

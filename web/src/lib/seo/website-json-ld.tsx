@@ -4,10 +4,12 @@ export function WebsiteJsonLd({
   siteUrl,
   name,
   description,
+  nonce,
 }: {
   siteUrl: string;
   name: string;
   description: string;
+  nonce?: string;
 }) {
   const origin = siteUrl.replace(/\/$/, "");
   const payload = {
@@ -27,6 +29,7 @@ export function WebsiteJsonLd({
   return (
     <script
       type="application/ld+json"
+      nonce={nonce}
       dangerouslySetInnerHTML={{
         __html: JSON.stringify(payload).replace(/</g, "\\u003c"),
       }}

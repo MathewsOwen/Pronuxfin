@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldCheck } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -24,15 +24,21 @@ import {
   createLoginSchema,
   type LoginValues,
 } from "@/lib/validations/auth";
+import { LoginWebAuthnStep } from "@/components/auth/login-webauthn-step";
+import { apiMutation } from "@/lib/http/api-mutation-fetch";
+import { safeInternalRedirectPath } from "@/lib/http/safe-redirect-path";
 import { cn } from "@/lib/utils";
 
 export function LoginForm() {
   const t = useTranslations("Login");
   const tVal = useTranslations("Auth.validation");
   const tApi = useTranslations("AuthErrors");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [apiError, setApiError] = useState<string | null>(null);
+  const [webauthnChallengeId, setWebauthnChallengeId] = useState<string | null>(null);
+  const justRegistered = searchParams.get("registered") === "1";
 
   const loginSchema = useMemo(
     () =>
@@ -54,14 +60,26 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginValues) => {
     setApiError(null);
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    let res: Response;
+    try {
+      res = await apiMutation("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          locale: locale === "en" ? "en" : "pt-BR",
+        }),
+        signal: AbortSignal.timeout(16_000),
+      });
+    } catch {
+      setApiError(t("errorTimeout"));
+      return;
+    }
     const json = (await res.json().catch(() => ({}))) as {
       message?: string;
       code?: string;
+      webauthnRequired?: boolean;
+      challengeId?: string;
     };
     if (!res.ok) {
       if (json.code && isAuthApiCode(json.code)) {
@@ -77,10 +95,20 @@ export function LoginForm() {
       }
       return;
     }
-    const dest = searchParams.get("from") || "/dashboard";
+    if (json.webauthnRequired && json.challengeId) {
+      setWebauthnChallengeId(json.challengeId);
+      return;
+    }
+    const dest = safeInternalRedirectPath(searchParams.get("from"));
     router.push(dest);
     router.refresh();
   };
+
+  function finishLogin() {
+    const dest = safeInternalRedirectPath(searchParams.get("from"));
+    router.push(dest);
+    router.refresh();
+  }
 
   return (
     <Card className="glass-panel card-shine border-white/10 shadow-none ring-0">
@@ -100,6 +128,15 @@ export function LoginForm() {
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="grid gap-4">
+          {justRegistered && !apiError ? (
+            <p
+              role="status"
+              aria-live="polite"
+              className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-foreground"
+            >
+              {t("registeredNotice")}
+            </p>
+          ) : null}
           {apiError ? (
             <p
               role="alert"
@@ -108,6 +145,14 @@ export function LoginForm() {
             >
               {apiError}
             </p>
+          ) : null}
+          {webauthnChallengeId ? (
+            <LoginWebAuthnStep
+              challengeId={webauthnChallengeId}
+              locale={locale}
+              onCancel={() => setWebauthnChallengeId(null)}
+              onSuccess={finishLogin}
+            />
           ) : null}
           <div className="grid gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
             <Label htmlFor="email">{t("email")}</Label>
