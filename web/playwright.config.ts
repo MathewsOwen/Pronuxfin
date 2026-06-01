@@ -9,6 +9,7 @@ const e2ePublicKey =
   "\n-----END PUBLIC KEY-----";
 
 const e2eServerEnv: Record<string, string> = {
+  PLAYWRIGHT_E2E: "1",
   API_URL: process.env.API_URL ?? "http://127.0.0.1:5999",
   JWT_SECRET:
     process.env.JWT_SECRET ??
@@ -62,6 +63,6 @@ export default defineConfig({
         reuseExistingServer: !process.env.CI,
         /** `next start` + cold boot pode exceder 2 min em CI ou HDD lento */
         timeout: 180_000,
-        env: e2eServerEnv,
+        env: { ...process.env, ...e2eServerEnv },
       },
 });

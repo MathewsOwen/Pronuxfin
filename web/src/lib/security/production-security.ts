@@ -1,7 +1,9 @@
 import { resolveJwtAlgorithm } from "@/lib/auth/jwt-crypto";
 import { isByokCryptoConfigured } from "@/lib/crypto/ai-keys-crypto";
 import { listEnginesFromEnv } from "@/lib/market/market-ai-providers";
-import { resolveCspMode } from "@/lib/security/csp";function isStrictProductionEnv(): boolean {
+import { resolveCspMode } from "@/lib/security/csp";
+
+function isStrictProductionEnv(): boolean {
   return (
     process.env.NODE_ENV === "production" ||
     process.env.VERCEL_ENV === "production"
