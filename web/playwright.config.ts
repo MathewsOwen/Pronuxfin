@@ -31,6 +31,14 @@ const e2eServerEnv: Record<string, string> = {
   CSP_MODE: "report-only",
 };
 
+function webServerEnv(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries({ ...process.env, ...e2eServerEnv }).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string",
+    ),
+  );
+}
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -63,6 +71,6 @@ export default defineConfig({
         reuseExistingServer: !process.env.CI,
         /** `next start` + cold boot pode exceder 2 min em CI ou HDD lento */
         timeout: 180_000,
-        env: { ...process.env, ...e2eServerEnv },
+        env: webServerEnv(),
       },
 });
