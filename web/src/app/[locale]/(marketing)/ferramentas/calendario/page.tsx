@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { EconomicCalendarView } from "@/components/tools/economic-calendar-view";
 import type { AppLocale } from "@/i18n/routing";
 import { marketingMetadata } from "@/lib/page-metadata";
@@ -32,21 +31,19 @@ export default async function EconomicCalendarPage() {
   });
 
   return (
-    <MarketingShell ticker>
-      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">{t("eyebrow")}</p>
-        <h1 className="font-heading mt-2 text-3xl font-semibold tracking-tight">{t("pageTitle")}</h1>
-        <p className="mt-3 leading-relaxed text-muted-foreground">{t("pageLead")}</p>
-        <div className="mt-8">
-          <EconomicCalendarView
-            loggedIn={false}
-            watchlistSymbols={[]}
-            serverEvents={events}
-            fmpAvailable={fmpAvailable}
-            calendarMode={mode}
-          />
-        </div>
+    <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary">{t("eyebrow")}</p>
+      <h1 className="font-heading mt-2 text-3xl font-semibold tracking-tight">{t("pageTitle")}</h1>
+      <p className="mt-3 leading-relaxed text-muted-foreground">{t("pageLead")}</p>
+      <div className="mt-8">
+        <EconomicCalendarView
+          loggedIn={false}
+          watchlistSymbols={[]}
+          serverEvents={events}
+          fmpAvailable={fmpAvailable}
+          calendarMode={mode}
+        />
       </div>
-    </MarketingShell>
+    </div>
   );
 }

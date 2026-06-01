@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { AuthenticatedPublicChrome } from "@/components/layout/authenticated-public-chrome";
-import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { CompoundInterestCalculator } from "@/components/tools/compound-interest-calculator";
 import type { AppLocale } from "@/i18n/routing";
 import { marketingMetadata } from "@/lib/page-metadata";
@@ -22,15 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CompoundInterestPage() {
   const user = await getCurrentUser();
-  const content = (
+  return (
     <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
       <CompoundInterestCalculator loggedIn={Boolean(user)} />
     </div>
   );
-
-  if (user) {
-    return <AuthenticatedPublicChrome user={user}>{content}</AuthenticatedPublicChrome>;
-  }
-
-  return <MarketingShell ticker>{content}</MarketingShell>;
 }

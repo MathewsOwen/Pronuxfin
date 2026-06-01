@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { AuthenticatedPublicChrome } from "@/components/layout/authenticated-public-chrome";
-import { MarketingShell } from "@/components/marketing/marketing-shell";
 import { ToolsHubPanel } from "@/components/tools/tools-hub-panel";
 import type { AppLocale } from "@/i18n/routing";
 import { marketingMetadata } from "@/lib/page-metadata";
@@ -22,11 +20,5 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function FerramentasPage() {
   const user = await getCurrentUser();
-  const panel = <ToolsHubPanel loggedIn={Boolean(user)} />;
-
-  if (user) {
-    return <AuthenticatedPublicChrome user={user}>{panel}</AuthenticatedPublicChrome>;
-  }
-
-  return <MarketingShell ticker>{panel}</MarketingShell>;
+  return <ToolsHubPanel loggedIn={Boolean(user)} />;
 }
