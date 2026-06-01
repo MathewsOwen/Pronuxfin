@@ -37,7 +37,10 @@ export class UsersService {
   }
 
   /** Transparent bcrypt → Argon2id upgrade after a successful login. */
-  async updatePasswordHash(userId: string, passwordHash: string): Promise<void> {
+  async updatePasswordHash(
+    userId: string,
+    passwordHash: string,
+  ): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },
       data: { passwordHash },

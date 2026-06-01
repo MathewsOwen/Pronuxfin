@@ -25,9 +25,8 @@ export class SecurityEventService {
           eventType,
           ip: meta.ip?.slice(0, 64) ?? null,
           userAgent: meta.userAgent?.slice(0, 256) ?? null,
-          metadata:
-            meta.metadata ?
-              (meta.metadata as Prisma.InputJsonValue)
+          metadata: meta.metadata
+            ? (meta.metadata as Prisma.InputJsonValue)
             : undefined,
         },
       });

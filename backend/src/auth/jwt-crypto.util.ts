@@ -6,7 +6,9 @@ export type JwtAlgorithm = 'HS256' | 'RS256';
 export function resolveJwtAlgorithm(
   config: ConfigService | { get: (key: string) => string | undefined },
 ): JwtAlgorithm {
-  const raw = config.get('JWT_ALGORITHM')?.trim().toUpperCase();
+  const value: unknown = config.get('JWT_ALGORITHM');
+  const raw =
+    typeof value === 'string' ? value.trim().toUpperCase() : undefined;
   return raw === 'RS256' ? 'RS256' : 'HS256';
 }
 
@@ -31,7 +33,9 @@ export type JwtModuleKeyConfig =
       signOptions: { algorithm: 'RS256'; expiresIn: number };
     };
 
-export function buildJwtModuleConfig(config: ConfigService): JwtModuleKeyConfig {
+export function buildJwtModuleConfig(
+  config: ConfigService,
+): JwtModuleKeyConfig {
   const expiresIn = jwtExpiresSec(config);
   const algorithm = resolveJwtAlgorithm(config);
 

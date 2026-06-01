@@ -339,7 +339,9 @@ export class WebAuthnService {
   }
 }
 
-function parseTransports(raw: string | null): AuthenticatorTransport[] | undefined {
+function parseTransports(
+  raw: string | null,
+): AuthenticatorTransport[] | undefined {
   if (!raw) return undefined;
   return raw.split(',').filter(Boolean) as AuthenticatorTransport[];
 }

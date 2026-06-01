@@ -2,12 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { assertProductionSecurityConfig } from './bootstrap/assert-production-security';
 import { logProductionWarnings } from './bootstrap/log-production-warnings';
 import { resolveCorsOrigins } from './bootstrap/cors-origins';
 import { ThrottlerExceptionPtFilter } from './common/filters/throttler-pt.filter';
 import { createAppValidationPipe } from './common/validation/validation-pipe.factory';
 
 async function bootstrap() {
+  assertProductionSecurityConfig();
   logProductionWarnings();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const trustProxyHop = Number.parseInt(process.env.TRUST_PROXY ?? '0', 10);

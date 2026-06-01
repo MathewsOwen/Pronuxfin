@@ -1,11 +1,12 @@
-import { IsObject, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class WebAuthnRegisterVerifyDto {
-  @IsString()
-  @MinLength(8)
-  @MaxLength(64)
-  userId!: string;
-
   @IsString()
   @MinLength(8)
   @MaxLength(64)

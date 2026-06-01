@@ -19,10 +19,8 @@ import { LogoutDto } from './dto/logout.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { WebAuthnListDto } from './dto/webauthn-list.dto';
 import { WebAuthnLoginOptionsDto } from './dto/webauthn-login-options.dto';
 import { WebAuthnLoginVerifyDto } from './dto/webauthn-login-verify.dto';
-import { WebAuthnRegisterOptionsDto } from './dto/webauthn-register-options.dto';
 import { WebAuthnRegisterVerifyDto } from './dto/webauthn-register-verify.dto';
 import { WebAuthnRemoveDto } from './dto/webauthn-remove.dto';
 import { WebAuthnService } from './webauthn.service';
@@ -78,7 +76,10 @@ export class AuthController {
 
   @Throttle({ default: { limit: 40, ttl: 60_000 } })
   @Post('webauthn/login/verify')
-  webauthnLoginVerify(@Body() dto: WebAuthnLoginVerifyDto, @Req() req: Request) {
+  webauthnLoginVerify(
+    @Body() dto: WebAuthnLoginVerifyDto,
+    @Req() req: Request,
+  ) {
     return this.auth.webauthnLoginVerify(
       dto.challengeId,
       dto.response as never,
@@ -89,18 +90,32 @@ export class AuthController {
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('webauthn/register/options')
-  webauthnRegisterOptions(@Body() dto: WebAuthnRegisterOptionsDto) {
-    return this.webauthn.registrationOptions(dto.userId, dto.email);
+  @UseGuards(AuthGuard('jwt'))
+  async webauthnRegisterOptions(@CurrentUser() user: RequestUser) {
+    const record = await this.users.findById(user.userId);
+    if (!record) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.UNAUTHORIZED,
+          message: 'Session invalid.',
+          code: 'AUTH_SESSION_INVALID',
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+    return this.webauthn.registrationOptions(user.userId, record.email);
   }
 
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Post('webauthn/register/verify')
+  @UseGuards(AuthGuard('jwt'))
   webauthnRegisterVerify(
+    @CurrentUser() user: RequestUser,
     @Body() dto: WebAuthnRegisterVerifyDto,
     @Req() req: Request,
   ) {
     return this.webauthn.verifyRegistration(
-      dto.userId,
+      user.userId,
       dto.challengeId,
       dto.response as never,
       dto.friendlyName,
@@ -109,16 +124,18 @@ export class AuthController {
   }
 
   @Post('webauthn/list')
-  webauthnList(@Body() dto: WebAuthnListDto) {
-    return this.webauthn.listCredentials(dto.userId);
+  @UseGuards(AuthGuard('jwt'))
+  webauthnList(@CurrentUser() user: RequestUser) {
+    return this.webauthn.listCredentials(user.userId);
   }
 
   @Post('webauthn/remove')
-  webauthnRemove(@Body() dto: WebAuthnRemoveDto, @Req() req: Request) {
-    return this.webauthn.removeCredential(
-      dto.userId,
-      dto.credentialId,
-    );
+  @UseGuards(AuthGuard('jwt'))
+  webauthnRemove(
+    @CurrentUser() user: RequestUser,
+    @Body() dto: WebAuthnRemoveDto,
+  ) {
+    return this.webauthn.removeCredential(user.userId, dto.credentialId);
   }
 
   /** Rotaciona o refresh token e emite um novo par access/refresh. */
