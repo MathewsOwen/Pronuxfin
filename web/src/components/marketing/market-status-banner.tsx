@@ -8,16 +8,26 @@ export async function MarketStatusBanner() {
   const caps = evaluateMarketCapabilities();
 
   const issues: string[] = [];
-  if (!caps.brapi.configured) issues.push(t("missingBrapi"));
-  if (!caps.fmp.configured) issues.push(t("missingFmp"));
+  // Chaves de mercado ausentes: aviso só para operador (dev ou flag explícita).
+  const showOperatorHints =
+    process.env.NODE_ENV !== "production" ||
+    process.env.SHOW_MARKET_STATUS === "1";
+
+  if (showOperatorHints) {
+    if (!caps.brapi.configured) issues.push(t("missingBrapi"));
+    if (!caps.fmp.configured) issues.push(t("missingFmp"));
+  }
   if (caps.simulationAllowed) issues.push(t("simulationOn"));
 
   if (issues.length === 0) return null;
 
   const showInDev = process.env.SHOW_MARKET_STATUS === "1";
-  if (process.env.NODE_ENV !== "production" && !showInDev) return null;
+  if (process.env.NODE_ENV !== "production" && !showInDev && !caps.simulationAllowed) {
+    return null;
+  }
 
-  const partial = caps.brapi.configured || caps.fmp.configured;
+  const partial =
+    showOperatorHints && (caps.brapi.configured || caps.fmp.configured);
 
   return (
     <div

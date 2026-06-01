@@ -40,6 +40,9 @@ export function buildContentSecurityPolicy(opts: {
   const scriptParts = ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'"];
   if (!isProd) {
     scriptParts.push("'wasm-unsafe-eval'", "'unsafe-eval'");
+  } else {
+    // Three.js / WebGL (intro 3D e fundo ambiente)
+    scriptParts.push("'wasm-unsafe-eval'");
   }
 
   const scriptHosts =

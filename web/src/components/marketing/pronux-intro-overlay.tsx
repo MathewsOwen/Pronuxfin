@@ -33,7 +33,18 @@ const IntroLogoReveal = dynamic(
   { ssr: false },
 );
 
-const INTRO_SEEN_KEY = "pronux-intro-seen";
+const INTRO_SEEN_KEY = "pronux-intro-seen-v3";
+
+function wantsIntro(): boolean {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("intro") === "1" || params.get("intro") === "reset") return true;
+    if (params.get("intro") === "0") return false;
+  } catch {
+    /* ignore */
+  }
+  return !hasSeenIntro();
+}
 
 function hasSeenIntro(): boolean {
   try {
@@ -156,7 +167,7 @@ export function PronuxIntroOverlay() {
 
   useLayoutEffect(() => {
     setClientReady(true);
-    if (hasSeenIntro()) {
+    if (!wantsIntro()) {
       syncIntroHtmlLock(false);
       return;
     }
