@@ -25,6 +25,7 @@ describe("fetchWithTimeout", () => {
 
     const promise = fetchWithTimeout("https://example.com", undefined, {
       timeoutMs: 5_000,
+      ssrfGuard: false,
     });
     await vi.runAllTimersAsync();
     const res = await promise;
@@ -46,6 +47,7 @@ describe("fetchWithTimeout", () => {
     const promise = fetchWithTimeout("https://example.com", undefined, {
       timeoutMs: 100,
       label: "market",
+      ssrfGuard: false,
     });
     const assertion = expect(promise).rejects.toBeInstanceOf(FetchTimeoutError);
     await vi.advanceTimersByTimeAsync(150);

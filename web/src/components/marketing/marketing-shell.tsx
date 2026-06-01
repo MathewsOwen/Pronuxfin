@@ -1,6 +1,6 @@
 import { AmbientBackdrop } from "@/components/marketing/ambient-backdrop";
 import { PageEnter } from "@/components/marketing/page-enter";
-import { SiteFooter } from "@/components/marketing/landing-sections";
+import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeaderShell } from "@/components/marketing/site-header-shell";
 import { LiveMarketStrip } from "@/components/market/live-market-strip";
 import { MarketSessionBar } from "@/components/market/market-session-bar";
@@ -14,15 +14,18 @@ export function MarketingShell({
   children,
   ticker = false,
   showLanguageSwitcher = false,
+  /** `css` = fallback leve; `webgl` = buraco negro (padrão). */
+  ambient = "webgl",
 }: {
   children: React.ReactNode;
   /** Faixa de cotações estilo mesa — reforça “ao vivo” sem poluir todas as rotas. */
   ticker?: boolean;
   showLanguageSwitcher?: boolean;
+  ambient?: "css" | "webgl";
 }) {
   return (
     <>
-      <AmbientBackdrop />
+      <AmbientBackdrop mode={ambient} />
       <div id="marketing-shell" className="relative flex min-h-screen flex-col">
         <SiteHeaderShell showLanguageSwitcher={showLanguageSwitcher} />
         {ticker ? (

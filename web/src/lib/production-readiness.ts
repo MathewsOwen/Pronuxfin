@@ -1,5 +1,6 @@
 import { isProductionRuntime } from "@/lib/env/server-env";
 import { evaluateWebReadiness } from "@/lib/health/web-readiness";
+import { listEnginesFromEnv } from "@/lib/market/market-ai-providers";
 import {
   hasPublicSiteUrlConfigured,
   publicSiteUrlReadinessDetail,
@@ -68,6 +69,65 @@ function toReadinessChecks(
       key: "database_configured",
       ok: c.database_configured,
       detail: c.database_configured ? "configured" : "missing DATABASE_URL",
+      severity: "critical",
+    },
+    {
+      key: "internal_api_secret",
+      ok: (process.env.INTERNAL_API_SECRET?.trim().length ?? 0) >= 32,
+      detail:
+        (process.env.INTERNAL_API_SECRET?.trim().length ?? 0) >= 32
+          ? "configured"
+          : "missing INTERNAL_API_SECRET (≥32 chars)",
+      severity: "critical",
+    },
+    {
+      key: "jwt_rs256",
+      ok:
+        process.env.JWT_ALGORITHM?.trim().toUpperCase() === "RS256" &&
+        (process.env.JWT_PUBLIC_KEY?.includes("BEGIN PUBLIC KEY") ?? false),
+      detail:
+        process.env.JWT_ALGORITHM?.trim().toUpperCase() === "RS256"
+          ? "RS256 configured"
+          : "JWT_ALGORITHM=RS256 required in production",
+      severity: "critical",
+    },
+    {
+      key: "cookie_samesite_strict",
+      ok: process.env.COOKIE_SAMESITE_STRICT?.trim() === "1",
+      detail:
+        process.env.COOKIE_SAMESITE_STRICT?.trim() === "1"
+          ? "strict cookies enabled"
+          : "set COOKIE_SAMESITE_STRICT=1",
+      severity: "critical",
+    },
+    {
+      key: "ai_keys_encryption",
+      ok: (process.env.AI_KEYS_ENCRYPTION_KEY?.trim().length ?? 0) === 64,
+      detail:
+        (process.env.AI_KEYS_ENCRYPTION_KEY?.trim().length ?? 0) === 64
+          ? "configured"
+          : "missing AI_KEYS_ENCRYPTION_KEY (64 hex chars)",
+      severity: "critical",
+    },
+    {
+      key: "webauthn_production",
+      ok:
+        !!process.env.WEBAUTHN_RP_ID?.trim() &&
+        !!process.env.WEBAUTHN_ORIGIN?.trim()?.startsWith("https://") &&
+        !process.env.WEBAUTHN_ORIGIN?.trim()?.endsWith("/"),
+      detail:
+        process.env.WEBAUTHN_RP_ID?.trim() && process.env.WEBAUTHN_ORIGIN?.trim()
+          ? "configured"
+          : "set WEBAUTHN_RP_ID + WEBAUTHN_ORIGIN",
+      severity: "critical",
+    },
+    {
+      key: "market_ai_engine",
+      ok: listEnginesFromEnv().length > 0,
+      detail:
+        listEnginesFromEnv().length > 0
+          ? "configured"
+          : "set OPENAI_API_KEY, GEMINI_API_KEY, or PRONUX_MARKET_AI_OLLAMA_ORIGIN",
       severity: "critical",
     },
     {

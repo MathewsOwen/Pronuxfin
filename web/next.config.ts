@@ -38,11 +38,13 @@ const nextConfig: NextConfig = {
         value: "camera=(), microphone=(), geolocation=()",
       },
       { key: "Cross-Origin-Resource-Policy", value: "same-site" },
+      { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+      { key: "Origin-Agent-Cluster", value: "?1" },
     ];
     if (process.env.NODE_ENV === "production") {
       base.push({
         key: "Strict-Transport-Security",
-        value: "max-age=31536000; includeSubDomains",
+        value: "max-age=63072000; includeSubDomains; preload",
       });
       base.push({
         key: "Cross-Origin-Opener-Policy",

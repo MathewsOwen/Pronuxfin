@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   const forwarded = await forwardAuthPostMerge(
     req,
     "/auth/webauthn/register/verify",
-    { userId: session.userId },
+    {},
   );
   if (isForwardAuthError(forwarded)) {
     return attachRequestId(req, forwarded.error);

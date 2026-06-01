@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { readAuthCookieValue } from "@/lib/auth/auth-cookie-names";
-import { verifyAccessJwt } from "@/lib/auth/jwt-crypto";
+import { validateAccessToken } from "@/lib/auth/validate-access-session";
 import { isJwtSecretConfigured } from "@/lib/env/server-env";
 import { fetchAggregatedNews } from "@/lib/market/fetch-news";
 import { AI_CHANNEL_IDS_ZOD, type AiChannelId } from "@/lib/assistant/ai-channels";
@@ -23,13 +23,12 @@ import {
 } from "@/lib/market/market-ai-providers";
 import { loadQuotesPayload } from "@/lib/market/load-quotes-payload";
 import {
-  demoMarketReply,
-  remoteModelFailureSuffix,
   summarizeQuotesForAi,
 } from "@/lib/market/market-ai-context";
 import { loadDecryptedAiKeys } from "@/lib/user-ai-keys/load";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
-import { allowWithinWindow } from "@/lib/security/simple-rate-limit";
+import { consumeRateLimit } from "@/lib/security/distributed-rate-limit";
+import { readRequestJson } from "@/lib/http/read-json-body";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,6 +59,8 @@ const HTTP_MSG: Record<
     body400: string;
     json400: string;
     rate429: string;
+    noEngine503: string;
+    model503: string;
   }
 > = {
   "pt-BR": {
@@ -70,6 +71,10 @@ const HTTP_MSG: Record<
       "Formato inválido: envie JSON com messages[], opcionalmente audience, channel, engine e locale.",
     json400: "JSON inválido no corpo.",
     rate429: "Muitos pedidos à IA de mercado. Aguarde um minuto e tente de novo.",
+    noEngine503:
+      "Nenhum motor de IA está configurado. Defina OPENAI_API_KEY, GEMINI_API_KEY ou Ollama no servidor, ou guarde chaves BYOK no perfil.",
+    model503:
+      "Os motores de IA configurados não responderam. Tente outro motor ou verifique chaves e quotas.",
   },
   en: {
     jwt503: "Cannot authenticate users — JWT_SECRET is missing on this server.",
@@ -78,6 +83,10 @@ const HTTP_MSG: Record<
       "Invalid payload: JSON must include messages[], optional audience, channel, engine, locale.",
     json400: "Invalid JSON payload.",
     rate429: "Too many market AI requests. Wait a minute and try again.",
+    noEngine503:
+      "No AI engine is configured. Set OPENAI_API_KEY, GEMINI_API_KEY, or Ollama on the server, or save BYOK keys in your profile.",
+    model503:
+      "Configured AI engines did not respond. Try another engine or check keys and quotas.",
   },
 };
 
@@ -122,8 +131,8 @@ async function assertSession(
     );
   }
 
-  const payload = await verifyAccessJwt(token);
-  if (!payload) {
+  const session = await validateAccessToken(token);
+  if (!session) {
     return NextResponse.json(
       {
         ok: false as const,
@@ -156,20 +165,26 @@ export async function POST(req: Request) {
 
   const al = req.headers.get("accept-language");
 
-  let rawUnknown: unknown;
-  try {
-    rawUnknown = await req.json();
-  } catch {
+  const parsedJson = await readRequestJson(req);
+  if (!parsedJson.ok) {
     const loc = normalizeAiLocale(undefined, al);
     return NextResponse.json(
       {
         ok: false as const,
-        code: "MARKET_AI_JSON_INVALID",
-        message: HTTP_MSG[loc].json400,
+        code:
+          parsedJson.response.status === 413
+            ? "MARKET_AI_BODY_TOO_LARGE"
+            : "MARKET_AI_JSON_INVALID",
+        message:
+          parsedJson.response.status === 413
+            ? "Request body too large."
+            : HTTP_MSG[loc].json400,
       },
-      { status: 400 },
+      { status: parsedJson.response.status },
     );
   }
+
+  const rawUnknown = parsedJson.value;
 
   const localeGuess = normalizeAiLocale(
     typeof rawUnknown === "object" &&
@@ -224,20 +239,36 @@ export async function POST(req: Request) {
   }));
 
   const userId = await getSessionUserId();
-  if (
-    userId &&
-    !allowWithinWindow(`market-ai:user:${userId}`, 12, 60_000)
-  ) {
+  if (userId) {
+    const limited = await consumeRateLimit(
+      `market-ai:user:${userId}`,
+      12,
+      60_000,
+      { failClosed: true },
+    );
+    if (!limited.ok) {
+      return NextResponse.json(
+        {
+          ok: false as const,
+          code: "MARKET_AI_RATE_LIMITED",
+          message: HTTP_MSG[locale].rate429,
+        },
+        { status: 429 },
+      );
+    }
+  }
+  const configured = await listEnginesForUser(userId);
+  if (configured.length === 0) {
     return NextResponse.json(
       {
         ok: false as const,
-        code: "MARKET_AI_RATE_LIMITED",
-        message: HTTP_MSG[locale].rate429,
+        code: "MARKET_AI_NO_ENGINE",
+        message: HTTP_MSG[locale].noEngine503,
       },
-      { status: 429 },
+      { status: 503 },
     );
   }
-  const configured = await listEnginesForUser(userId);
+
   const lastUser =
     [...clipped].reverse().find((m) => m.role === "user")?.content ?? "";
   const tryOrder = resolveMarketAiEngineTryOrder({
@@ -282,7 +313,6 @@ export async function POST(req: Request) {
       if (panel) {
         return NextResponse.json({
           ok: true as const,
-          demo: false as const,
           reply: panel.reply,
           ensemble: true as const,
           segments: panel.segments.map((s) => ({
@@ -305,7 +335,6 @@ export async function POST(req: Request) {
       if (out) {
         return NextResponse.json({
           ok: true as const,
-          demo: false as const,
           reply: out.text,
           provider: out.provider,
           engine: engineId,
@@ -313,15 +342,22 @@ export async function POST(req: Request) {
       }
     }
 
-    const reply = demoMarketReply(lastUser, marketBlock, locale);
-    return NextResponse.json({ ok: true as const, demo: true as const, reply });
+    return NextResponse.json(
+      {
+        ok: false as const,
+        code: "MARKET_AI_MODEL_UNAVAILABLE",
+        message: HTTP_MSG[locale].model503,
+      },
+      { status: 503 },
+    );
   } catch {
-    const reply = `${demoMarketReply(lastUser, marketBlock, locale)}\n\n(${remoteModelFailureSuffix(locale)})`;
-
-    return NextResponse.json({
-      ok: true as const,
-      demo: true as const,
-      reply,
-    });
+    return NextResponse.json(
+      {
+        ok: false as const,
+        code: "MARKET_AI_MODEL_UNAVAILABLE",
+        message: HTTP_MSG[locale].model503,
+      },
+      { status: 503 },
+    );
   }
 }

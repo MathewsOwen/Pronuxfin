@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
-import { sessionUserFromJwt } from "@/lib/auth/jwt-session";
 import { readAuthCookieValue } from "@/lib/auth/auth-cookie-names";
+import { sessionUserFromJwt } from "@/lib/auth/jwt-session";
+import { validateAccessToken } from "@/lib/auth/validate-access-session";
 import { internalApiHeaders } from "@/lib/http/internal-api-headers";
 
 export async function getSessionToken(): Promise<string | undefined> {
@@ -18,9 +19,13 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
   const token = await getSessionToken();
   if (!token) return null;
 
-  const jwtUser = await sessionUserFromJwt(token);
+  const validated = await validateAccessToken(token);
+  if (!validated) return null;
+
   const apiUrl = process.env.API_URL?.trim();
-  if (!apiUrl) return jwtUser;
+  if (!apiUrl) {
+    return sessionUserFromJwt(token);
+  }
 
   try {
     const res = await fetch(`${apiUrl.replace(/\/+$/, "")}/auth/me`, {
@@ -38,8 +43,8 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
       };
     }
   } catch {
-    /* API indisponível — mantém sessão via JWT para não derrubar abas públicas */
+    /* API indisponível */
   }
 
-  return jwtUser;
+  return null;
 }

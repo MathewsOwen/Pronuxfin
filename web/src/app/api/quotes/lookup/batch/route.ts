@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -6,7 +5,7 @@ import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { lookupSymbolQuotesBatch } from "@/lib/market/lookup-symbol-quotes-batch";
 import { parseZodBody } from "@/lib/http/parse-zod-body";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
-import { allowWithinWindow } from "@/lib/security/simple-rate-limit";
+import { consumeRateLimit } from "@/lib/security/distributed-rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -25,14 +24,20 @@ export async function POST(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
 
-  const h = await headers();
-  const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const rip = forwarded || h.get("x-real-ip")?.trim() || "unknown";
-  const rateKey = `quotes-lookup-batch:${session.userId}:${rip}`;
-
-  if (!allowWithinWindow(rateKey, LOOKUP_MAX_PER_WINDOW, LOOKUP_WINDOW_MS)) {
+  const rateKey = `quotes-lookup-batch:${session.userId}`;
+  const limited = await consumeRateLimit(
+    rateKey,
+    LOOKUP_MAX_PER_WINDOW,
+    LOOKUP_WINDOW_MS,
+    { failClosed: true },
+  );
+  if (!limited.ok) {
     return NextResponse.json(
-      { ok: false as const, error: "rate_limited", retryAfterSec: 60 },
+      {
+        ok: false as const,
+        error: "rate_limited",
+        retryAfterSec: limited.retryAfterSec,
+      },
       { status: 429 },
     );
   }

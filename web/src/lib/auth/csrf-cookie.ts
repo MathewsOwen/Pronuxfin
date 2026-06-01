@@ -1,7 +1,10 @@
 import type { NextResponse } from "next/server";
 
 import { secureAuthCookie } from "@/lib/auth/cookie-settings";
-import { CSRF_COOKIE_NAME, generateCsrfToken } from "@/lib/security/csrf";
+import {
+  CSRF_COOKIE_NAME,
+  generateCsrfToken,
+} from "@/lib/security/csrf-constants";
 
 const CSRF_MAX_AGE_SEC = 60 * 60 * 24 * 7;
 

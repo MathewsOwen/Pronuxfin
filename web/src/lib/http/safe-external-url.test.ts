@@ -12,6 +12,11 @@ describe("safeExternalUrl", () => {
     expect(safeExternalUrl("javascript:alert(1)")).toBeNull();
   });
 
+  it("blocks private IP literals", () => {
+    expect(safeExternalUrl("http://127.0.0.1/")).toBeNull();
+    expect(safeExternalUrl("http://169.254.169.254/")).toBeNull();
+  });
+
   it("adds https when missing", () => {
     expect(safeExternalUrl("example.com")).toBe("https://example.com/");
   });

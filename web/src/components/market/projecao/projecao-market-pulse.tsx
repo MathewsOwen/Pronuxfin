@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Activity, RefreshCw } from "lucide-react";
+import { useQuotesRefresh, useQuotesStream } from "@/components/market/quotes-stream-provider";
 import { INDEX_PROXY_LABELS } from "@/lib/market/indices";
 import type { QuoteSnapshot, QuotesPayload } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
@@ -19,34 +20,11 @@ type PulseRow = {
 export function ProjecaoMarketPulse() {
   const t = useTranslations("ProjecaoHub.pulse");
   const locale = useLocale();
-  const [payload, setPayload] = useState<QuotesPayload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const payload = useQuotesStream();
+  const refresh = useQuotesRefresh();
+  const loading = payload.fetchedAt === 0;
 
-  async function load() {
-    setLoading(true);
-    setError(false);
-    try {
-      const res = await fetch("/api/quotes", { cache: "no-store" });
-      if (!res.ok) throw new Error("quotes");
-      const json = (await res.json()) as QuotesPayload;
-      setPayload(json);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    // Carregamento inicial + polling de cotações.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void load();
-    const id = setInterval(() => void load(), 60_000);
-    return () => clearInterval(id);
-  }, []);
-
-  const rows = resolvePulseRows(payload);
+  const rows = useMemo(() => resolvePulseRows(payload), [payload]);
 
   return (
     <section className="surface-rise card-shine rounded-2xl border border-white/10 bg-black/25 p-6">
@@ -60,7 +38,7 @@ export function ProjecaoMarketPulse() {
         </div>
         <button
           type="button"
-          onClick={() => void load()}
+          onClick={() => void refresh()}
           disabled={loading}
           className="inline-flex items-center gap-2 rounded-lg border border-white/12 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground disabled:opacity-50"
         >
@@ -69,25 +47,21 @@ export function ProjecaoMarketPulse() {
         </button>
       </div>
 
-      {error ? (
-        <p className="mt-4 text-sm text-market-down">{t("error")}</p>
-      ) : (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {rows.map((item) => (
-            <PulseCard key={item.symbol} item={item} locale={locale} noQuoteLabel={t("noQuote")} />
-          ))}
-        </div>
-      )}
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {rows.map((item) => (
+          <PulseCard key={item.symbol} item={item} locale={locale} noQuoteLabel={t("noQuote")} />
+        ))}
+      </div>
 
       <p className="mt-4 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-        {payload?.fetchedAt
+        {payload.fetchedAt
           ? t("synced", {
               time: new Intl.DateTimeFormat(locale, { timeStyle: "medium" }).format(
                 new Date(payload.fetchedAt),
               ),
             })
           : t("syncPending")}
-        {payload?.dataMode === "degraded" ? ` · ${t("unavailable")}` : ""}
+        {payload.dataMode === "degraded" ? ` · ${t("unavailable")}` : ""}
       </p>
     </section>
   );

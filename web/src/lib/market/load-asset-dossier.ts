@@ -14,11 +14,6 @@ import {
 } from "@/lib/market/asset-dossier-sector-peers";
 import { getAssetReferenceProfile } from "@/lib/market/asset-reference-profiles";
 import {
-  simulatedB3EquitiesForSymbols,
-  simulatedIntlEquitiesForSymbols,
-} from "@/lib/market/equities-sim";
-import { shouldUseSimulatedMarketData } from "@/lib/market/market-data-policy";
-import {
   fetchIntlCompanyProfileFromFmp,
   fetchIntlKeyMetricsTtmFromFmp,
   fetchIntlLatestAnnualStatementsFromFmp,
@@ -266,24 +261,8 @@ async function fetchBrAssetDossier(symbol: string) {
     noteMarketProviderUsage("brapi");
     return output;
   } catch {
-    if (!shouldUseSimulatedMarketData()) {
-      const quote = emptyQuoteSnapshot(symbol, "BRL");
-      return unavailableDossier(quote);
-    }
-    const fallback = simulatedB3EquitiesForSymbols([symbol])[0] ?? emptyQuoteSnapshot(symbol, "BRL");
-    return {
-      quote: fallback,
-      history: buildIndicativeHistory(fallback, "br"),
-      historyMode: "indicative" as const,
-      marketExtras: emptyMarketExtras(),
-      dividendEvents: [],
-      dividendSourceLabel: "PRONUX model",
-      fields: emptyDetailedFields(),
-      profile: null,
-      intlKeyMetricsTtm: null,
-      intlAnnualStatements: null,
-      intlStockPeers: null,
-    };
+    const quote = emptyQuoteSnapshot(symbol, "BRL");
+    return unavailableDossier(quote);
   }
 }
 
@@ -370,38 +349,18 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       intlStockPeers,
     };
   } catch {
-    if (!shouldUseSimulatedMarketData()) {
-      const quote = emptyQuoteSnapshot(symbol, "USD");
-      return {
-        ...unavailableDossier(quote),
-        profile,
-        intlKeyMetricsTtm,
-        intlAnnualStatements,
-        intlStockPeers,
-        dividendEvents: fmpDividends,
-        dividendSourceLabel:
-          fmpDividends.length > 0
-            ? "Financial Modeling Prep · dividend history"
-            : "Yahoo Finance",
-      };
-    }
-    const fallback =
-      simulatedIntlEquitiesForSymbols([symbol])[0] ?? emptyQuoteSnapshot(symbol, "USD");
+    const quote = emptyQuoteSnapshot(symbol, "USD");
     return {
-      quote: fallback,
-      history: buildIndicativeHistory(fallback, "intl"),
-      historyMode: "indicative" as const,
-      marketExtras: emptyMarketExtras(),
-      dividendEvents: fmpDividends,
-      dividendSourceLabel:
-        fmpDividends.length > 0
-          ? "Financial Modeling Prep · dividend history"
-          : "PRONUX model",
-      fields: emptyDetailedFields(),
+      ...unavailableDossier(quote),
       profile,
       intlKeyMetricsTtm,
       intlAnnualStatements,
       intlStockPeers,
+      dividendEvents: fmpDividends,
+      dividendSourceLabel:
+        fmpDividends.length > 0
+          ? "Financial Modeling Prep · dividend history"
+          : "Yahoo Finance",
     };
   }
 }

@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3000",
-    "build": "prisma generate --schema prisma/schema.prisma && next build",
+    "build": "node scripts/check-app-route-collisions.mjs && prisma generate --schema prisma/schema.prisma && next build",
     "vercel-build": "prisma migrate deploy --schema prisma/schema.prisma && npm run build",
     "start": "next start",
+    "routes:check": "node scripts/check-app-route-collisions.mjs",
     "lint": "eslint",
     "lint:ci": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
@@ -15,7 +16,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:install": "playwright install chromium",
-    "csp:check": "node scripts/csp-staging-check.mjs"
+    "csp:check": "node scripts/csp-staging-check.mjs",
+    "security:generate-secrets": "node ../scripts/generate-production-secrets.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

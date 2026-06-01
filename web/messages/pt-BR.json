@@ -27,6 +27,8 @@
     "projecao": "Projeção",
     "news": "Notícias",
     "tools": "Ferramentas",
+    "learn": "Aprenda",
+    "about": "Sobre nós",
     "ia": "IA",
     "benefits": "Por que PRONUX",
     "features": "O que você ganha",
@@ -46,10 +48,20 @@
     "marketCryptoMajorsLink": "Majors em BRL",
     "marketCryptoSectorsLink": "Setores cripto",
     "marketAllDesk": "Abrir mesa completa",
-    "newsChannelEyebrow": "Notícias por canal",
-    "newsChannelHint": "Acesse pela fonte em que você confia — método e menos ruído.",
-    "newsBrLabel": "Brasil",
-    "newsGlobalLabel": "Mundo",
+    "newsChannelEyebrow": "Notícias por mesa",
+    "newsChannelHint": "Brasil com veículos locais; Mundo separado por região com 3 canais confiáveis cada.",
+    "newsDeskBr": "Notícias Brasil",
+    "newsDeskMundo": "Notícias Mundo",
+    "newsDeskBrAll": "Mesa Brasil completa",
+    "newsDeskMundoAll": "Mesa Mundo completa",
+    "newsDeskMundoHint": "América do Norte, América do Sul, Europa, Ásia, Oriente Médio, África e Oceania.",
+    "newsWorldRegion_north_america": "América do Norte",
+    "newsWorldRegion_south_america": "América do Sul",
+    "newsWorldRegion_europe": "Europa",
+    "newsWorldRegion_asia": "Ásia",
+    "newsWorldRegion_middle_east": "Oriente Médio",
+    "newsWorldRegion_africa": "África",
+    "newsWorldRegion_oceania": "Oceania",
     "newsAllSources": "Radar completo · todas"
   },
   "SiteIntro": {
@@ -567,6 +579,7 @@
     "terms": "Termos de uso",
     "product": "Produto",
     "linksFeatures": "Recursos",
+    "linksAbout": "Sobre nós",
     "linksMarket": "Mercado ao vivo",
     "linksNews": "Notícias",
     "linksProjecao": "Projeção & cenários",
@@ -865,6 +878,8 @@
     "chatOfflineMetaEconom": "Vamos rever metas: sugiro reserva de emergência em parcelas e revisão semanal de gastos variáveis.",
     "chatOfflineInvest": "Distribuição ilustrativa: 60% conservador, 25% balanceado, 15% growth — adapto quando houver perfil e dados reais.",
     "chatOfflineGeneric": "Offline: não foi possível falar com o servidor. Verifique a conexão ou tente de novo.",
+    "chatNetworkError": "Não foi possível contactar o assistente. Verifique a ligação e tente novamente.",
+    "chatNoEngineConfigured": "Nenhum motor de IA está disponível. Configure OPENAI_API_KEY, GEMINI_API_KEY ou Ollama no servidor, ou guarde chaves BYOK no perfil.",
     "chatErrorUnknown": "Erro desconhecido.",
     "chatErrorSession401": " Abra uma sessão válida pelo menu do painel (o token pode ter expirado).",
     "chatOllamaFooter": "\n\n— Motor PRONUX: Ollama (/api/chat).",
@@ -934,7 +949,11 @@
     "MARKET_AI_JWT_UNAVAILABLE": "Não foi possível autenticar: configuração do servidor incompleta (JWT_SECRET).",
     "MARKET_AI_SESSION_REQUIRED": "Sessão necessária. Abra novamente pelo menu ou faça login.",
     "MARKET_AI_BODY_INVALID": "Pedido mal formado para a mesa IA. Confira canal, mensagens e tente novamente.",
-    "MARKET_AI_JSON_INVALID": "Corpo JSON inválido nesta chamada ao assistente."
+    "MARKET_AI_JSON_INVALID": "Corpo JSON inválido nesta chamada ao assistente.",
+    "MARKET_AI_BODY_TOO_LARGE": "Pedido demasiado grande para o assistente.",
+    "MARKET_AI_RATE_LIMITED": "Muitos pedidos à IA. Aguarde um minuto e tente novamente.",
+    "MARKET_AI_NO_ENGINE": "Nenhum motor de IA configurado no servidor ou na sua conta.",
+    "MARKET_AI_MODEL_UNAVAILABLE": "O motor de IA não respondeu. Verifique chaves, quotas ou escolha outro motor."
   },
   "Dashboard": {
     "eyebrow": "Resumo inteligente",
@@ -1131,16 +1150,16 @@
       "ogDescription": "O mercado não espera — você também não deveria. Mercados ao vivo com fonte, projeções em cenários, IA disciplinada e painel privado — clareza institucional sem hype."
     },
     "bolsa": {
-      "title": "Mesa de mercados ao vivo",
-      "description": "Cotações da bolsa brasileira e criptoativos em BRL com cadência institucional — referência estável quando o tempo é o ativo mais escasso.",
-      "ogTitle": "Mesa de mercados ao vivo | PRONUXFIN",
-      "ogDescription": "Painel institucional com ações, proxies de índice e cripto — cadência estável (~60 s) onde o cliente consome dados."
+      "title": "Cotações ao vivo — B3, índices e cripto em BRL",
+      "description": "Acompanhe ações brasileiras por setor, blue chips internacionais e criptoativos em reais. Mesa gratuita PRONUXFIN com cadência estável e fonte visível.",
+      "ogTitle": "Cotações ao vivo B3 e cripto | PRONUXFIN",
+      "ogDescription": "Painel gratuito com ações, índices e cripto — leitura institucional sem cadastro."
     },
     "projecao": {
-      "title": "Projeção e cenários",
-      "description": "Simulador patrimonial com faixas pessimista/base/otimista, matriz de sensibilidade, GPS de meta e pulso de mercado ao vivo — mesa quantitativa PRONUXFIN.",
-      "ogTitle": "Projeção e cenários | PRONUXFIN",
-      "ogDescription": "Projete patrimônio, metas e regimes macro com gráficos profissionais e contexto de mercado em tempo real."
+      "title": "Simulador de patrimônio e cenários",
+      "description": "Projete seu patrimônio com faixas pessimista, base e otimista, matriz de sensibilidade e GPS de metas — demo gratuita PRONUXFIN.",
+      "ogTitle": "Simulador de patrimônio e cenários | PRONUXFIN",
+      "ogDescription": "Simule aposentadoria, metas e regimes macro com gráficos profissionais — educação quantitativa, não recomendação."
     },
     "tools": {
       "title": "Ferramentas",
@@ -1149,22 +1168,40 @@
       "ogDescription": "Planeie patrimônio e acompanhe o calendário macro na PRONUXFIN."
     },
     "compound": {
-      "title": "Calculadora de juros compostos",
-      "description": "Simule aportes mensais e taxa anual — educação financeira PRONUXFIN.",
-      "ogTitle": "Juros compostos | PRONUXFIN",
-      "ogDescription": "Projeção de patrimônio com gráfico — hipótese, não promessa de retorno."
+      "title": "Calculadora de juros compostos grátis",
+      "description": "Simule quanto seu dinheiro rende com juros compostos: capital inicial, aportes mensais e taxa anual. Ferramenta gratuita PRONUXFIN — educação financeira, sem cadastro.",
+      "ogTitle": "Calculadora de juros compostos grátis | PRONUXFIN",
+      "ogDescription": "Projete patrimônio com aportes recorrentes e veja o efeito dos juros compostos ao longo dos anos — hipótese educativa, não promessa de retorno."
     },
     "calendar": {
-      "title": "Calendário econômico",
-      "description": "Eventos do dia no Brasil e no mundo — macro, política e resultados.",
-      "ogTitle": "Calendário | PRONUXFIN",
-      "ogDescription": "Agenda de mercado com filtros e impacto estimado."
+      "title": "Calendário econômico Brasil e mundo",
+      "description": "Agenda macro gratuita: COPOM, IPCA, payroll, PIB e resultados corporativos. Filtros por impacto e país — PRONUXFIN.",
+      "ogTitle": "Calendário econômico | PRONUXFIN",
+      "ogDescription": "Eventos macro do dia e da semana com contexto para investidores — Brasil e exterior."
     },
     "noticias": {
-      "title": "Notícias financeiras ao vivo",
-      "description": "Radar PRONUXFIN: agregação de RSS de veículos reconhecidos — atualização frequente, fonte sempre visível.",
+      "title": "Notícias financeiras — radar Brasil e mundo",
+      "description": "Agregador gratuito de manchetes financeiras com fonte sempre visível. Brasil, América, Europa, Ásia e mais — PRONUXFIN.",
       "ogTitle": "Notícias financeiras ao vivo | PRONUXFIN",
-      "ogDescription": "Menos ruído, mais contexto. Manchetes e fluxo contínuo para quem leva educação financeira a sério."
+      "ogDescription": "Radar de notícias com veículos reconhecidos — menos ruído, mais contexto para quem acompanha mercados."
+    },
+    "learn": {
+      "title": "Aprenda finanças e investimentos",
+      "description": "Guias práticos, glossário e ferramentas gratuitas — educação financeira clara, sem hype e sem recomendação de ativos.",
+      "ogTitle": "Aprenda | PRONUXFIN",
+      "ogDescription": "Artigos, glossário e simuladores para entender juros compostos, CDI, Selic, COPOM e mais."
+    },
+    "glossary": {
+      "title": "Glossário financeiro",
+      "description": "Significado de CDI, Selic, IPCA, ticker, dividend yield e outros termos essenciais — PRONUXFIN.",
+      "ogTitle": "Glossário financeiro | PRONUXFIN",
+      "ogDescription": "Definições claras para investidores iniciantes e intermediários — educação, não assessoria."
+    },
+    "about": {
+      "title": "Sobre nós",
+      "description": "A jornada da PRONUXFIN: um sonho de clareza financeira, infraestrutura cognitiva e planos para democratizar a mesa institucional.",
+      "ogTitle": "Sobre nós | PRONUXFIN",
+      "ogDescription": "Conheça a origem, os objetivos e a visão de futuro da PRONUXFIN — mercados, finanças pessoais e educação numa mesma mesa."
     },
     "forgot": {
       "title": "Recuperar senha",
@@ -1186,6 +1223,504 @@
       "title": "Criar conta",
       "description": "Cadastro PRONUXFIN em segundos — validação em camadas e acesso imediato ao painel."
     }
+  },
+  "DeskSeo": {
+    "bolsa": {
+      "eyebrow": "Mercado ao vivo",
+      "title": "Cotações da B3, índices e cripto em tempo útil",
+      "lead": "Mesa gratuita para acompanhar ações brasileiras por setor, proxies de índice e criptoativos cotados em reais — com cadência estável e indicação clara de quando os dados estão ao vivo ou em modo degradado.",
+      "bullets": [
+        "Setores B3 e blue chips internacionais num único painel",
+        "Cripto majors e cestas temáticas em BRL",
+        "Sem cadastro para consultar — conta grátis desbloqueia carteira e alertas"
+      ]
+    },
+    "noticias": {
+      "eyebrow": "Radar de notícias",
+      "title": "Notícias financeiras com fonte visível",
+      "lead": "Agregamos manchetes de veículos reconhecidos do Brasil e do mundo. Cada link abre a matéria original — aqui você filtra por região e canal, não recebe opinião disfarçada de notícia.",
+      "bullets": [
+        "Mesa Brasil com veículos locais; Mundo separado por região",
+        "Atualização frequente via RSS — fonte sempre indicada",
+        "Complemento ideal à mesa de cotações e ao calendário macro"
+      ]
+    }
+  },
+  "LearnTools": {
+    "compound": {
+      "eyebrow": "Ferramenta gratuita",
+      "pageTitle": "Calculadora de juros compostos",
+      "pageLead": "Simule capital inicial, aportes mensais, taxa anual e prazo para ver como os juros compostos aceleram seu patrimônio ao longo do tempo — resultado ilustrativo, sem impostos nem inflação.",
+      "guideTitle": "Por que usar uma calculadora de juros compostos?",
+      "guideP1": "Juros compostos fazem o rendimento incidir sobre o montante acumulado — é o mecanismo por trás de investimentos de longo prazo, previdência privada e metas de independência financeira.",
+      "guideP2": "Ajuste aportes e taxa para comparar cenários conservadores e otimistas. Guarde até três simulações no navegador ou crie conta grátis para sincronizar na PRONUXFIN.",
+      "guideLinkLead": "Quer entender a lógica por trás da fórmula?",
+      "guideLinkLabel": "Leia o guia completo de juros compostos",
+      "faqEyebrow": "Dúvidas frequentes",
+      "faqTitle": "Perguntas sobre juros compostos",
+      "faqLead": "Respostas objetivas para quem está simulando pela primeira vez.",
+      "faqCta": "Criar conta grátis e salvar cenários",
+      "faq": {
+        "items": {
+          "what": {
+            "q": "O que são juros compostos?",
+            "a": "São juros calculados sobre o capital inicial mais os juros acumulados de períodos anteriores. Por isso o crescimento tende a acelerar com o tempo quando a taxa é positiva."
+          },
+          "formula": {
+            "q": "Como a calculadora faz a conta?",
+            "a": "Aplicamos aportes periódicos e capitalização mensal com base na taxa anual informada. O gráfico mostra a evolução mês a mês — valores arredondados para facilitar a leitura."
+          },
+          "rate": {
+            "q": "Qual taxa devo usar na simulação?",
+            "a": "Use uma taxa coerente com o tipo de investimento que você quer modelar — por exemplo, CDI ou IPCA+ para renda fixa, ou uma faixa conservadora para carteiras mistas. Não existe taxa “certa” para todos."
+          },
+          "taxes": {
+            "q": "A simulação inclui impostos e inflação?",
+            "a": "Não. O resultado é bruto e nominal. Para comparar com a vida real, desconte IR regressivo, taxas de administração e considere o IPCA separadamente."
+          },
+          "save": {
+            "q": "Preciso de cadastro para usar?",
+            "a": "Não. A calculadora é gratuita e funciona sem login. Com conta PRONUXFIN você sincroniza cenários e acessa projeções patrimoniais mais completas."
+          }
+        }
+      }
+    },
+    "calendar": {
+      "eyebrow": "Agenda macro",
+      "pageTitle": "Calendário econômico",
+      "pageLead": "Veja eventos macro do Brasil e do exterior — reuniões de bancos centrais, indicadores de inflação, emprego, PIB e balanços — com estimativa de impacto e filtros por relevância.",
+      "guideTitle": "Como usar o calendário na sua rotina",
+      "guideP1": "Antes de operar ou rebalancear carteira, confira se há eventos de alto impacto no dia. Volatilidade costuma aumentar em torno de COPOM, payroll americano e IPCA.",
+      "guideLinkLead": "Entenda como o COPOM afeta seus investimentos:",
+      "guideLinkLabel": "guia sobre COPOM e taxa Selic",
+      "faqEyebrow": "Dúvidas frequentes",
+      "faqTitle": "Perguntas sobre o calendário",
+      "faqLead": "O que esperar da agenda macro na PRONUXFIN.",
+      "faqCta": "Criar conta e personalizar alertas",
+      "faq": {
+        "items": {
+          "what": {
+            "q": "O calendário é gratuito?",
+            "a": "Sim. Visitantes veem a agenda macro pública. Usuários logados acessam a versão integrada ao painel, com atalhos para carteira e watchlist."
+          },
+          "copom": {
+            "q": "Quando aparece o COPOM?",
+            "a": "As reuniões do Comitê de Política Monetária do Banco Central constam na agenda com antecedência. Acompanhe também comunicados e atas na imprensa especializada."
+          },
+          "impact": {
+            "q": "O que significa o nível de impacto?",
+            "a": "É uma classificação estimada de quanto o evento pode mover mercados — alto, médio ou baixo. Serve como filtro, não como previsão de preço."
+          },
+          "account": {
+            "q": "Por que fui redirecionado ao entrar logado?",
+            "a": "Contas autenticadas usam o calendário dentro do painel privado, com a mesma base de dados e integração à mesa completa."
+          },
+          "sources": {
+            "q": "De onde vêm os eventos?",
+            "a": "Agregamos dados de provedores macro configurados na plataforma. Quando a fonte está indisponível, indicamos modo degradado em vez de inventar datas."
+          }
+        }
+      }
+    },
+    "projecao": {
+      "faqEyebrow": "Simulador público",
+      "faqTitle": "Perguntas sobre projeção patrimonial",
+      "faqLead": "Como interpretar cenários, faixas e metas na mesa de projeção.",
+      "faqCta": "Criar conta grátis",
+      "faq": {
+        "items": {
+          "what": {
+            "q": "O simulador de patrimônio é gratuito?",
+            "a": "Sim. A demo pública permite ajustar aportes, horizonte e taxas para ver faixas pessimista, base e otimista. Conta grátis guarda metas e integra com carteira simulada."
+          },
+          "scenarios": {
+            "q": "O que são as três faixas de cenário?",
+            "a": "São hipóteses de taxa de retorno anual — conservadora, central e otimista — para visualizar incerteza. Não representam previsão nem recomendação de alocação."
+          },
+          "account": {
+            "q": "Preciso de login para simular?",
+            "a": "Não para experimentar. Login desbloqueia GPS de metas, histórico e integração com alertas da sua mesa privada."
+          },
+          "advice": {
+            "q": "A PRONUXFIN recomenda onde investir com base na projeção?",
+            "a": "Não. A ferramenta é educativa e quantitativa. Decisões de investimento são exclusivamente suas."
+          }
+        }
+      }
+    }
+  },
+  "Learn": {
+    "hub": {
+      "eyebrow": "Educação financeira",
+      "title": "Aprenda finanças com clareza institucional",
+      "lead": "Guias práticos, glossário e ferramentas gratuitas — conteúdo original PRONUXFIN para quem quer entender mercados antes de decidir.",
+      "articlesTitle": "Guias em destaque",
+      "readingMinutes": "{minutes} min de leitura",
+      "glossaryTitle": "Glossário financeiro",
+      "glossaryLead": "Definições curtas dos termos que aparecem na mesa de mercado, nas notícias e nas ferramentas.",
+      "glossaryCta": "Ver glossário completo",
+      "toolsTitle": "Coloque em prática",
+      "toolsLead": "Simule cenários com as ferramentas gratuitas da PRONUXFIN.",
+      "toolsCompound": "Calculadora de juros compostos",
+      "toolsCalendar": "Calendário econômico",
+      "toolsProjecao": "Simulador de patrimônio",
+      "disclaimer": "Conteúdo educativo. PRONUXFIN não presta assessoria de investimentos nem recomenda compra ou venda de ativos.",
+      "breadcrumbHome": "Início",
+      "breadcrumbLearn": "Aprenda",
+      "backToHub": "Voltar para Aprenda"
+    },
+    "glossaryHub": {
+      "eyebrow": "Glossário",
+      "title": "Termos essenciais de finanças e investimentos",
+      "lead": "Consulte definições objetivas de indicadores, produtos e conceitos de mercado — atualizado conforme expandimos a mesa pública.",
+      "backToHub": "Voltar para Aprenda",
+      "backToGlossary": "Voltar para glossário",
+      "termEyebrow": "Definição",
+      "relatedTitle": "Termos relacionados",
+      "disclaimer": "Definições simplificadas para fins educativos. Consulte fontes oficiais e profissionais habilitados para decisões patrimoniais."
+    },
+    "articles": {
+      "juros-compostos-guia": {
+        "eyebrow": "Guia prático",
+        "title": "Como calcular juros compostos na prática",
+        "description": "Entenda a lógica dos juros compostos, como montar aportes mensais e usar simulações realistas — sem promessa de retorno.",
+        "faqTitle": "Perguntas sobre este guia",
+        "toolCtaTitle": "Simule agora",
+        "toolCtaLead": "Use a calculadora gratuita para testar capital inicial, aportes e taxa anual.",
+        "toolCtaButton": "Abrir calculadora",
+        "sections": [
+          {
+            "heading": "O que torna os juros compostos tão poderosos",
+            "paragraphs": [
+              "Em juros simples, o rendimento incide sempre sobre o capital original. Nos juros compostos, cada período acrescenta rendimento sobre o que já foi acumulado — por isso gráficos de longo prazo tendem a curvar para cima quando a taxa é positiva.",
+              "Investidores usam essa lógica para modelar previdência privada, reserva de emergência em produtos pós-fixados e metas de independência financeira."
+            ]
+          },
+          {
+            "heading": "Passo a passo para montar uma simulação",
+            "paragraphs": [
+              "Defina capital inicial realista — pode ser zero se você ainda vai começar. Informe aportes mensais que caibam no orçamento sem comprometer despesas essenciais.",
+              "Escolha uma taxa coerente com o produto modelado: CDI para liquidez diária, IPCA+ para longo prazo indexado, ou uma faixa conservadora para carteiras diversificadas.",
+              "Compare prazos de 5, 10 e 20 anos. Pequenas diferenças na taxa ou nos aportes mudam muito o resultado final."
+            ]
+          },
+          {
+            "heading": "Limites de toda simulação",
+            "paragraphs": [
+              "Calculadoras não preveem crises, mudanças de regra tributária nem comportamento emocional. Inflação, impostos e taxas de administração reduzem o rendimento líquido.",
+              "Use simulações para educação e planejamento — não como garantia de patrimônio futuro."
+            ]
+          }
+        ],
+        "faq": {
+          "items": {
+            "what": {
+              "q": "Qual a diferença entre juros compostos e simples?",
+              "a": "Nos simples, os juros não se acumulam ao principal. Nos compostos, rendimentos passam a gerar novos rendimentos — efeito mais relevante em prazos longos."
+            },
+            "how": {
+              "q": "Com que frequência devo revisar minha simulação?",
+              "a": "Revise quando sua renda, meta ou perfil de risco mudar — ou após eventos macro relevantes (Selic, inflação). Não é necessário ajustar todo mês."
+            },
+            "risk": {
+              "q": "Simular significa que vou ganhar esse valor?",
+              "a": "Não. É uma hipótese matemática. Mercados reais oscilam e produtos têm riscos distintos."
+            }
+          }
+        }
+      },
+      "cdi-selic-ipca": {
+        "eyebrow": "Indicadores",
+        "title": "CDI, Selic e IPCA: diferenças que todo investidor precisa saber",
+        "description": "Três siglas aparecem em todo extrato e relatório de renda fixa. Entenda o papel de cada uma antes de comparar produtos.",
+        "faqTitle": "Perguntas frequentes",
+        "toolCtaTitle": "Compare cenários",
+        "toolCtaLead": "Simule quanto aportes mensais rendem em diferentes taxas.",
+        "toolCtaButton": "Calculadora de juros compostos",
+        "sections": [
+          {
+            "heading": "Selic: a taxa básica de juros",
+            "paragraphs": [
+              "A taxa Selic é definida nas reuniões do COPOM e influencia o custo do crédito e o rendimento de títulos públicos pós-fixados.",
+              "Quando a Selic sobe, renda fixa pós-fixada tende a ficar mais atrativa em relação a risco — mas prazos e liquidez importam tanto quanto a taxa."
+            ]
+          },
+          {
+            "heading": "CDI: referência do mercado interbancário",
+            "paragraphs": [
+              "O CDI acompanha de perto a Selic e serve de benchmark para CDBs, fundos DI e muitos títulos bancários.",
+              "Quando um produto promete “100% do CDI”, significa que replica aproximadamente essa referência antes de impostos e taxas."
+            ]
+          },
+          {
+            "heading": "IPCA: a inflação oficial",
+            "paragraphs": [
+              "O IPCA mede a inflação consumida pelas famílias brasileiras. Títulos IPCA+ pagam uma taxa real acima da inflação — úteis para metas de longuíssimo prazo.",
+              "Comparar apenas “% ao ano” entre produtos prefixados, pós-fixados e indexados à inflação pode distorcer a leitura. Sempre olhe prazo, liquidez, risco de crédito e tributação."
+            ]
+          }
+        ],
+        "faq": {
+          "items": {
+            "what": {
+              "q": "CDI e Selic são a mesma coisa?",
+              "a": "Não são idênticos, mas caminham juntos. Na prática, muitos investidores usam CDI como proxy de renda fixa pós-fixada de curto prazo."
+            },
+            "how": {
+              "q": "Devo escolher só produtos atrelados ao CDI?",
+              "a": "Depende do objetivo e prazo. Reserva de emergência pede liquidez; aposentadoria pode combinar IPCA+ e outros ativos conforme seu plano — de preferência com profissional habilitado."
+            },
+            "risk": {
+              "q": "IPCA alto é sempre ruim para investimentos?",
+              "a": "IPCA alto corrói poder de compra de caixa parado. Para quem já tem títulos IPCA+, parte do efeito é compensada pela indexação — mas alocação importa."
+            }
+          }
+        }
+      },
+      "copom-e-investimentos": {
+        "eyebrow": "Macro Brasil",
+        "title": "COPOM e investimentos: o que muda quando a Selic move",
+        "description": "Reuniões do Banco Central mexem em crédito, renda fixa e humor da bolsa. Saiba o que observar sem reagir no impulso.",
+        "faqTitle": "Perguntas sobre COPOM",
+        "toolCtaTitle": "Veja a agenda",
+        "toolCtaLead": "Confira datas de COPOM e outros eventos macro no calendário.",
+        "toolCtaButton": "Calendário econômico",
+        "sections": [
+          {
+            "heading": "O que é o COPOM",
+            "paragraphs": [
+              "O Comitê de Política Monetária (COPOM) define a meta da taxa Selic em reuniões periódicas. Comunicado e ata trazem sinalizações sobre inflação, emprego e crédito.",
+              "Investidores acompanham o COPOM porque juros influenciam diretamente títulos públicos, financiamentos e, indiretamente, ações e câmbio."
+            ]
+          },
+          {
+            "heading": "Efeitos típicos em renda fixa e bolsa",
+            "paragraphs": [
+              "Selic em alta costuma favorecer comparativamente títulos pós-fixados e reduzir appetit por risco em alguns momentos. Selic em queda pode antecipar melhor ambiente para ativos de maior volatilidade — mas setores respondem de formas distintas.",
+              "Não existe reação mecânica: contexto global, fiscal e resultados corporativos também pesam."
+            ]
+          },
+          {
+            "heading": "Como se preparar sem tentar adivinhar o resultado",
+            "paragraphs": [
+              "Use o calendário macro para saber quando há evento de alto impacto. Evite concentração excessiva em um único cenário de juros.",
+              "Planejamento de longo prazo raramente deve ser alterado por uma única reunião — salvo mudança estrutural na sua vida financeira."
+            ]
+          }
+        ],
+        "faq": {
+          "items": {
+            "what": {
+              "q": "Quantas vezes por ano o COPOM se reúne?",
+              "a": "O calendário anual do Banco Central lista todas as datas. A PRONUXFIN exibe esses eventos na agenda macro quando a fonte está disponível."
+            },
+            "how": {
+              "q": "Devo vender ações antes do COPOM?",
+              "a": "PRONUXFIN não recomenda operações. Muitos investidores de longo prazo preferem observar volatilidade sem alterar plano por um evento isolado."
+            },
+            "risk": {
+              "q": "Tesouro Selic reage imediatamente ao COPOM?",
+              "a": "Títulos pós-fixados tendem a refletir expectativas de juros. O mercado precifica parte das mudanças antes do comunicado oficial."
+            }
+          }
+        }
+      }
+    },
+    "glossary": {
+      "cdi": {
+        "term": "CDI",
+        "summary": "Taxa interbancária usada como referência em renda fixa.",
+        "metaTitle": "O que é CDI?",
+        "metaDescription": "Significado de CDI, como se relaciona com Selic e por que aparece em CDBs e fundos DI.",
+        "definition": "O Certificado de Depósito Interbancário (CDI) é uma taxa de empréstimos entre bancos, muito próxima da Selic. Investidores a usam como benchmark de renda fixa pós-fixada no Brasil.",
+        "example": "Um CDB a “102% do CDI” busca render um pouco acima dessa referência, antes de impostos.",
+        "related": ["selic", "renda-fixa", "tesouro-selic"]
+      },
+      "selic": {
+        "term": "Selic",
+        "summary": "Taxa básica de juros definida pelo COPOM.",
+        "metaTitle": "O que é taxa Selic?",
+        "metaDescription": "Definição de Selic, papel do COPOM e impacto em investimentos e crédito.",
+        "definition": "A Selic é a taxa meta da política monetária brasileira, definida pelo Banco Central nas reuniões do COPOM. Influencia custo de crédito e rendimento de títulos públicos pós-fixados.",
+        "example": "Tesouro Selic e CDBs pós-fixados costumam acompanhar movimentos da Selic ao longo do tempo.",
+        "related": ["cdi", "copom", "tesouro-selic"]
+      },
+      "ipca": {
+        "term": "IPCA",
+        "summary": "Índice oficial de inflação no Brasil.",
+        "metaTitle": "O que é IPCA?",
+        "metaDescription": "O que mede o IPCA e por que investidores usam títulos IPCA+ no longo prazo.",
+        "definition": "O Índice Nacional de Preços ao Consumidor Amplo (IPCA) mede a inflação oficial brasileira. Metas de inflação orientam decisões do Banco Central.",
+        "example": "Tesouro IPCA+ paga uma taxa real acima da inflação medida pelo IPCA.",
+        "related": ["selic", "renda-fixa", "tesouro-selic"]
+      },
+      "ticker": {
+        "term": "Ticker",
+        "summary": "Código de negociação de uma ação ou ETF na bolsa.",
+        "metaTitle": "O que é ticker?",
+        "metaDescription": "Significado de ticker na B3 — como identificar ações como PETR4 ou VALE3.",
+        "definition": "Ticker é o símbolo curto que identifica um ativo na bolsa — por exemplo, PETR4 para ações ordinárias da Petrobras na B3.",
+        "example": "O sufixo numérico indica classe de ação (ON, PN, unit) conforme regras da B3.",
+        "related": ["renda-variavel", "pe-ratio"]
+      },
+      "dividend-yield": {
+        "term": "Dividend yield",
+        "summary": "Dividendos pagos em relação ao preço da ação.",
+        "metaTitle": "O que é dividend yield?",
+        "metaDescription": "Como calcular dividend yield e limites do indicador para escolha de ações.",
+        "definition": "Dividend yield é a razão entre dividendos pagos (ou esperados) e o preço atual da ação, expressa em percentual. Ajuda a comparar retorno em proventos entre empresas.",
+        "example": "Se uma ação custa R$ 50 e pagou R$ 2,50 em dividendos no período, o yield foi 5% — simplificadamente.",
+        "related": ["ticker", "pe-ratio", "renda-variavel"]
+      },
+      "pe-ratio": {
+        "term": "P/L (Price/Earnings)",
+        "summary": "Preço da ação dividido pelo lucro por ação.",
+        "metaTitle": "O que é índice P/L?",
+        "metaDescription": "Significado do P/L (price/earnings) e como investidores usam na análise de ações.",
+        "definition": "O índice Preço/Lucro (P/L) compara o preço de mercado da ação com o lucro por ação. Valores altos podem indicar expectativa de crescimento — ou sobrepreço, dependendo do contexto.",
+        "example": "P/L de 15x sugere que o mercado paga 15 vezes o lucro anual por ação — leitura exige comparar com pares e histórico.",
+        "related": ["ticker", "dividend-yield"]
+      },
+      "copom": {
+        "term": "COPOM",
+        "summary": "Comitê que define a taxa Selic no Brasil.",
+        "metaTitle": "O que é COPOM?",
+        "metaDescription": "Papel do COPOM, calendário de reuniões e relação com investimentos.",
+        "definition": "O Comitê de Política Monetária (COPOM) do Banco Central define a taxa Selic meta e publica comunicados sobre inflação e política monetária.",
+        "example": "Reuniões do COPOM aparecem no calendário econômico PRONUXFIN como eventos de alto impacto.",
+        "related": ["selic", "cdi", "ipca"]
+      },
+      "tesouro-selic": {
+        "term": "Tesouro Selic",
+        "summary": "Título público pós-fixado atrelado à Selic.",
+        "metaTitle": "O que é Tesouro Selic?",
+        "metaDescription": "Características do Tesouro Selic, liquidez e uso comum em reserva de emergência.",
+        "definition": "Tesouro Selic é título do Tesouro Nacional com rentabilidade ligada à taxa Selic. Costuma ser citado para reserva de emergência por liquidez diária (D+0 após carência inicial).",
+        "example": "Não confundir com Tesouro IPCA+ ou prefixado — perfis de risco e retorno diferem.",
+        "related": ["selic", "cdi", "renda-fixa"]
+      },
+      "poupanca": {
+        "term": "Poupança",
+        "summary": "Conta de depósitos de poupança com regras próprias de rendimento.",
+        "metaTitle": "Como funciona a poupança?",
+        "metaDescription": "Regras básicas de rendimento da poupança e comparação com outros produtos de liquidez.",
+        "definition": "A caderneta de poupança remunera depósitos conforme regras legais ligadas à Selic e ao aniversário do depósito. É simples, mas nem sempre a opção mais eficiente para reserva.",
+        "example": "Com Selic elevada, CDBs de liquidez diária ou Tesouro Selic podem render mais — sempre considerando IR e perfil.",
+        "related": ["selic", "cdi", "renda-fixa"]
+      },
+      "renda-fixa": {
+        "term": "Renda fixa",
+        "summary": "Investimentos com regras de retorno mais previsíveis.",
+        "metaTitle": "O que é renda fixa?",
+        "metaDescription": "Definição de renda fixa, exemplos (CDB, Tesouro, LC) e diferença para renda variável.",
+        "definition": "Renda fixa engloba títulos e contratos com remuneração definida por regras ou indexadores — CDI, Selic, IPCA ou taxa prefixada. Ainda há riscos: crédito, liquidez e inflação.",
+        "example": "CDB, LCI, LCA e Tesouro Direto são exemplos comuns no Brasil.",
+        "related": ["cdi", "selic", "ipca"]
+      },
+      "renda-variavel": {
+        "term": "Renda variável",
+        "summary": "Ativos cujo preço oscila no mercado — ações, FIIs, ETFs.",
+        "metaTitle": "O que é renda variável?",
+        "metaDescription": "Significado de renda variável, riscos e relação com ações na B3.",
+        "definition": "Renda variável inclui ativos negociados em bolsa ou mercados organizados cujo retorno não é contratualmente fixo — ações, FIIs, BDRs, ETFs. Oscilação pode ser alta.",
+        "example": "Comprar PETR4 expõe você ao preço de mercado da ação — diferente de um CDB com regra de cupom.",
+        "related": ["ticker", "dividend-yield", "pe-ratio"]
+      },
+      "aporte": {
+        "term": "Aporte",
+        "summary": "Valor novo depositado em investimentos ou simulações.",
+        "metaTitle": "O que é aporte?",
+        "metaDescription": "Definição de aporte mensal e importância nos juros compostos.",
+        "definition": "Aporte é o valor adicional que você investe periodicamente. Nos simuladores PRONUXFIN, aportes mensais consistentes costumam impactar mais o patrimônio final do que tentar acertar o timing do mercado.",
+        "example": "Aportar R$ 500 por mês na calculadora de juros compostos mostra o efeito cumulativo ao longo de anos.",
+        "related": ["cdi", "renda-fixa"]
+      }
+    }
+  },
+  "AboutPage": {
+    "eyebrow": "Sobre nós",
+    "heroTitle": "Nascemos de um sonho: tornar a mesa financeira acessível, clara e confiável",
+    "heroLead": "A PRONUXFIN não começou como mais um app de cotações. Começou como a convicção de que quem investe, estuda ou cuida do próprio patrimônio merece a mesma clareza que grandes mesas têm — sem barreiras opacas, sem ruído e sem promessas vazias.",
+    "originEyebrow": "A origem",
+    "originTitle": "Um sonho antes de ser produto",
+    "originLead": "Por trás da plataforma há uma ideia simples e obstinada.",
+    "originBody": "Vimos pessoas inteligentes tomando decisões financeiras importantes com ferramentas fragmentadas: cotações num lugar, notícias noutro, planilhas soltas e IA genérica sem contexto. O mercado não espera — mas a informação chegava tarde, confusa ou sem fonte.",
+    "originBody2": "A PRONUXFIN nasceu para unir mercado ao vivo, projeção patrimonial, radar de notícias e inteligência assistida numa única mesa cognitiva. Não para substituir o seu julgamento, mas para devolver tempo, método e transparência a quem leva finanças a sério.",
+    "journeyEyebrow": "Nossa jornada",
+    "journeyTitle": "Do conceito à mesa que você usa hoje",
+    "journeyLead": "Construímos em camadas — infraestrutura primeiro, experiência depois, sempre com ética de engenharia.",
+    "timeline": [
+      {
+        "phase": "Ideia",
+        "title": "O sonho de uma mesa única",
+        "description": "Definimos que mercados, finanças pessoais e educação não deveriam viver em silos. O objetivo era uma plataforma brasileira com visão global, linguagem institucional e acessível a qualquer pessoa."
+      },
+      {
+        "phase": "Fundação",
+        "title": "Infraestrutura com disciplina",
+        "description": "Montamos a base técnica: autenticação robusta, dados com fonte visível, limites explícitos e uma arquitetura que prioriza segurança e auditabilidade desde o primeiro commit."
+      },
+      {
+        "phase": "Mesa pública",
+        "title": "Mercado, notícias e ferramentas abertas",
+        "description": "Lançamos a mesa ao vivo com setores Brasil e exterior, radar de notícias por região, simuladores de projeção e calculadoras — gratuitos, com transparência sobre origem e atraso dos dados."
+      },
+      {
+        "phase": "Hoje",
+        "title": "Produto privado e IA sob controle",
+        "description": "Carteira, rotas financeiras, alertas, assistente com BYOK e passkeys: o painel privado cresce sem abandonar o princípio central — você decide; a plataforma informa, organiza e acelera."
+      }
+    ],
+    "missionEyebrow": "Nossos objetivos",
+    "missionTitle": "O que nos move todos os dias",
+    "missionLead": "Quatro compromissos que orientam cada feature, cada texto e cada integração.",
+    "pillars": [
+      {
+        "title": "Clareza acima de hype",
+        "description": "Dados com fonte, limites explícitos e linguagem que respeita a sua inteligência. Nunca vendemos certeza onde só existe probabilidade."
+      },
+      {
+        "title": "Segurança por desenho",
+        "description": "Sessões revogáveis, WebAuthn, rate limits, CSP e auditoria contínua. Proteger o seu patrimônio digital é parte do produto, não um apêndice."
+      },
+      {
+        "title": "Educação financeira real",
+        "description": "Ferramentas que ensinam enquanto você usa: projeções em cenários, calendário macro, comparadores e IA que explica — não que empurra ativo."
+      },
+      {
+        "title": "Brasil no centro, mundo no horizonte",
+        "description": "B3, cripto em BRL, notícias locais e mesas regionais globais. Construímos para o investidor brasileiro que olha para dentro e para fora do país."
+      }
+    ],
+    "futureEyebrow": "Planos futuros",
+    "futureTitle": "Para onde estamos indo",
+    "futureLead": "A mesa de hoje é só o primeiro capítulo. Estes são os eixos que guiam nosso roadmap.",
+    "roadmap": [
+      {
+        "horizon": "Curto prazo",
+        "title": "Mesa mais profunda e rápida",
+        "description": "Mais ativos, dossiês enriquecidos, alertas inteligentes e experiência mobile-first — sempre mantendo a cadência institucional e a performance que você espera."
+      },
+      {
+        "horizon": "Médio prazo",
+        "title": "Open Finance e rotas patrimoniais",
+        "description": "Integração com contas e investimentos reais para consolidar patrimônio, simular metas com dados seus e visualizar rotas financeiras com contexto de mercado."
+      },
+      {
+        "horizon": "Médio prazo",
+        "title": "Trilhas de educação e certificação",
+        "description": "Percursos guiados do básico ao avançado, conectados à mesa ao vivo — aprender fazendo, com conteúdo curado e progressão mensurável."
+      },
+      {
+        "horizon": "Longo prazo",
+        "title": "Infraestrutura para instituições",
+        "description": "APIs, white-label e camadas cognitivas para escritórios, fintechs e educadores que queiram a mesma disciplina de dados e IA — com compliance e auditabilidade."
+      }
+    ],
+    "closingTitle": "Faça parte da próxima fase",
+    "closingLead": "Se você acredita que finanças podem ser transparentes, exigentes e humanas ao mesmo tempo, a mesa já está aberta. Comece pelo mercado ao vivo ou crie sua conta gratuita.",
+    "ctaPrimary": "Criar conta grátis",
+    "ctaSecondary": "Explorar mesa ao vivo"
   },
   "BolsaHub": {
     "badgeGlobal": "Departamento global · bolsa brasileira e ativos digitais",
@@ -1442,7 +1977,30 @@
     "aggregationBadge": "Agregação institucional",
     "h1Lead": "Fluxo de notícias —",
     "h1Accent": "compliance editorial PRONUX",
-    "subtitle": "Curadoria RSS de veículos reconhecidos: menos ruído operacional, mais tempo para decidir com método. Ciclo de atualização frequente (~10s neste cliente); fonte original sempre visível — Brasil e mundo na mesma régua temporal.",
+    "h1LeadBr": "Notícias Brasil —",
+    "h1AccentBr": "mesa doméstica PRONUX",
+    "h1LeadMundo": "Notícias Mundo —",
+    "h1AccentMundo": "radar por região",
+    "subtitle": "Curadoria RSS de veículos reconhecidos: Brasil e Mundo com fonte sempre visível. Atualização frequente neste cliente.",
+    "subtitleBr": "InfoMoney, Money Times, InvestNews e G1 Economia — cobertura do mercado brasileiro sem ruído desnecessário.",
+    "subtitleMundo": "Sete blocos regionais — América do Norte, América do Sul, Europa, Ásia, Oriente Médio, África e Oceania — com três canais numerados cada.",
+    "deskNavAria": "Mesas de notícias",
+    "deskAll": "Todas as mesas",
+    "deskBr": "Notícias Brasil",
+    "deskMundo": "Notícias Mundo",
+    "deskBrLead": "Somente fontes brasileiras nesta mesa.",
+    "deskMundoLead": "Cobertura internacional separada por região — três fontes por bloco.",
+    "clearDeskOnly": "Ver todas as mesas",
+    "signalDesk": "Mesa · {desk}",
+    "worldRegionViewAll": "Ver bloco",
+    "worldRegionEmpty": "Sem manchetes neste bloco no ciclo atual. Os feeds serão tentados de novo em breve.",
+    "worldRegion_north_america": "América do Norte",
+    "worldRegion_south_america": "América do Sul",
+    "worldRegion_europe": "Europa",
+    "worldRegion_asia": "Ásia",
+    "worldRegion_middle_east": "Oriente Médio",
+    "worldRegion_africa": "África",
+    "worldRegion_oceania": "Oceania",
     "syncLabel": "Última sincronização",
     "signalSources": "Fontes ativas",
     "signalArticles": "Itens visíveis",

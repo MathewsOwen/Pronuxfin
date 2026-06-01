@@ -44,7 +44,7 @@ function NavLink({
     );
   }
   return (
-    <Link href={href} className={merged} prefetch={false} onClick={onClick}>
+    <Link href={href} className={merged} prefetch onClick={onClick}>
       {label}
     </Link>
   );
@@ -69,6 +69,8 @@ export function SiteHeader({
         { href: "/projecao", label: t("projecao") },
         { href: "/noticias", label: t("news") },
         { href: "/ferramentas", label: t("tools") },
+        { href: "/aprenda", label: t("learn") },
+        { href: "/sobre", label: t("about") },
         /** Âncoras da home: usar `/#…` para funcionar em qualquer rota (ex.: `#ia` virava `/noticias#ia`). */
         { href: "/assistant", label: t("ia") },
         { href: "/#beneficios", label: t("benefits") },

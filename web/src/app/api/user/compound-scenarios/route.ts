@@ -5,6 +5,7 @@ import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { prisma } from "@/lib/prisma";
 import type { CompoundScenarioPayload } from "@/lib/tools/compound-interest";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,6 +58,9 @@ export async function POST(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "compound-scenarios", 20);
+  if (limited) return limited;
 
   let body: unknown;
   try {
@@ -119,6 +123,9 @@ export async function DELETE(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "compound-scenarios", 20);
+  if (limited) return limited;
 
   let body: unknown;
   try {

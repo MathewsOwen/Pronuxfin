@@ -10,6 +10,7 @@ import {
   normalizeWatchlistSymbol,
 } from "@/lib/user-watchlist/load";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,6 +40,9 @@ export async function POST(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "watchlist", 40);
+  if (limited) return limited;
 
   const parsed = await parseMutationBody(req);
   if (!parsed.ok) return parsed.response;
@@ -93,6 +97,9 @@ export async function DELETE(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "watchlist", 40);
+  if (limited) return limited;
 
   const parsed = await parseMutationBody(req);
   if (!parsed.ok) return parsed.response;

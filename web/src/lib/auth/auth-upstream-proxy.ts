@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { z } from "zod";
 
 import { jsonPayloadHeaders } from "@/lib/auth/forward-request-headers";
 import { readRequestJson } from "@/lib/http/read-json-body";
@@ -20,9 +21,17 @@ type ForwardAuthPostResult =
       data: Record<string, unknown>;
     };
 
+function validationError(): NextResponse {
+  return NextResponse.json(
+    { message: "Invalid request body.", code: "VALIDATION_FAILED" },
+    { status: 400 },
+  );
+}
+
 export async function forwardAuthPost(
   req: Request,
   upstreamPath: string,
+  schema?: z.ZodTypeAny,
 ): Promise<ForwardAuthPostResult> {
   if (!apiBaseUrl()) {
     return {
@@ -41,12 +50,26 @@ export async function forwardAuthPost(
     return { error: parsedBody.response };
   }
 
+  let payload: Record<string, unknown>;
+  if (schema) {
+    const validated = schema.safeParse(parsedBody.value);
+    if (!validated.success) {
+      return { error: validationError() };
+    }
+    payload = validated.data as Record<string, unknown>;
+  } else {
+    payload =
+      typeof parsedBody.value === "object" && parsedBody.value !== null
+        ? (parsedBody.value as Record<string, unknown>)
+        : {};
+  }
+
   let upstream: Response;
   try {
     upstream = await fetchAuthUpstream(upstreamPath, {
       method: "POST",
       headers: jsonPayloadHeaders(req),
-      body: JSON.stringify(parsedBody.value),
+      body: JSON.stringify(payload),
     });
   } catch (err) {
     if (err instanceof AuthUpstreamTimeoutError) {

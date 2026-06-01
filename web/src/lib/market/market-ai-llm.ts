@@ -4,6 +4,8 @@
  */
 
 import { fetchLlm } from "@/lib/http/fetch-with-timeout";
+import { isProductionRuntime } from "@/lib/env/server-env";
+import { isSafeHttpUrl } from "@/lib/http/ssrf-guard";
 
 export type MarketAiInferProvider = "pronux-ollama";
 
@@ -30,12 +32,32 @@ export function resolveOllamaOrigin(): string | null {
   const preferred = process.env.PRONUX_MARKET_AI_OLLAMA_ORIGIN?.trim();
   if (preferred) {
     const n = normalizeOllamaOrigin(preferred);
-    return n.length > 0 ? n : null;
+    return n.length > 0 && validateOllamaOrigin(n) ? n : null;
   }
   const legacy = process.env.PRONUX_MARKET_AI_BASE_URL?.trim();
   if (!legacy) return null;
   const n = normalizeOllamaOrigin(legacy);
-  return n.length > 0 ? n : null;
+  return n.length > 0 && validateOllamaOrigin(n) ? n : null;
+}
+
+function validateOllamaOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+    if (url.username || url.password) return false;
+
+    if (isProductionRuntime()) {
+      return isSafeHttpUrl(origin);
+    }
+
+    const host = url.hostname.toLowerCase();
+    if (host === "localhost" || host === "127.0.0.1" || host === "::1") {
+      return true;
+    }
+    return isSafeHttpUrl(origin);
+  } catch {
+    return false;
+  }
 }
 
 export async function runMarketInferModel(options: {

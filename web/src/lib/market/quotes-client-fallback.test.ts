@@ -30,16 +30,17 @@ describe("quotes-client-fallback", () => {
     expect(payload.results).toHaveLength(0);
   });
 
-  it("returns simulated payload only with public opt-in", () => {
+  it("never returns simulated numbers even with legacy opt-in flag", () => {
     vi.stubEnv("NEXT_PUBLIC_MARKET_ALLOW_SIMULATION", "1");
 
     const payload = resolveClientQuotesFallback();
-    expect(payload.dataMode).toBe("simulated");
-    expect(payload.results.length).toBeGreaterThan(0);
+    expect(payload.dataMode).toBe("degraded");
+    expect(payload.results).toHaveLength(0);
+    expect(payload.simulated).toBe(false);
   });
 
   it("exposes explicit helpers", () => {
     expect(degradedDeskFallbackPayload().dataMode).toBe("degraded");
-    expect(simulatedDeskFallbackPayload().dataMode).toBe("simulated");
+    expect(simulatedDeskFallbackPayload().dataMode).toBe("degraded");
   });
 });

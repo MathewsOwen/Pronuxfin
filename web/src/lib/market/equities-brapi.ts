@@ -1,9 +1,8 @@
 import { fetchMarket } from "@/lib/http/fetch-with-timeout";
-import { QUOTE_TICKERS, sortQuotesForDesk } from "@/lib/market/indices";
+import { sortQuotesForDesk } from "@/lib/market/indices";
+import { listLiveDeskBrTickers } from "@/lib/market/live-desk-universe";
 import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import type { QuoteSnapshot } from "@/lib/market/types";
-import { shouldUseSimulatedMarketData } from "@/lib/market/market-data-policy";
-import { simulatedB3EquitiesForSymbols } from "@/lib/market/equities-sim";
 
 /** Sem token, a BRAPI limita quantidade de símbolos por GET — empacotamos várias chamadas. */
 const BRAPI_FREE_MAX_SYMBOLS = 3;
@@ -18,7 +17,7 @@ function chunk<T>(arr: readonly T[], size: number): T[][] {
 }
 
 export function simulatedEquities(): QuoteSnapshot[] {
-  return simulatedB3EquitiesForSymbols(QUOTE_TICKERS);
+  return [];
 }
 
 function mapBrapiRow(row: Record<string, unknown>): QuoteSnapshot {
@@ -130,21 +129,10 @@ export async function fetchBrapiQuotesForSymbols(
       }
     }
   } catch {
-    if (!shouldUseSimulatedMarketData()) {
-      return {
-        rows: [],
-        simulated: false,
-        partial: true,
-        warning: "equities_network",
-      };
-    }
     return {
-      rows: sortQuotesByCanonicalOrder(
-        simulatedB3EquitiesForSymbols(canonical),
-        canonical,
-      ),
-      simulated: true,
-      partial: false,
+      rows: [],
+      simulated: false,
+      partial: true,
       warning: "equities_network",
     };
   }
@@ -152,21 +140,10 @@ export async function fetchBrapiQuotesForSymbols(
   const sorted = sortQuotesByCanonicalOrder([...merged.values()], canonical);
 
   if (sorted.length === 0) {
-    if (!shouldUseSimulatedMarketData()) {
-      return {
-        rows: [],
-        simulated: false,
-        partial: true,
-        warning: "equities_empty",
-      };
-    }
     return {
-      rows: sortQuotesByCanonicalOrder(
-        simulatedB3EquitiesForSymbols(canonical),
-        canonical,
-      ),
-      simulated: true,
-      partial: false,
+      rows: [],
+      simulated: false,
+      partial: true,
       warning: "equities_empty",
     };
   }
@@ -184,8 +161,9 @@ export async function fetchBrapiQuotesForSymbols(
  * Livro institucional padrão (proxies + blue chips) — `/api/quotes` e ticker strip.
  */
 export async function fetchEquitiesFromBrapi(): Promise<BrapiBookResult> {
-  const book = await fetchBrapiQuotesForSymbols([...QUOTE_TICKERS], {
-    sortOrder: QUOTE_TICKERS,
+  const tickers = listLiveDeskBrTickers();
+  const book = await fetchBrapiQuotesForSymbols(tickers, {
+    sortOrder: tickers,
   });
   return {
     ...book,

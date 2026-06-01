@@ -7,6 +7,17 @@ export type NewsArticle = {
   publishedAt: string | null;
   /** Cobertura editorial agregada — UI pode diferenciar Brasil vs. mundo. */
   region?: "br" | "global";
+  /** Mesa editorial (`br` | `mundo`). */
+  desk?: "br" | "mundo";
+  /** Região na mesa Mundo (ex.: europa, oriente médio). */
+  worldRegion?:
+    | "north_america"
+    | "south_america"
+    | "europe"
+    | "asia"
+    | "middle_east"
+    | "africa"
+    | "oceania";
 };
 
 export type QuoteSnapshot = {

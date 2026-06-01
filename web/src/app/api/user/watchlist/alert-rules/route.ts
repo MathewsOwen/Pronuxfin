@@ -12,6 +12,7 @@ import {
   upsertManyUserWatchlistAlertRules,
 } from "@/lib/user-watchlist/rules";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +65,9 @@ export async function PATCH(req: Request) {
   if (!session.ok) return session.response;
   const { userId } = session;
 
+  const limited = await rateLimitUserMutation(userId, "watchlist-alert-rules", 25);
+  if (limited) return limited;
+
   let body: z.infer<typeof mutationSchema>;
   try {
     const parsed = mutationSchema.safeParse(await req.json());
@@ -112,6 +116,9 @@ export async function DELETE(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "watchlist-alert-rules", 25);
+  if (limited) return limited;
 
   let body: z.infer<typeof deleteSchema>;
   try {

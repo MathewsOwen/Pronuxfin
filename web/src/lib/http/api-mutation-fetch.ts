@@ -1,6 +1,6 @@
 "use client";
 
-import { CSRF_HEADER } from "@/lib/security/csrf";
+import { CSRF_HEADER } from "@/lib/security/csrf-constants";
 
 function readBrowserCsrfToken(): string {
   if (typeof document === "undefined") return "";

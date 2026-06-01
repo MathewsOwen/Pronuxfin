@@ -10,6 +10,7 @@ import {
   rateLimitLogin,
 } from "@/lib/security/auth-rate-limit";
 import { assertAuthEntryAllowed } from "@/lib/security/mutation-guard";
+import { authLoginBodySchema } from "@/lib/validations/auth-server-schemas";
 
 export async function POST(req: Request) {
   const entryBlocked = assertAuthEntryAllowed(req);
@@ -24,7 +25,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const forwarded = await forwardAuthPost(req, "/auth/login");
+  const forwarded = await forwardAuthPost(req, "/auth/login", authLoginBodySchema);
   if (forwarded.error) {
     return attachRequestId(req, forwarded.error);
   }

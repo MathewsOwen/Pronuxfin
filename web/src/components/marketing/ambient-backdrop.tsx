@@ -46,8 +46,9 @@ function CssAmbientFallback() {
 }
 
 /** Fundo 3D contínuo (buraco negro) + camadas de legibilidade para o conteúdo. */
-export function AmbientBackdrop() {
+export function AmbientBackdrop({ mode = "webgl" }: { mode?: "css" | "webgl" }) {
   const reduceMotion = useReducedMotion();
+  const useCss = mode === "css" || reduceMotion;
 
   return (
     <div
@@ -55,7 +56,7 @@ export function AmbientBackdrop() {
       data-marketing-ambient
       aria-hidden
     >
-      {reduceMotion ? <CssAmbientFallback /> : <SiteSingularityBackdrop />}
+      {useCss ? <CssAmbientFallback /> : <SiteSingularityBackdrop />}
 
       <div className="absolute inset-0 bg-[#010103]/55" />
 

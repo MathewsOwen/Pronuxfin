@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { jsonPayloadHeaders } from "@/lib/auth/forward-request-headers";
+import {
+  jsonPayloadHeaders,
+  sessionAccessToken,
+} from "@/lib/auth/forward-request-headers";
 import { readRequestJson } from "@/lib/http/read-json-body";
 import {
   apiBaseUrl,
@@ -37,9 +40,10 @@ export async function forwardAuthPostWithBody(
 
   let upstream: Response;
   try {
+    const token = await sessionAccessToken();
     upstream = await fetchAuthUpstream(upstreamPath, {
       method: "POST",
-      headers: jsonPayloadHeaders(req),
+      headers: jsonPayloadHeaders(req, token),
       body: JSON.stringify(body),
     });
   } catch (err) {

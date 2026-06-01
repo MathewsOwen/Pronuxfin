@@ -5,6 +5,7 @@ import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { persistWatchlistSignalSnapshots } from "@/lib/user-watchlist/history";
 import { listUserWatchlist } from "@/lib/user-watchlist/load";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +45,9 @@ export async function POST(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "watchlist-signals", 30);
+  if (limited) return limited;
 
   let body: z.infer<typeof bodySchema>;
   try {

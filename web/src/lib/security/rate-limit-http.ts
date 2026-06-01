@@ -1,6 +1,13 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { allowWithinWindow } from "@/lib/security/simple-rate-limit";
+import { consumeRateLimit } from "@/lib/security/distributed-rate-limit";
+
+function isStrictProductionEnv(): boolean {
+  return (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production"
+  );
+}
 
 /** IP do cliente (confiar em X-Forwarded-For só atrás de proxy confiável). */
 export async function clientIpFromHeaders(): Promise<string> {
@@ -9,7 +16,7 @@ export async function clientIpFromHeaders(): Promise<string> {
   return forwarded || h.get("x-real-ip")?.trim() || "unknown";
 }
 
-/** Retorna resposta 429 ou `null` se dentro do limite. */
+/** Retorna resposta 429 ou `null` se dentro do limite (Postgres distribuído). */
 export async function rateLimitResponse(
   keyPrefix: string,
   max: number,
@@ -17,9 +24,12 @@ export async function rateLimitResponse(
 ): Promise<NextResponse | null> {
   const ip = await clientIpFromHeaders();
   const key = `${keyPrefix}:${ip}`;
-  if (allowWithinWindow(key, max, windowMs)) return null;
+  const result = await consumeRateLimit(key, max, windowMs, {
+    failClosed: isStrictProductionEnv(),
+  });
+  if (result.ok) return null;
 
-  const retryAfterSec = Math.max(1, Math.ceil(windowMs / 1000));
+  const retryAfterSec = result.retryAfterSec;
   const h = await headers();
   const res = NextResponse.json(
     { error: "rate_limited", retryAfterSec },

@@ -13,6 +13,8 @@ describe("public-routes", () => {
     expect(paths).toContain("");
     expect(paths).toContain("/bolsa");
     expect(paths).toContain("/ferramentas/calendario");
+    expect(paths).toContain("/aprenda");
+    expect(paths).toContain("/aprenda/glossario");
     expect(paths).toContain("/privacidade");
     expect(paths).toContain("/termos");
     expect(paths).not.toContain("/dashboard");

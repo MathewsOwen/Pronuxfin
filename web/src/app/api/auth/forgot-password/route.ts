@@ -8,6 +8,7 @@ import {
   rateLimitForgotPassword,
 } from "@/lib/security/auth-rate-limit";
 import { assertAuthEntryAllowed } from "@/lib/security/mutation-guard";
+import { authForgotPasswordBodySchema } from "@/lib/validations/auth-server-schemas";
 
 export async function POST(req: Request) {
   const entryBlocked = assertAuthEntryAllowed(req);
@@ -25,7 +26,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const forwarded = await forwardAuthPost(req, "/auth/forgot-password");
+  const forwarded = await forwardAuthPost(
+    req,
+    "/auth/forgot-password",
+    authForgotPasswordBodySchema,
+  );
   if (forwarded.error) {
     return attachRequestId(req, forwarded.error);
   }

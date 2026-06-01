@@ -8,6 +8,7 @@ import {
   rateLimitResetPassword,
 } from "@/lib/security/auth-rate-limit";
 import { assertAuthEntryAllowed } from "@/lib/security/mutation-guard";
+import { authResetPasswordBodySchema } from "@/lib/validations/auth-server-schemas";
 
 export async function POST(req: Request) {
   const entryBlocked = assertAuthEntryAllowed(req);
@@ -25,7 +26,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const forwarded = await forwardAuthPost(req, "/auth/reset-password");
+  const forwarded = await forwardAuthPost(
+    req,
+    "/auth/reset-password",
+    authResetPasswordBodySchema,
+  );
   if (forwarded.error) {
     return attachRequestId(req, forwarded.error);
   }

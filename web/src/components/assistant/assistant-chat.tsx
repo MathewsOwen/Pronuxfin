@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { AiChannelId, AudienceKind } from "@/lib/assistant/ai-channels";
-import { pickOfflineSnippetKey } from "@/lib/assistant/chat-offline-heuristics";
 import type { AiLocale } from "@/lib/assistant/market-ai-locale";
 import { isMarketAiApiCode } from "@/lib/auth/api-error-codes";
 import type { MarketAiEngineId } from "@/lib/market/market-ai-providers";
@@ -29,7 +28,6 @@ type Msg = { role: "user" | "assistant"; text: string };
 type MarketAiResp =
   | {
       ok: true;
-      demo?: boolean;
       reply: string;
       provider?: "pronux-ollama" | "pronux-openai" | "pronux-gemini";
       engine?: MarketAiEngineId;
@@ -127,7 +125,7 @@ export function AssistantChat({
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = input.trim();
-    if (!trimmed || isTyping) return;
+    if (!trimmed || isTyping || engines.length === 0) return;
 
     const nextMsgs: Msg[] = [...messages, { role: "user", text: trimmed }];
     setMessages(nextMsgs);
@@ -162,7 +160,7 @@ export function AssistantChat({
           ...m,
           {
             role: "assistant",
-            text: t(pickOfflineSnippetKey(trimmed)),
+            text: t("chatNetworkError"),
           },
         ]);
         setIsTyping(false);
@@ -204,7 +202,7 @@ export function AssistantChat({
         ]);
       } else {
         let text = data.reply;
-        if (!data.demo && !data.ensemble) {
+        if (!data.ensemble) {
           if (data.provider === "pronux-ollama") text += t("chatOllamaFooter");
           else if (data.provider === "pronux-openai") text += t("chatOpenAiFooter");
           else if (data.provider === "pronux-gemini") text += t("chatGeminiFooter");
@@ -214,7 +212,7 @@ export function AssistantChat({
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "assistant", text: t(pickOfflineSnippetKey(trimmed)) },
+        { role: "assistant", text: t("chatNetworkError") },
       ]);
     } finally {
       setIsTyping(false);
@@ -282,6 +280,11 @@ export function AssistantChat({
           </div>
         </ScrollArea>
         <div className="flex flex-col gap-3 border-t border-white/10 bg-muted/25 p-4 backdrop-blur-md">
+          {engines.length === 0 ? (
+            <p className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2.5 text-sm leading-snug text-amber-100/90">
+              {t("chatNoEngineConfigured")}
+            </p>
+          ) : null}
           {engines.length >= 2 ? (
             <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
               <input
@@ -334,14 +337,14 @@ export function AssistantChat({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t("chatInputPlaceholder")}
-            disabled={isTyping}
+            disabled={isTyping || engines.length === 0}
             aria-label={t("chatInputLabel")}
             className="h-10 flex-1 border-white/10 bg-background/60"
           />
           <Button
             type="submit"
             size="icon-lg"
-            disabled={isTyping || !input.trim()}
+            disabled={isTyping || !input.trim() || engines.length === 0}
             aria-label={t("chatSendAria")}
           >
             <Send className="size-4" aria-hidden />

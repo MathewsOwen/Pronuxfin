@@ -5,12 +5,26 @@ import { clearAuthCookies } from "@/lib/auth/auth-session-cookies";
 import { readRefreshCookieValue } from "@/lib/auth/auth-cookie-names";
 import { apiBaseUrl, fetchAuthUpstream } from "@/lib/http/upstream-auth-fetch";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import {
+  authRateLimitedResponse,
+  getRateLimitClientKey,
+  rateLimitLogout,
+} from "@/lib/security/auth-rate-limit";
+import { attachRequestId } from "@/lib/http/request-id";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const csrfBlocked = assertMutationAllowed(req);
-  if (csrfBlocked) return csrfBlocked;
+  if (csrfBlocked) return attachRequestId(req, csrfBlocked);
+
+  const limited = await rateLimitLogout(getRateLimitClientKey(req));
+  if (!limited.ok) {
+    return attachRequestId(
+      req,
+      authRateLimitedResponse(limited.retryAfterSec, "AUTH_RATE_LIMIT_LOGOUT"),
+    );
+  }
 
   const jar = await cookies();
   const refresh = readRefreshCookieValue(jar);
@@ -33,5 +47,5 @@ export async function POST(req: Request) {
   if (process.env.NODE_ENV === "production" || process.env.COOKIE_SECURE === "true") {
     res.headers.set("Clear-Site-Data", '"cookies"');
   }
-  return res;
+  return attachRequestId(req, res);
 }

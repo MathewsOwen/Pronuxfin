@@ -3,11 +3,11 @@ import {
   fetchAggregatedNewsWithDiagnostics,
   type NewsFetchDiagnostics,
 } from "@/lib/market/fetch-news";
-import { fetchCryptoSectorQuotesBrl, fetchCryptoQuotesBrl, simulatedCryptoQuotes, simulatedCryptoSectorQuotes } from "@/lib/market/crypto";
-import { fetchBrapiQuotesForSymbols, fetchEquitiesFromBrapi, simulatedEquities } from "@/lib/market/equities-brapi";
+import { fetchCryptoSectorQuotesBrl, fetchCryptoQuotesBrl } from "@/lib/market/crypto";
+import { fetchBrapiQuotesForSymbols, fetchEquitiesFromBrapi } from "@/lib/market/equities-brapi";
 import { fetchYahooQuotesForSymbols } from "@/lib/market/equities-yahoo-quote";
 import { sortQuotesForDesk } from "@/lib/market/indices";
-import { simulatedIntlEquitiesForSymbols, simulatedB3EquitiesForSymbols } from "@/lib/market/equities-sim";
+import { listLiveDeskIntlTickers } from "@/lib/market/live-desk-universe";
 import { resolveMarketProviderFallback } from "@/lib/market/market-data-policy";
 import { rememberWithTtl } from "@/lib/market/market-server-cache";
 import {
@@ -37,9 +37,9 @@ import type {
 } from "@/lib/market/types";
 
 const CACHE_TTL = {
-  liveDeskMs: 30_000,
-  sectorBookMs: 45_000,
-  cryptoSectorBookMs: 45_000,
+  liveDeskMs: 15_000,
+  sectorBookMs: 20_000,
+  cryptoSectorBookMs: 20_000,
   relatedNewsMs: 10 * 60_000,
 } as const;
 
@@ -47,26 +47,34 @@ export async function loadCachedQuotesPayload(): Promise<{
   payload: QuotesPayload;
   warnings: string[];
 }> {
-  return rememberWithTtl("market-gateway:live-desk:v1", CACHE_TTL.liveDeskMs, async () => {
+  return rememberWithTtl("market-gateway:live-desk:v2", CACHE_TTL.liveDeskMs, async () => {
     const warnings: string[] = [];
 
-    const [equities, crypto] = await Promise.all([
+    const [equities, intlEquities, crypto] = await Promise.all([
       loadBrEquitiesSnapshot(warnings),
+      loadIntlEquitiesSnapshot(warnings),
       loadCryptoSnapshot(warnings),
     ]);
 
+    const brOrdered = sortQuotesForDesk(equities.rows);
+    const brSymbols = new Set(brOrdered.map((row) => row.symbol));
+    const intlRows = intlEquities.rows.filter((row) => !brSymbols.has(row.symbol));
+    const mergedEquities = [...brOrdered, ...intlRows];
+
     const payload: QuotesPayload = {
       fetchedAt: Date.now(),
-      results: equities.rows,
+      results: mergedEquities,
       crypto: crypto.rows,
-      simulated: equities.simulated,
+      simulated: equities.simulated || intlEquities.simulated,
       cryptoSimulated: crypto.simulated,
       cryptoPartial: crypto.partial,
-      equitiesPartial: equities.partial && !equities.simulated,
+      equitiesPartial:
+        (equities.partial && !equities.simulated) ||
+        (intlEquities.partial && !intlEquities.simulated),
       dataMode: resolveQuotesDataMode({
-        resultsCount: equities.rows.length,
+        resultsCount: mergedEquities.length,
         cryptoCount: crypto.rows.length,
-        simulated: equities.simulated,
+        simulated: equities.simulated || intlEquities.simulated,
         cryptoSimulated: crypto.simulated,
       }),
     };
@@ -107,9 +115,9 @@ export async function loadCachedSectorQuotesPayload(
           warnings,
           () =>
             resolveMarketProviderFallback("sector_book_br", () => ({
-              rows: simulatedB3EquitiesForSymbols(symbols),
-              simulated: true,
-              partial: false,
+              rows: [],
+              simulated: false,
+              partial: true,
               source: "brapi" as const,
               warning: "equities_fallback_budget",
             })),
@@ -146,9 +154,9 @@ export async function loadCachedSectorQuotesPayload(
         warnings,
         () =>
           resolveMarketProviderFallback("sector_book_intl", () => ({
-            rows: simulatedIntlEquitiesForSymbols(symbols),
-            simulated: true,
-            partial: false,
+            rows: [],
+            simulated: false,
+            partial: true,
             source: "yahoo" as const,
             warning: "intl_fallback_budget",
           })),
@@ -198,9 +206,9 @@ export async function loadCachedCryptoSectorQuotesPayload(
         warnings,
         () =>
           resolveMarketProviderFallback("crypto_sector_book", () => ({
-            rows: simulatedCryptoSectorQuotes(sector),
-            simulated: true,
-            partial: false,
+            rows: [],
+            simulated: false,
+            partial: true,
             warning: "crypto_sector_fallback",
             source: "coingecko" as const,
           })),
@@ -225,7 +233,7 @@ export async function loadCachedAggregatedNews(
   limit = 72,
 ): Promise<NewsArticle[]> {
   return rememberWithTtl(
-    `market-gateway:related-news:${limit}:v2`,
+    `market-gateway:related-news:${limit}:v3`,
     CACHE_TTL.relatedNewsMs,
     async () => {
       const articles = await fetchAggregatedNews(limit);
@@ -249,7 +257,7 @@ export async function loadCachedAggregatedNewsDiagnostics(
   limit = 72,
 ): Promise<NewsFetchDiagnostics> {
   return rememberWithTtl(
-    `market-gateway:related-news-diag:${limit}:v1`,
+    `market-gateway:related-news-diag:${limit}:v4`,
     CACHE_TTL.relatedNewsMs,
     async () => {
       const diag = await fetchAggregatedNewsWithDiagnostics(limit);
@@ -282,10 +290,44 @@ async function loadBrEquitiesSnapshot(warnings: string[]) {
     warnings,
     () =>
       resolveMarketProviderFallback("br_equities_snapshot", () => ({
-        rows: sortQuotesForDesk(simulatedEquities()),
-        simulated: true,
-        partial: false,
+        rows: [],
+        simulated: false,
+        partial: true,
         warning: "equities_fallback_budget",
+      })),
+  );
+}
+
+async function loadIntlEquitiesSnapshot(warnings: string[]) {
+  const tickers = listLiveDeskIntlTickers();
+  if (tickers.length === 0) {
+    return {
+      rows: [],
+      simulated: false,
+      partial: false,
+    };
+  }
+
+  return executeProviderChain(
+    "intl_equities_snapshot",
+    {
+      yahoo: async () => {
+        const result = await fetchYahooQuotesForSymbols(tickers, tickers);
+        return {
+          rows: result.rows,
+          simulated: result.simulated,
+          partial: result.partial,
+          warning: result.warning,
+        };
+      },
+    },
+    warnings,
+    () =>
+      resolveMarketProviderFallback("intl_equities_snapshot", () => ({
+        rows: [],
+        simulated: false,
+        partial: true,
+        warning: "intl_fallback_budget",
       })),
   );
 }
@@ -307,9 +349,9 @@ async function loadCryptoSnapshot(warnings: string[]) {
     warnings,
     () =>
       resolveMarketProviderFallback("crypto_snapshot", () => ({
-        rows: simulatedCryptoQuotes(),
-        simulated: true,
-        partial: false,
+        rows: [],
+        simulated: false,
+        partial: true,
         warning: "crypto_fallback",
       })),
   );

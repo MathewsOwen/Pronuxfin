@@ -19,7 +19,7 @@ export async function GET() {
   const forwarded = await forwardAuthPostWithBody(
     new Request("http://localhost"),
     "/auth/webauthn/list",
-    { userId: session.userId },
+    {},
   );
   if (isForwardAuthError(forwarded)) return forwarded.error;
 
@@ -49,7 +49,6 @@ export async function DELETE(req: Request) {
   }
 
   const forwarded = await forwardAuthPostWithBody(req, "/auth/webauthn/remove", {
-    userId: session.userId,
     credentialId,
   });
   if (isForwardAuthError(forwarded)) return forwarded.error;

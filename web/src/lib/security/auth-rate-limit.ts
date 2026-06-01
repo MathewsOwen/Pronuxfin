@@ -26,6 +26,12 @@ const FORGOT_MAX = envMax("AUTH_RATE_LIMIT_FORGOT_PASSWORD_MAX", 8);
 const RESET_WINDOW_MS = envMs("AUTH_RATE_LIMIT_RESET_PASSWORD_WINDOW_MS", 300_000);
 const RESET_MAX = envMax("AUTH_RATE_LIMIT_RESET_PASSWORD_MAX", 12);
 
+const WEBAUTHN_WINDOW_MS = envMs("AUTH_RATE_LIMIT_WEBAUTHN_WINDOW_MS", 60_000);
+const WEBAUTHN_MAX = envMax("AUTH_RATE_LIMIT_WEBAUTHN_MAX", 40);
+
+const REFRESH_WINDOW_MS = envMs("AUTH_RATE_LIMIT_REFRESH_WINDOW_MS", 60_000);
+const REFRESH_MAX = envMax("AUTH_RATE_LIMIT_REFRESH_MAX", 30);
+
 export function getRateLimitClientKey(req: Request): string {
   const xf = req.headers.get("x-forwarded-for");
   if (xf) {
@@ -38,7 +44,9 @@ export function getRateLimitClientKey(req: Request): string {
 }
 
 export function rateLimitLogin(key: string) {
-  return consumeRateLimit(`auth:login:${key}`, LOGIN_MAX, LOGIN_WINDOW_MS);
+  return consumeRateLimit(`auth:login:${key}`, LOGIN_MAX, LOGIN_WINDOW_MS, {
+    failClosed: true,
+  });
 }
 
 export function rateLimitRegister(key: string) {
@@ -46,15 +54,41 @@ export function rateLimitRegister(key: string) {
     `auth:register:${key}`,
     REGISTER_MAX,
     REGISTER_WINDOW_MS,
+    { failClosed: true },
   );
 }
 
 export function rateLimitForgotPassword(key: string) {
-  return consumeRateLimit(`auth:forgot:${key}`, FORGOT_MAX, FORGOT_WINDOW_MS);
+  return consumeRateLimit(`auth:forgot:${key}`, FORGOT_MAX, FORGOT_WINDOW_MS, {
+    failClosed: true,
+  });
 }
 
 export function rateLimitResetPassword(key: string) {
-  return consumeRateLimit(`auth:reset:${key}`, RESET_MAX, RESET_WINDOW_MS);
+  return consumeRateLimit(`auth:reset:${key}`, RESET_MAX, RESET_WINDOW_MS, {
+    failClosed: true,
+  });
+}
+
+export function rateLimitWebAuthn(key: string) {
+  return consumeRateLimit(
+    `auth:webauthn:${key}`,
+    WEBAUTHN_MAX,
+    WEBAUTHN_WINDOW_MS,
+    { failClosed: true },
+  );
+}
+
+export function rateLimitRefresh(key: string) {
+  return consumeRateLimit(`auth:refresh:${key}`, REFRESH_MAX, REFRESH_WINDOW_MS, {
+    failClosed: true,
+  });
+}
+
+export function rateLimitLogout(key: string) {
+  return consumeRateLimit(`auth:logout:${key}`, REFRESH_MAX, REFRESH_WINDOW_MS, {
+    failClosed: true,
+  });
 }
 
 export function authRateLimitedResponse(
@@ -63,7 +97,10 @@ export function authRateLimitedResponse(
     | "AUTH_RATE_LIMIT_LOGIN"
     | "AUTH_RATE_LIMIT_REGISTER"
     | "AUTH_RATE_LIMIT_FORGOT_PASSWORD"
-    | "AUTH_RATE_LIMIT_RESET_PASSWORD",
+    | "AUTH_RATE_LIMIT_RESET_PASSWORD"
+    | "AUTH_RATE_LIMIT_WEBAUTHN"
+    | "AUTH_RATE_LIMIT_REFRESH"
+    | "AUTH_RATE_LIMIT_LOGOUT",
 ) {
   const res = NextResponse.json(
     {
@@ -75,6 +112,12 @@ export function authRateLimitedResponse(
           "Too many registration attempts. Please wait before retrying."
         : code === "AUTH_RATE_LIMIT_FORGOT_PASSWORD" ?
           "Too many password recovery attempts. Please wait before retrying."
+        : code === "AUTH_RATE_LIMIT_WEBAUTHN" ?
+          "Too many passkey attempts. Please wait before retrying."
+        : code === "AUTH_RATE_LIMIT_LOGOUT" ?
+          "Too many logout attempts. Please wait before retrying."
+        : code === "AUTH_RATE_LIMIT_REFRESH" ?
+          "Too many session refresh attempts. Please wait before retrying."
         : "Too many password reset attempts. Please wait before retrying.",
     },
     { status: 429 },

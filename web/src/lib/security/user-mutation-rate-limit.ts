@@ -23,6 +23,7 @@ export async function rateLimitUserMutation(
     `user:${bucket}:${userId}`,
     max,
     WINDOW_MS,
+    { failClosed: true },
   );
   if (result.ok) return null;
 

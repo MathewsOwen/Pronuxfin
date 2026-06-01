@@ -33,6 +33,23 @@ const IntroLogoReveal = dynamic(
   { ssr: false },
 );
 
+const INTRO_SEEN_KEY = "pronux-intro-seen";
+
+function hasSeenIntro(): boolean {
+  try {
+    return localStorage.getItem(INTRO_SEEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markIntroSeen(): void {
+  try {
+    localStorage.setItem(INTRO_SEEN_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
 const INTRO_EASE = [0.16, 1, 0.3, 1] as const;
 const INTRO_EXIT_MS = 480;
 
@@ -124,7 +141,7 @@ export function PronuxIntroOverlay() {
   const reduceMotion = useReducedMotion();
   const isMobile = useIntroMobile();
   const [clientReady, setClientReady] = useState(false);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [warpOut, setWarpOut] = useState(0);
   const warpRafRef = useRef(0);
@@ -139,6 +156,11 @@ export function PronuxIntroOverlay() {
 
   useLayoutEffect(() => {
     setClientReady(true);
+    if (hasSeenIntro()) {
+      syncIntroHtmlLock(false);
+      return;
+    }
+    setOpen(true);
     syncIntroHtmlLock(true);
     return () => syncIntroHtmlLock(false);
   }, []);
@@ -163,6 +185,7 @@ export function PronuxIntroOverlay() {
     }
 
     window.setTimeout(() => {
+      markIntroSeen();
       setOpen(false);
       setExiting(false);
       setWarpOut(0);

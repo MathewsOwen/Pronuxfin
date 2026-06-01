@@ -1,16 +1,13 @@
-import { timingSafeEqual } from "node:crypto";
-
-export const CSRF_COOKIE_NAME = "pronuxfin_csrf";
-export const CSRF_HEADER = "x-csrf-token";
+export {
+  CSRF_COOKIE_NAME,
+  CSRF_HEADER,
+  generateCsrfToken,
+} from "@/lib/security/csrf-constants";
 
 export function isCsrfEnforced(): boolean {
   if (process.env.CSRF_ENFORCE === "0") return false;
   if (process.env.NODE_ENV === "test") return false;
   return true;
-}
-
-export function generateCsrfToken(): string {
-  return crypto.randomUUID();
 }
 
 export function parseCookieValue(
@@ -30,12 +27,19 @@ export function parseCookieValue(
   }
 }
 
+/** Constant-time compare — Edge, browser and Node (no node:crypto). */
+function timingSafeEqualBytes(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a[i]! ^ b[i]!;
+  }
+  return diff === 0;
+}
+
 function bytesEqual(a: string, b: string): boolean {
   const enc = new TextEncoder();
-  const ba = enc.encode(a);
-  const bb = enc.encode(b);
-  if (ba.length !== bb.length) return false;
-  return timingSafeEqual(ba, bb);
+  return timingSafeEqualBytes(enc.encode(a), enc.encode(b));
 }
 
 export function csrfTokensMatch(header: string | null, cookie: string | null): boolean {
@@ -48,7 +52,12 @@ export function csrfTokensMatch(header: string | null, cookie: string | null): b
 /** Browsers send `cross-site` on forged form posts from other origins. */
 export function isAcceptableSecFetchSite(req: Request): boolean {
   const value = req.headers.get("sec-fetch-site")?.trim().toLowerCase();
-  if (!value) return true;
+  if (!value) {
+    const isProd =
+      process.env.NODE_ENV === "production" ||
+      process.env.VERCEL_ENV === "production";
+    return !isProd;
+  }
   return value === "same-origin" || value === "same-site";
 }
 

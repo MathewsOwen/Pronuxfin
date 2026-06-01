@@ -1,3 +1,5 @@
+import { assertSafeFetchTarget } from "@/lib/http/ssrf-guard";
+
 /** Default ceiling for market data providers (BRAPI, Yahoo, CoinGecko, FMP, RSS). */
 export const DEFAULT_MARKET_FETCH_TIMEOUT_MS = 12_000;
 
@@ -11,6 +13,13 @@ export class FetchTimeoutError extends Error {
     super(`${label} timed out`);
     this.name = "FetchTimeoutError";
     this.label = label;
+  }
+}
+
+export class FetchSsrfBlockedError extends Error {
+  constructor(label = "fetch") {
+    super(`${label} blocked unsafe URL`);
+    this.name = "FetchSsrfBlockedError";
   }
 }
 
@@ -51,10 +60,25 @@ function mergeAbortSignals(
 export async function fetchWithTimeout(
   input: string | URL,
   init?: RequestInit,
-  options?: { timeoutMs?: number; label?: string },
+  options?: {
+    timeoutMs?: number;
+    label?: string;
+    /** When true (default), block private/metadata targets including DNS rebinding. */
+    ssrfGuard?: boolean;
+  },
 ): Promise<Response> {
   const timeoutMs = options?.timeoutMs ?? marketFetchTimeoutMs();
   const label = options?.label ?? "fetch";
+  const ssrfGuard = options?.ssrfGuard !== false;
+  const urlStr = typeof input === "string" ? input : input.toString();
+
+  if (ssrfGuard) {
+    const safe = await assertSafeFetchTarget(urlStr);
+    if (!safe) {
+      throw new FetchSsrfBlockedError(label);
+    }
+  }
+
   const external = init?.signal;
   const timeoutController = new AbortController();
   const timer = setTimeout(() => timeoutController.abort(), timeoutMs);
@@ -64,7 +88,11 @@ export async function fetchWithTimeout(
     : timeoutController.signal;
 
   try {
-    return await fetch(input, { ...init, signal });
+    return await fetch(input, {
+      ...init,
+      signal,
+      redirect: init?.redirect ?? "manual",
+    });
   } catch (err) {
     if (timeoutController.signal.aborted && !external?.aborted) {
       throw new FetchTimeoutError(label);
@@ -79,6 +107,7 @@ export function fetchMarket(input: string | URL, init?: RequestInit) {
   return fetchWithTimeout(input, init, {
     timeoutMs: marketFetchTimeoutMs(),
     label: "market",
+    ssrfGuard: true,
   });
 }
 
@@ -86,5 +115,6 @@ export function fetchLlm(input: string | URL, init?: RequestInit) {
   return fetchWithTimeout(input, init, {
     timeoutMs: llmFetchTimeoutMs(),
     label: "llm",
+    ssrfGuard: false,
   });
 }

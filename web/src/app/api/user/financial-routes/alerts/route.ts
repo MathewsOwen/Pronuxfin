@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { dismissRouteAlert } from "@/lib/financial-route/load";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,9 @@ export async function POST(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "financial-route-alerts", 20);
+  if (limited) return limited;
 
   try {
     const json: unknown = await req.json();

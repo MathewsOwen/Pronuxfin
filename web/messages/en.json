@@ -27,6 +27,8 @@
     "projecao": "Outlook",
     "news": "News",
     "tools": "Tools",
+    "learn": "Learn",
+    "about": "About us",
     "ia": "AI",
     "benefits": "Why PRONUX",
     "features": "What you get",
@@ -46,10 +48,20 @@
     "marketCryptoMajorsLink": "BRL majors",
     "marketCryptoSectorsLink": "Crypto sectors",
     "marketAllDesk": "Open full desk",
-    "newsChannelEyebrow": "News by channel",
-    "newsChannelHint": "Jump to the outlet you trust — less noise.",
-    "newsBrLabel": "Brazil",
-    "newsGlobalLabel": "Global",
+    "newsChannelEyebrow": "News desks",
+    "newsChannelHint": "Brazil with local outlets; World split by region with 3 trusted channels each.",
+    "newsDeskBr": "Brazil news",
+    "newsDeskMundo": "World news",
+    "newsDeskBrAll": "Full Brazil desk",
+    "newsDeskMundoAll": "Full World desk",
+    "newsDeskMundoHint": "North America, South America, Europe, Asia, Middle East, Africa, and Oceania.",
+    "newsWorldRegion_north_america": "North America",
+    "newsWorldRegion_south_america": "South America",
+    "newsWorldRegion_europe": "Europe",
+    "newsWorldRegion_asia": "Asia",
+    "newsWorldRegion_middle_east": "Middle East",
+    "newsWorldRegion_africa": "Africa",
+    "newsWorldRegion_oceania": "Oceania",
     "newsAllSources": "Full radar · all feeds"
   },
   "SiteIntro": {
@@ -567,6 +579,7 @@
     "terms": "Terms of use",
     "product": "Product",
     "linksFeatures": "Features",
+    "linksAbout": "About us",
     "linksMarket": "Live markets",
     "linksNews": "News",
     "linksProjecao": "Outlook & scenarios",
@@ -865,6 +878,8 @@
     "chatOfflineMetaEconom": "Let’s revisit goals: try an emergency fund in installments and weekly reviews of variable spending.",
     "chatOfflineInvest": "Illustrative allocation: 60% conservative, 25% balanced, 15% growth — we tailor this when profile and real data exist.",
     "chatOfflineGeneric": "Offline: we couldn’t reach the server. Check your connection or try again.",
+    "chatNetworkError": "Could not reach the assistant. Check your connection and try again.",
+    "chatNoEngineConfigured": "No AI engine is available. Set OPENAI_API_KEY, GEMINI_API_KEY, or Ollama on the server, or save BYOK keys in your profile.",
     "chatErrorUnknown": "Unknown error.",
     "chatErrorSession401": " Sign in again from the dashboard menu (your session may have expired).",
     "chatOllamaFooter": "\n\n— PRONUX engine: Ollama (/api/chat).",
@@ -934,7 +949,11 @@
     "MARKET_AI_JWT_UNAVAILABLE": "Authentication disabled on this server — JWT_SECRET is missing.",
     "MARKET_AI_SESSION_REQUIRED": "Session expired or missing. Sign in again from the dashboard menu.",
     "MARKET_AI_BODY_INVALID": "Malformed request to the desk AI. Review channel, payload, and retry.",
-    "MARKET_AI_JSON_INVALID": "Invalid JSON in this assistant request."
+    "MARKET_AI_JSON_INVALID": "Invalid JSON in this assistant request.",
+    "MARKET_AI_BODY_TOO_LARGE": "Request body is too large for the assistant.",
+    "MARKET_AI_RATE_LIMITED": "Too many AI requests. Wait a minute and try again.",
+    "MARKET_AI_NO_ENGINE": "No AI engine is configured on the server or in your account.",
+    "MARKET_AI_MODEL_UNAVAILABLE": "The AI engine did not respond. Check keys, quotas, or pick another engine."
   },
   "Dashboard": {
     "eyebrow": "Smart summary",
@@ -1131,16 +1150,16 @@
       "ogDescription": "Live markets with cited sources, scenario outlooks, disciplined AI and a private dashboard — institutional clarity without hype."
     },
     "bolsa": {
-      "title": "Live markets desk",
-      "description": "Brazilian equities and crypto in BRL on an institutional refresh cadence — a stable reference under time pressure.",
-      "ogTitle": "Live markets desk | PRONUXFIN",
-      "ogDescription": "Institutional equities, index proxies and crypto — ~60s client cadence with transparent labeling."
+      "title": "Live quotes — B3, indices & crypto in BRL",
+      "description": "Track Brazilian equities by sector, international blue chips and crypto in reais. Free PRONUXFIN desk with stable refresh and visible sources.",
+      "ogTitle": "Live B3 & crypto quotes | PRONUXFIN",
+      "ogDescription": "Free panel with equities, indices and crypto — institutional read without sign-up."
     },
     "projecao": {
-      "title": "Outlook & scenarios",
-      "description": "Wealth simulator with downside/base/upside bands, sensitivity matrix, goal GPS and live market pulse — PRONUXFIN quant desk.",
-      "ogTitle": "Outlook & scenarios | PRONUXFIN",
-      "ogDescription": "Project wealth, goals and macro regimes with professional charts and real-time market context."
+      "title": "Wealth & scenario simulator",
+      "description": "Project wealth with downside, base and upside bands, sensitivity matrix and goal GPS — free PRONUXFIN demo.",
+      "ogTitle": "Wealth & scenario simulator | PRONUXFIN",
+      "ogDescription": "Simulate retirement, goals and macro regimes with professional charts — quantitative education, not advice."
     },
     "tools": {
       "title": "Tools",
@@ -1149,22 +1168,40 @@
       "ogDescription": "Plan wealth and follow the macro calendar on PRONUXFIN."
     },
     "compound": {
-      "title": "Compound interest calculator",
-      "description": "Simulate monthly contributions and annual rate — PRONUXFIN financial education.",
-      "ogTitle": "Compound interest | PRONUXFIN",
-      "ogDescription": "Wealth projection with chart — hypothesis, not a return promise."
+      "title": "Free compound interest calculator",
+      "description": "See how your money grows with compound interest: initial capital, monthly contributions and annual rate. Free PRONUXFIN tool — no sign-up required.",
+      "ogTitle": "Free compound interest calculator | PRONUXFIN",
+      "ogDescription": "Project wealth with recurring contributions and visualize compounding over years — educational hypothesis, not a return promise."
     },
     "calendar": {
-      "title": "Economic calendar",
-      "description": "Today's events in Brazil and globally — macro, policy and earnings.",
-      "ogTitle": "Calendar | PRONUXFIN",
-      "ogDescription": "Market agenda with filters and estimated impact."
+      "title": "Economic calendar — Brazil & global",
+      "description": "Free macro agenda: central bank meetings, CPI, payroll, GDP and earnings — with impact filters. PRONUXFIN.",
+      "ogTitle": "Economic calendar | PRONUXFIN",
+      "ogDescription": "Daily and weekly macro events with context for investors — Brazil and abroad."
     },
     "noticias": {
-      "title": "Live financial news",
-      "description": "PRONUXFIN radar: RSS aggregation from recognized outlets — frequent refreshes with sources always visible.",
+      "title": "Financial news — Brazil & world radar",
+      "description": "Free headline aggregator with sources always visible. Brazil, Americas, Europe, Asia and more — PRONUXFIN.",
       "ogTitle": "Live financial news | PRONUXFIN",
-      "ogDescription": "Less noise, more context — headlines built for disciplined readers."
+      "ogDescription": "News radar from recognized outlets — less noise, more context for market watchers."
+    },
+    "learn": {
+      "title": "Learn finance & investing",
+      "description": "Practical guides, glossary and free tools — clear financial education without hype or asset recommendations.",
+      "ogTitle": "Learn | PRONUXFIN",
+      "ogDescription": "Articles, glossary and simulators to understand compound interest, CDI, Selic, COPOM and more."
+    },
+    "glossary": {
+      "title": "Financial glossary",
+      "description": "Meanings of CDI, Selic, CPI, ticker, dividend yield and other essentials — PRONUXFIN.",
+      "ogTitle": "Financial glossary | PRONUXFIN",
+      "ogDescription": "Clear definitions for beginner and intermediate investors — education, not advice."
+    },
+    "about": {
+      "title": "About us",
+      "description": "The PRONUXFIN journey: a dream of financial clarity, cognitive infrastructure, and plans to democratize the institutional desk.",
+      "ogTitle": "About us | PRONUXFIN",
+      "ogDescription": "Discover PRONUXFIN's origin, objectives, and vision — markets, personal finance, and education on one desk."
     },
     "forgot": {
       "title": "Reset password",
@@ -1186,6 +1223,266 @@
       "title": "Create account",
       "description": "Join PRONUXFIN in seconds — layered validation and immediate dashboard access."
     }
+  },
+  "DeskSeo": {
+    "bolsa": {
+      "eyebrow": "Live markets",
+      "title": "B3 quotes, indices and crypto in useful time",
+      "lead": "Free desk to follow Brazilian equities by sector, index proxies and crypto quoted in BRL — stable refresh with clear live or degraded labeling.",
+      "bullets": [
+        "B3 sectors and international blue chips in one panel",
+        "Crypto majors and thematic baskets in BRL",
+        "No sign-up to browse — free account unlocks portfolio and alerts"
+      ]
+    },
+    "noticias": {
+      "eyebrow": "News radar",
+      "title": "Financial news with visible sources",
+      "lead": "We aggregate headlines from recognized Brazil and world outlets. Each link opens the original story — filter by region and channel here.",
+      "bullets": [
+        "Brazil desk with local outlets; World split by region",
+        "Frequent RSS refresh — source always shown",
+        "Complements the quotes desk and macro calendar"
+      ]
+    }
+  },
+  "LearnTools": {
+    "compound": {
+      "eyebrow": "Free tool",
+      "pageTitle": "Compound interest calculator",
+      "pageLead": "Simulate initial capital, monthly contributions, annual rate and horizon to see how compounding accelerates wealth — illustrative result, no taxes or inflation.",
+      "guideTitle": "Why use a compound interest calculator?",
+      "guideP1": "Compound interest applies returns on accumulated balance — the engine behind long-term investing, private pensions and financial independence goals.",
+      "guideP2": "Adjust contributions and rate to compare conservative and optimistic cases. Save up to three scenarios in-browser or create a free account to sync on PRONUXFIN.",
+      "guideLinkLead": "Want the logic behind the formula?",
+      "guideLinkLabel": "Read the full compound interest guide",
+      "faqEyebrow": "FAQ",
+      "faqTitle": "Compound interest questions",
+      "faqLead": "Straight answers for first-time simulators.",
+      "faqCta": "Create free account and save scenarios",
+      "faq": {
+        "items": {
+          "what": { "q": "What is compound interest?", "a": "Interest calculated on initial capital plus accumulated interest from prior periods — growth tends to accelerate over time when the rate is positive." },
+          "formula": { "q": "How does the calculator compute?", "a": "We apply periodic contributions and monthly compounding from your annual rate. The chart shows month-by-month evolution with rounded values." },
+          "rate": { "q": "Which rate should I use?", "a": "Pick a rate aligned with what you model — e.g. CDI or inflation-linked for fixed income, or a conservative band for diversified portfolios." },
+          "taxes": { "q": "Does it include taxes and inflation?", "a": "No. Results are gross and nominal. Discount withholding tax, fees and consider CPI separately for real-life comparison." },
+          "save": { "q": "Do I need an account?", "a": "No. The calculator is free without login. A PRONUXFIN account syncs scenarios and unlocks fuller wealth projection." }
+        }
+      }
+    },
+    "calendar": {
+      "eyebrow": "Macro agenda",
+      "pageTitle": "Economic calendar",
+      "pageLead": "See macro events in Brazil and abroad — central banks, inflation, jobs, GDP and earnings — with impact estimates and relevance filters.",
+      "guideTitle": "How to use the calendar in your routine",
+      "guideP1": "Before trading or rebalancing, check high-impact events. Volatility often rises around COPOM, US payroll and CPI releases.",
+      "guideLinkLead": "How COPOM affects investments:",
+      "guideLinkLabel": "guide on COPOM and Selic",
+      "faqEyebrow": "FAQ",
+      "faqTitle": "Calendar questions",
+      "faqLead": "What to expect from the macro agenda on PRONUXFIN.",
+      "faqCta": "Create account and personalize alerts",
+      "faq": {
+        "items": {
+          "what": { "q": "Is the calendar free?", "a": "Yes. Visitors see the public macro agenda. Signed-in users get the integrated dashboard version with portfolio shortcuts." },
+          "copom": { "q": "When does COPOM appear?", "a": "Brazilian Central Bank meetings are listed in advance. Follow statements and minutes in specialized press too." },
+          "impact": { "q": "What does impact level mean?", "a": "Estimated how much an event may move markets — high, medium or low. A filter, not a price forecast." },
+          "account": { "q": "Why was I redirected when signed in?", "a": "Authenticated accounts use the calendar inside the private dashboard with the same data backbone." },
+          "sources": { "q": "Where do events come from?", "a": "We aggregate configured macro providers. When unavailable, we show degraded mode instead of inventing dates." }
+        }
+      }
+    },
+    "projecao": {
+      "faqEyebrow": "Public simulator",
+      "faqTitle": "Wealth projection questions",
+      "faqLead": "How to read scenarios, bands and goals on the projection desk.",
+      "faqCta": "Create free account",
+      "faq": {
+        "items": {
+          "what": { "q": "Is the wealth simulator free?", "a": "Yes. The public demo lets you adjust contributions, horizon and rates for downside, base and upside bands. Free accounts save goals and integrate with simulated portfolio." },
+          "scenarios": { "q": "What are the three scenario bands?", "a": "Hypothetical annual return cases — conservative, central and optimistic — to visualize uncertainty. Not a forecast or allocation recommendation." },
+          "account": { "q": "Do I need login to simulate?", "a": "Not to experiment. Login unlocks goal GPS, history and private-desk alert integration." },
+          "advice": { "q": "Does PRONUXFIN recommend investments from projections?", "a": "No. The tool is educational and quantitative. Investment decisions are yours alone." }
+        }
+      }
+    }
+  },
+  "Learn": {
+    "hub": {
+      "eyebrow": "Financial education",
+      "title": "Learn finance with institutional clarity",
+      "lead": "Practical guides, glossary and free tools — original PRONUXFIN content for understanding markets before deciding.",
+      "articlesTitle": "Featured guides",
+      "readingMinutes": "{minutes} min read",
+      "glossaryTitle": "Financial glossary",
+      "glossaryLead": "Short definitions for terms you see on the market desk, news and tools.",
+      "glossaryCta": "Full glossary",
+      "toolsTitle": "Put it into practice",
+      "toolsLead": "Simulate scenarios with free PRONUXFIN tools.",
+      "toolsCompound": "Compound interest calculator",
+      "toolsCalendar": "Economic calendar",
+      "toolsProjecao": "Wealth simulator",
+      "disclaimer": "Educational content. PRONUXFIN does not provide investment advice or recommend buying or selling assets.",
+      "breadcrumbHome": "Home",
+      "breadcrumbLearn": "Learn",
+      "backToHub": "Back to Learn"
+    },
+    "glossaryHub": {
+      "eyebrow": "Glossary",
+      "title": "Essential finance & investing terms",
+      "lead": "Objective definitions of indicators, products and market concepts — expanded as we grow the public desk.",
+      "backToHub": "Back to Learn",
+      "backToGlossary": "Back to glossary",
+      "termEyebrow": "Definition",
+      "relatedTitle": "Related terms",
+      "disclaimer": "Simplified definitions for education. Consult official sources and licensed professionals for wealth decisions."
+    },
+    "articles": {
+      "juros-compostos-guia": {
+        "eyebrow": "Practical guide",
+        "title": "How to calculate compound interest in practice",
+        "description": "Understand compounding logic, monthly contributions and realistic simulations — without return promises.",
+        "faqTitle": "Questions about this guide",
+        "toolCtaTitle": "Simulate now",
+        "toolCtaLead": "Use the free calculator to test initial capital, contributions and annual rate.",
+        "toolCtaButton": "Open calculator",
+        "sections": [
+          { "heading": "Why compound interest is powerful", "paragraphs": ["With simple interest, returns apply only to the original principal. With compounding, each period earns on what was already accumulated — long charts curve upward when rates are positive.", "Investors use this to model pensions, liquid fixed-income reserves and financial independence goals."] },
+          { "heading": "Steps to build a simulation", "paragraphs": ["Set a realistic initial amount — zero is fine if you're starting out. Enter monthly contributions that fit your budget.", "Pick a rate aligned with the product modeled: CDI for daily liquidity, inflation-linked for long horizons, or a conservative band for diversified portfolios.", "Compare 5, 10 and 20 year horizons. Small rate or contribution changes materially affect final wealth."] },
+          { "heading": "Limits of any simulation", "paragraphs": ["Calculators don't predict crises, tax rule changes or behavior. Inflation, taxes and fees reduce net returns.", "Use simulations for education and planning — not as guaranteed future wealth."] }
+        ],
+        "faq": { "items": { "what": { "q": "Compound vs simple interest?", "a": "Simple interest doesn't stack on principal. Compound interest does — most relevant over long horizons." }, "how": { "q": "How often should I revise?", "a": "When income, goals or risk profile change — or after major macro events. Not necessarily every month." }, "risk": { "q": "Does simulating guarantee that outcome?", "a": "No. It's a math hypothesis. Real markets fluctuate and products carry distinct risks." } } }
+      },
+      "cdi-selic-ipca": {
+        "eyebrow": "Indicators",
+        "title": "CDI, Selic and IPCA: differences every investor should know",
+        "description": "Three acronyms on every fixed-income statement. Know each role before comparing products.",
+        "faqTitle": "FAQ",
+        "toolCtaTitle": "Compare scenarios",
+        "toolCtaLead": "Simulate how monthly contributions perform at different rates.",
+        "toolCtaButton": "Compound interest calculator",
+        "sections": [
+          { "heading": "Selic: the benchmark policy rate", "paragraphs": ["Selic is set at COPOM meetings and influences credit costs and post-fixed public bond yields.", "When Selic rises, post-fixed fixed income often looks relatively more attractive — but tenor and liquidity matter as much as rate."] },
+          { "heading": "CDI: interbank reference", "paragraphs": ["CDI tracks Selic closely and benchmarks DI funds, CDBs and many bank products.", "“100% of CDI” means roughly replicating that reference before taxes and fees."] },
+          { "heading": "IPCA: official inflation", "paragraphs": ["IPCA measures Brazilian consumer inflation. Inflation targets guide Central Bank decisions.", "Comparing only “% per year” across prefixed, post-fixed and inflation-linked products can distort the picture. Always check tenor, liquidity, credit risk and tax."] }
+        ],
+        "faq": { "items": { "what": { "q": "Are CDI and Selic the same?", "a": "Not identical, but they move together. Many investors use CDI as a proxy for short post-fixed fixed income." }, "how": { "q": "Should I only pick CDI-linked products?", "a": "Depends on goal and horizon. Emergency funds need liquidity; retirement may mix inflation-linked and other assets — ideally with a licensed professional." }, "risk": { "q": "Is high IPCA always bad?", "a": "High IPCA erodes idle cash. Inflation-linked holders partly offset via indexing — but allocation matters." } } }
+      },
+      "copom-e-investimentos": {
+        "eyebrow": "Brazil macro",
+        "title": "COPOM and investments: what moves when Selic shifts",
+        "description": "Central Bank meetings affect credit, fixed income and equity mood. Know what to watch without impulse reactions.",
+        "faqTitle": "COPOM questions",
+        "toolCtaTitle": "See the agenda",
+        "toolCtaLead": "Check COPOM dates and other macro events on the calendar.",
+        "toolCtaButton": "Economic calendar",
+        "sections": [
+          { "heading": "What COPOM is", "paragraphs": ["The Monetary Policy Committee sets Selic target at periodic meetings. Statements and minutes signal views on inflation, jobs and credit.", "Investors watch COPOM because rates directly affect public bonds, loans and indirectly equities and FX."] },
+          { "heading": "Typical fixed income & equity effects", "paragraphs": ["Higher Selic often favors post-fixed bonds relatively and can reduce risk appetite at times. Lower Selic may improve backdrop for volatile assets — but sectors diverge.", "No mechanical reaction: global context, fiscal policy and earnings also matter."] },
+          { "heading": "Prepare without guessing the outcome", "paragraphs": ["Use the macro calendar for high-impact dates. Avoid over-concentrating on one rate scenario.", "Long-term plans rarely should pivot on a single meeting — unless your financial life changed structurally."] }
+        ],
+        "faq": { "items": { "what": { "q": "How often does COPOM meet?", "a": "The Central Bank publishes an annual calendar. PRONUXFIN shows these on the macro agenda when the source is available." }, "how": { "q": "Should I sell stocks before COPOM?", "a": "PRONUXFIN doesn't recommend trades. Many long-term investors observe volatility without changing plan for one event." }, "risk": { "q": "Does Tesouro Selic react instantly?", "a": "Post-fixed bonds tend to reflect rate expectations. Markets price part of moves before the official statement." } } }
+      }
+    },
+    "glossary": {
+      "cdi": { "term": "CDI", "summary": "Interbank rate used as fixed-income benchmark.", "metaTitle": "What is CDI?", "metaDescription": "CDI meaning, relation to Selic and why it appears on CDBs and DI funds.", "definition": "Certificado de Depósito Interbancário (CDI) is an interbank lending rate close to Selic. Brazilian investors use it to benchmark post-fixed fixed income.", "example": "A CDB at “102% of CDI” aims to pay slightly above that reference before tax.", "related": ["selic", "renda-fixa", "tesouro-selic"] },
+      "selic": { "term": "Selic", "summary": "Brazil's benchmark interest rate set by COPOM.", "metaTitle": "What is Selic?", "metaDescription": "Selic definition, COPOM role and impact on investments and credit.", "definition": "Selic is Brazil's monetary policy target rate set by the Central Bank at COPOM meetings.", "example": "Tesouro Selic and post-fixed CDBs tend to follow Selic moves over time.", "related": ["cdi", "copom", "tesouro-selic"] },
+      "ipca": { "term": "IPCA", "summary": "Official Brazilian inflation index.", "metaTitle": "What is IPCA?", "metaDescription": "What IPCA measures and why investors use IPCA+ bonds for long goals.", "definition": "IPCA measures official Brazilian consumer inflation and informs Central Bank targets.", "example": "Tesouro IPCA+ pays a real rate above IPCA-measured inflation.", "related": ["selic", "renda-fixa", "tesouro-selic"] },
+      "ticker": { "term": "Ticker", "summary": "Trading symbol for a stock or ETF.", "metaTitle": "What is a ticker?", "metaDescription": "Ticker meaning on B3 — how to read symbols like PETR4 or VALE3.", "definition": "A ticker is the short symbol identifying a listed asset — e.g. PETR4 for Petrobras ordinary shares on B3.", "example": "Numeric suffix indicates share class per B3 rules.", "related": ["renda-variavel", "pe-ratio"] },
+      "dividend-yield": { "term": "Dividend yield", "summary": "Dividends relative to share price.", "metaTitle": "What is dividend yield?", "metaDescription": "How to calculate dividend yield and limits of the metric.", "definition": "Dividend yield is dividends paid (or expected) divided by current price, as a percentage.", "example": "A R$50 stock paying R$2.50 in dividends implies ~5% yield — simplified.", "related": ["ticker", "pe-ratio", "renda-variavel"] },
+      "pe-ratio": { "term": "P/E ratio", "summary": "Price divided by earnings per share.", "metaTitle": "What is P/E?", "metaDescription": "Price/earnings meaning and how investors use it in equity analysis.", "definition": "Price/Earnings compares market price to earnings per share. High multiples may reflect growth expectations — or overpricing, depending on context.", "example": "P/E of 15x means the market pays 15 times annual EPS — compare peers and history.", "related": ["ticker", "dividend-yield"] },
+      "copom": { "term": "COPOM", "summary": "Committee that sets Selic in Brazil.", "metaTitle": "What is COPOM?", "metaDescription": "COPOM role, meeting calendar and link to investments.", "definition": "Brazil's Monetary Policy Committee sets the Selic target and publishes inflation guidance.", "example": "COPOM meetings appear on PRONUXFIN's calendar as high-impact events.", "related": ["selic", "cdi", "ipca"] },
+      "tesouro-selic": { "term": "Tesouro Selic", "summary": "Post-fixed government bond linked to Selic.", "metaTitle": "What is Tesouro Selic?", "metaDescription": "Tesouro Selic features, liquidity and emergency-fund use.", "definition": "Tesouro Selic is a Brazilian government bond yielding roughly Selic. Often cited for emergency reserves after initial grace.", "example": "Don't confuse with IPCA+ or prefixed Tesouro — risk/return profiles differ.", "related": ["selic", "cdi", "renda-fixa"] },
+      "poupanca": { "term": "Poupança (savings account)", "summary": "Regulated savings with its own yield rules.", "metaTitle": "How does poupança work?", "metaDescription": "Basic poupança yield rules vs other liquid products.", "definition": "Brazilian caderneta de poupança pays under legal rules tied to Selic and deposit anniversary. Simple but not always the most efficient reserve.", "example": "With high Selic, liquid CDBs or Tesouro Selic may yield more — consider tax and profile.", "related": ["selic", "cdi", "renda-fixa"] },
+      "renda-fixa": { "term": "Fixed income", "summary": "Investments with more predictable return rules.", "metaTitle": "What is fixed income?", "metaDescription": "Fixed income definition, examples (CDB, Tesouro) vs variable income.", "definition": "Fixed income covers instruments with remuneration set by rules or indexers — CDI, Selic, IPCA or prefixed rates. Credit, liquidity and inflation risks remain.", "example": "CDB, LCI, LCA and Tesouro Direto are common in Brazil.", "related": ["cdi", "selic", "ipca"] },
+      "renda-variavel": { "term": "Variable income", "summary": "Assets whose market price fluctuates — stocks, REITs, ETFs.", "metaTitle": "What is variable income?", "metaDescription": "Variable income meaning, risks and relation to B3 equities.", "definition": "Variable income includes listed assets without contractually fixed returns — stocks, FIIs, BDRs, ETFs. Volatility can be high.", "example": "Buying PETR4 exposes you to market price — unlike a CDB with a coupon rule.", "related": ["ticker", "dividend-yield", "pe-ratio"] },
+      "aporte": { "term": "Contribution (aporte)", "summary": "New money added to investments or simulations.", "metaTitle": "What is an aporte?", "metaDescription": "Monthly contribution definition and compounding impact.", "definition": "Aporte is additional money invested periodically. In PRONUXFIN simulators, steady monthly contributions often matter more than timing the market.", "example": "Contributing R$500/month in the compound calculator shows cumulative effect over years.", "related": ["cdi", "renda-fixa"] }
+    }
+  },
+  "AboutPage": {
+    "eyebrow": "About us",
+    "heroTitle": "We started with a dream: make the financial desk accessible, clear, and trustworthy",
+    "heroLead": "PRONUXFIN didn't begin as another quotes app. It began with the conviction that anyone who invests, studies, or stewards their own wealth deserves the same clarity large desks have — without opaque barriers, noise, or empty promises.",
+    "originEyebrow": "The origin",
+    "originTitle": "A dream before it was a product",
+    "originLead": "Behind the platform is a simple, stubborn idea.",
+    "originBody": "We saw smart people making important financial decisions with fragmented tools: quotes in one place, news elsewhere, loose spreadsheets, and generic AI with no context. The market doesn't wait — but information arrived late, confused, or without a source.",
+    "originBody2": "PRONUXFIN was born to unite live markets, wealth projection, a news radar, and assisted intelligence on one cognitive desk. Not to replace your judgment, but to give back time, method, and transparency to those who take finance seriously.",
+    "journeyEyebrow": "Our journey",
+    "journeyTitle": "From concept to the desk you use today",
+    "journeyLead": "We built in layers — infrastructure first, experience second, always with engineering ethics.",
+    "timeline": [
+      {
+        "phase": "Idea",
+        "title": "The dream of one desk",
+        "description": "We defined that markets, personal finance, and education shouldn't live in silos. The goal was a Brazilian platform with a global view, institutional language, and accessibility for everyone."
+      },
+      {
+        "phase": "Foundation",
+        "title": "Infrastructure with discipline",
+        "description": "We built the technical base: robust auth, data with visible sources, explicit limits, and an architecture that prioritizes security and auditability from the first commit."
+      },
+      {
+        "phase": "Public desk",
+        "title": "Markets, news, and open tools",
+        "description": "We launched the live desk with Brazil and international sectors, regional news radar, projection simulators, and calculators — free, with transparency about data origin and latency."
+      },
+      {
+        "phase": "Today",
+        "title": "Private product and AI under control",
+        "description": "Portfolio, financial routes, alerts, BYOK assistant, and passkeys: the private dashboard grows without abandoning the core principle — you decide; the platform informs, organizes, and accelerates."
+      }
+    ],
+    "missionEyebrow": "Our objectives",
+    "missionTitle": "What drives us every day",
+    "missionLead": "Four commitments that guide every feature, every word, and every integration.",
+    "pillars": [
+      {
+        "title": "Clarity over hype",
+        "description": "Data with sources, explicit limits, and language that respects your intelligence. We never sell certainty where only probability exists."
+      },
+      {
+        "title": "Security by design",
+        "description": "Revocable sessions, WebAuthn, rate limits, CSP, and continuous audit. Protecting your digital wealth is part of the product, not an appendix."
+      },
+      {
+        "title": "Real financial education",
+        "description": "Tools that teach as you use them: scenario projections, macro calendar, comparators, and AI that explains — not AI that pushes assets."
+      },
+      {
+        "title": "Brazil at the center, the world on the horizon",
+        "description": "B3, crypto in BRL, local news, and global regional desks. Built for the Brazilian investor who looks inward and outward."
+      }
+    ],
+    "futureEyebrow": "Future plans",
+    "futureTitle": "Where we're headed",
+    "futureLead": "Today's desk is only the first chapter. These axes guide our roadmap.",
+    "roadmap": [
+      {
+        "horizon": "Near term",
+        "title": "A deeper, faster desk",
+        "description": "More assets, enriched dossiers, smart alerts, and a mobile-first experience — always keeping institutional cadence and the performance you expect."
+      },
+      {
+        "horizon": "Mid term",
+        "title": "Open Finance and wealth routes",
+        "description": "Integration with real accounts and investments to consolidate wealth, simulate goals with your data, and visualize financial routes with market context."
+      },
+      {
+        "horizon": "Mid term",
+        "title": "Education paths and certification",
+        "description": "Guided journeys from basics to advanced, connected to the live desk — learn by doing, with curated content and measurable progress."
+      },
+      {
+        "horizon": "Long term",
+        "title": "Infrastructure for institutions",
+        "description": "APIs, white-label, and cognitive layers for offices, fintechs, and educators who want the same data and AI discipline — with compliance and auditability."
+      }
+    ],
+    "closingTitle": "Be part of the next phase",
+    "closingLead": "If you believe finance can be transparent, demanding, and human at the same time, the desk is already open. Start with live markets or create your free account.",
+    "ctaPrimary": "Create free account",
+    "ctaSecondary": "Explore live desk"
   },
   "BolsaHub": {
     "badgeGlobal": "Global desk · Brazilian equities & digital assets",
@@ -1442,7 +1739,30 @@
     "aggregationBadge": "Institutional aggregation",
     "h1Lead": "News flow —",
     "h1Accent": "PRONUX editorial compliance",
-    "subtitle": "Curated RSS from recognized outlets — less churn, more disciplined reading. Roughly 10s client refresh cadence here; originals always surfaced — Brazil and global on the same temporal rail.",
+    "h1LeadBr": "Brazil news —",
+    "h1AccentBr": "domestic PRONUX desk",
+    "h1LeadMundo": "World news —",
+    "h1AccentMundo": "regional radar",
+    "subtitle": "Curated RSS from recognized outlets: Brazil and World with sources always visible. Frequent refresh on this client.",
+    "subtitleBr": "InfoMoney, Money Times, InvestNews, and G1 Economia — Brazilian market coverage without unnecessary noise.",
+    "subtitleMundo": "Seven regional blocks — North America, South America, Europe, Asia, Middle East, Africa, and Oceania — each with three numbered channels.",
+    "deskNavAria": "News desks",
+    "deskAll": "All desks",
+    "deskBr": "Brazil news",
+    "deskMundo": "World news",
+    "deskBrLead": "Brazilian sources only on this desk.",
+    "deskMundoLead": "International coverage split by region — three sources per block.",
+    "clearDeskOnly": "View all desks",
+    "signalDesk": "Desk · {desk}",
+    "worldRegionViewAll": "View block",
+    "worldRegionEmpty": "No headlines in this block for the current cycle. Feeds will be retried shortly.",
+    "worldRegion_north_america": "North America",
+    "worldRegion_south_america": "South America",
+    "worldRegion_europe": "Europe",
+    "worldRegion_asia": "Asia",
+    "worldRegion_middle_east": "Middle East",
+    "worldRegion_africa": "Africa",
+    "worldRegion_oceania": "Oceania",
     "syncLabel": "Last sync",
     "signalSources": "Active sources",
     "signalArticles": "Visible items",

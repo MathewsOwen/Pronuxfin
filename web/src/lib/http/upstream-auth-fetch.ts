@@ -50,6 +50,7 @@ export async function fetchAuthUpstream(
     }, {
       timeoutMs: authUpstreamTimeoutMs(),
       label: "auth",
+      ssrfGuard: false,
     });
   } catch (err) {
     if (err instanceof FetchTimeoutError) {

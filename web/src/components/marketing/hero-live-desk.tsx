@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, Radio } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useQuotesStream } from "@/components/market/quotes-stream-provider";
 import { INDEX_PROXY_LABELS } from "@/lib/market/indices";
-import type { QuoteSnapshot, QuotesPayload } from "@/lib/market/types";
+import type { QuoteSnapshot } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
 
 const HERO_SYMBOLS = ["BOVA11", "PETR4", "VALE3", "BTC"] as const;
@@ -14,33 +14,7 @@ const HERO_SYMBOLS = ["BOVA11", "PETR4", "VALE3", "BTC"] as const;
 export function HeroLiveDesk() {
   const t = useTranslations("HeroLive");
   const locale = useLocale();
-  const [payload, setPayload] = useState<QuotesPayload | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      if (typeof document !== "undefined" && document.hidden) return;
-      try {
-        const res = await fetch("/api/quotes", { cache: "no-store" });
-        if (!res.ok) return;
-        const json = (await res.json()) as QuotesPayload;
-        if (!cancelled) setPayload(json);
-      } catch {
-        /* ignore */
-      }
-    }
-    void load();
-    const id = setInterval(() => void load(), 60_000);
-    const onVisibility = () => {
-      if (!document.hidden) void load();
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, []);
+  const payload = useQuotesStream();
 
   const rows = HERO_SYMBOLS.map((symbol) => {
     const equity = payload?.results?.find((q) => q.symbol === symbol);
@@ -53,7 +27,6 @@ export function HeroLiveDesk() {
   });
 
   const live =
-    payload != null &&
     payload.fetchedAt > 0 &&
     rows.some((r) => r.quote?.regularMarketPrice != null) &&
     !payload.simulated &&

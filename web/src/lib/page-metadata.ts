@@ -38,9 +38,7 @@ export function defaultOpenGraphImages(): NonNullable<Metadata["openGraph"]>["im
 
 /**
  * Canonical absoluto + og:url.
- * Com `localePrefix: "never"`, todos os idiomas compartilham a mesma URL; usar vários
- * hreflangs apontando para o mesmo URL prejudica SEO. Mantemos só `x-default` até haver
- * prefixos ou rotas distintas por locale (ex.: /en/bolsa).
+ * Com `localePrefix: "always"`, cada locale tem URL própria (ex.: /pt-BR/bolsa, /en/bolsa).
  */
 export function withCanonical(pathname: string, meta: Metadata = {}): Metadata {
   const canonical = absoluteUrl(pathname);

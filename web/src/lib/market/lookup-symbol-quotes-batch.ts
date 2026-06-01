@@ -7,7 +7,7 @@ import {
   normalizeWatchlistSymbol,
 } from "@/lib/user-watchlist/load";
 
-const MAX_BATCH = 15;
+const MAX_BATCH = 50;
 
 export type BatchQuoteResult = {
   symbol: string;

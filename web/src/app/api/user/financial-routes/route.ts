@@ -14,6 +14,7 @@ import {
 } from "@/lib/financial-route/load";
 import type { FinancialGoalType } from "@/lib/financial-route/types";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,6 +61,9 @@ export async function POST(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "financial-routes", 25);
+  if (limited) return limited;
 
   const parsed = await parseBody(req, routeSchema);
   if (!parsed.ok) return parsed.response;
@@ -116,6 +120,9 @@ export async function DELETE(req: Request) {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
   const { userId } = session;
+
+  const limited = await rateLimitUserMutation(userId, "financial-routes", 25);
+  if (limited) return limited;
 
   const parsed = await parseBody(req, deleteSchema);
   if (!parsed.ok) return parsed.response;

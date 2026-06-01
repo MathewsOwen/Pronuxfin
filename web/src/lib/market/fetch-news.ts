@@ -1,7 +1,10 @@
 import Parser from "rss-parser";
 import { FetchTimeoutError, fetchMarket } from "@/lib/http/fetch-with-timeout";
 import { safeExternalUrl } from "@/lib/http/safe-external-url";
-import { NEWS_FEEDS } from "@/lib/market/news-feeds-config";
+import {
+  NEWS_FEEDS,
+  type NewsFeedConfig,
+} from "@/lib/market/news-feeds-config";
 import type { NewsArticle } from "@/lib/market/types";
 
 const FETCH_HEADERS = {
@@ -45,24 +48,42 @@ function toHttpsFeedUrl(url: string): string {
 }
 
 async function fetchFeedXml(url: string): Promise<string> {
-  const res = await fetchMarket(toHttpsFeedUrl(url), {
-    cache: "no-store",
-    headers: FETCH_HEADERS,
-  });
-  if (!res.ok) {
-    throw new Error(`feed_status_${res.status}`);
+  if (!safeExternalUrl(url)) {
+    throw new Error("blocked feed URL");
   }
-  return res.text();
+
+  const retryable = new Set([400, 408, 429, 500, 502, 503, 504]);
+  let lastStatus = 0;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetchMarket(toHttpsFeedUrl(url), {
+      cache: "no-store",
+      headers: FETCH_HEADERS,
+    });
+    lastStatus = res.status;
+    if (res.status >= 300 && res.status < 400) {
+      throw new Error("feed redirect blocked");
+    }
+    if (res.ok) return res.text();
+    if (!retryable.has(res.status) || attempt === 1) {
+      throw new Error(`feed_status_${res.status}`);
+    }
+    await new Promise((r) => setTimeout(r, 600));
+  }
+
+  throw new Error(`feed_status_${lastStatus}`);
 }
 
-async function loadFeedArticles(
-  url: string,
-  source: string,
-  region: NewsArticle["region"],
-): Promise<NewsArticle[]> {
+function articleRegion(feed: NewsFeedConfig): NewsArticle["region"] {
+  return feed.desk === "br" ? "br" : "global";
+}
+
+async function loadFeedArticles(feedConfig: NewsFeedConfig): Promise<NewsArticle[]> {
+  const { url, source, desk, worldRegion } = feedConfig;
+  const region = articleRegion(feedConfig);
   const xml = await fetchFeedXml(url);
-  const feed = await parser.parseString(xml);
-  const items = feed.items ?? [];
+  const parsed = await parser.parseString(xml);
+  const items = parsed.items ?? [];
   return items.map((item) => {
     const title = (item.title ?? "").trim();
     const rawLink = (item.link ?? item.guid ?? "").toString().trim();
@@ -82,6 +103,8 @@ async function loadFeedArticles(
       summary,
       publishedAt: rawDate,
       region,
+      desk,
+      worldRegion,
     } satisfies NewsArticle;
   });
 }
@@ -89,6 +112,8 @@ async function loadFeedArticles(
 export type NewsSourceStatus = {
   source: string;
   region: NewsArticle["region"];
+  desk?: NewsArticle["desk"];
+  worldRegion?: NewsArticle["worldRegion"];
   /** Feed responded with parseable RSS. */
   ok: boolean;
   /** Items returned by the feed (before global dedup). */
@@ -171,9 +196,7 @@ export async function fetchAggregatedNewsWithDiagnostics(
   limit = 72,
 ): Promise<NewsFetchDiagnostics> {
   const batches = await Promise.allSettled(
-    NEWS_FEEDS.map(({ url, source, region }) =>
-      loadFeedArticles(url, source, region),
-    ),
+    NEWS_FEEDS.map((feed) => loadFeedArticles(feed)),
   );
 
   const merged: NewsArticle[] = [];
@@ -187,14 +210,18 @@ export async function fetchAggregatedNewsWithDiagnostics(
       merged.push(...b.value);
       sources.push({
         source: feed.source,
-        region: feed.region,
+        region: articleRegion(feed),
+        desk: feed.desk,
+        worldRegion: feed.worldRegion,
         ok: true,
         count: b.value.length,
       });
     } else {
       sources.push({
         source: feed.source,
-        region: feed.region,
+        region: articleRegion(feed),
+        desk: feed.desk,
+        worldRegion: feed.worldRegion,
         ok: false,
         count: 0,
         error: feedErrorReason(b.reason),

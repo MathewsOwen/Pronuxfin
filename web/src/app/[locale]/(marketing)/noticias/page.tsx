@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { NewsHubLoader } from "@/components/market/news-hub-loader";
+import { DeskSeoIntro } from "@/components/marketing/desk-seo-intro";
 import type { AppLocale } from "@/i18n/routing";
 import {
   isNewsDesk,
@@ -47,10 +48,13 @@ export default async function NoticiasPage({ searchParams }: NoticiasPageProps) 
     rawRegion && isNewsWorldRegion(rawRegion) ? rawRegion : null;
 
   return (
-    <NewsHubLoader
-      initialDesk={desk}
-      initialChannel={channel}
-      initialRegion={region}
-    />
+    <>
+      <DeskSeoIntro variant="noticias" />
+      <NewsHubLoader
+        initialDesk={desk}
+        initialChannel={channel}
+        initialRegion={region}
+      />
+    </>
   );
 }

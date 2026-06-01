@@ -1,8 +1,7 @@
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { lookupSymbolQuote } from "@/lib/market/lookup-symbol-quote";
-import { allowWithinWindow } from "@/lib/security/simple-rate-limit";
+import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 import {
   isValidWatchlistSymbol,
   normalizeWatchlistSymbol,
@@ -15,20 +14,12 @@ const LOOKUP_WINDOW_MS = 60_000;
 const LOOKUP_MAX_PER_WINDOW = 40;
 
 export async function GET(req: Request) {
-  const h = await headers();
-  const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const rip = forwarded || h.get("x-real-ip")?.trim() || "unknown";
-  const rateKey = `quotes-lookup:${rip}`;
-
-  if (!allowWithinWindow(rateKey, LOOKUP_MAX_PER_WINDOW, LOOKUP_WINDOW_MS)) {
-    const res = NextResponse.json(
-      { ok: false as const, error: "rate_limited", retryAfterSec: 60 },
-      { status: 429 },
-    );
-    res.headers.set("Retry-After", "60");
-    res.headers.set("Cache-Control", "no-store");
-    return res;
-  }
+  const limited = await rateLimitResponse(
+    "quotes-lookup",
+    LOOKUP_MAX_PER_WINDOW,
+    LOOKUP_WINDOW_MS,
+  );
+  if (limited) return limited;
 
   const url = new URL(req.url);
   const symbol = normalizeWatchlistSymbol(url.searchParams.get("symbol") ?? "");

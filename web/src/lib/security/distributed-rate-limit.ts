@@ -11,10 +11,16 @@ export type RateLimitResult = { ok: boolean; retryAfterSec: number };
  * must not depend on the rate-limit table, and the in-memory pass still clips
  * bursts per instance.
  */
+export type ConsumeRateLimitOptions = {
+  /** When Postgres is unavailable, deny instead of falling back to in-memory. */
+  failClosed?: boolean;
+};
+
 export async function consumeRateLimit(
   key: string,
   max: number,
   windowMs: number,
+  options?: ConsumeRateLimitOptions,
 ): Promise<RateLimitResult> {
   const now = Date.now();
   const bucket = Math.floor(now / windowMs);
@@ -39,6 +45,9 @@ export async function consumeRateLimit(
 
     return { ok: row.count <= max, retryAfterSec };
   } catch {
+    if (options?.failClosed) {
+      return { ok: false, retryAfterSec };
+    }
     const ok = allowWithinWindow(windowKey, max, windowMs);
     return { ok, retryAfterSec };
   }

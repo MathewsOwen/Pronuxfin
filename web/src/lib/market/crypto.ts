@@ -5,6 +5,7 @@ import {
   type CryptoAssetMeta,
   type CryptoSectorId,
 } from "@/lib/market/crypto-sector-universe";
+import { getLiveDeskCryptoMax } from "@/lib/market/live-desk-universe";
 import type { QuoteSnapshot } from "./types";
 
 type CoinGeckoMarketRow = {
@@ -21,6 +22,106 @@ type CoinGeckoMarketRow = {
 };
 
 const COINGECKO_CHUNK_SIZE = 25;
+const COINGECKO_MARKETS_PAGE_SIZE = 250;
+
+function mapCoinGeckoMarketRow(row: CoinGeckoMarketRow): QuoteSnapshot | null {
+  const symbolRaw = row.symbol?.trim().toUpperCase();
+  if (!symbolRaw) return null;
+  const price = typeof row.current_price === "number" ? row.current_price : null;
+  const pct =
+    typeof row.price_change_percentage_24h === "number"
+      ? row.price_change_percentage_24h
+      : null;
+  let change: number | null = null;
+  if (price != null && pct != null && Number.isFinite(price) && Number.isFinite(pct)) {
+    const prevClose = price / (1 + pct / 100);
+    change = Number((price - prevClose).toFixed(2));
+  }
+  return {
+    symbol: symbolRaw,
+    shortName: typeof row.name === "string" ? row.name : symbolRaw,
+    currency: "BRL",
+    regularMarketPrice: price,
+    regularMarketChange: change,
+    regularMarketChangePercent: pct,
+    regularMarketVolume:
+      typeof row.total_volume === "number" ? row.total_volume : null,
+    imageUrl: typeof row.image === "string" ? row.image : undefined,
+    marketCapRank:
+      typeof row.market_cap_rank === "number" ? row.market_cap_rank : null,
+    marketTime: typeof row.last_updated === "string" ? row.last_updated : undefined,
+    segment: "crypto",
+  };
+}
+
+async function fetchCoinGeckoMarketsPageBrl(page: number): Promise<CoinGeckoMarketRow[]> {
+  const url =
+    `https://api.coingecko.com/api/v3/coins/markets?vs_currency=brl` +
+    `&order=market_cap_desc&per_page=${COINGECKO_MARKETS_PAGE_SIZE}` +
+    `&page=${page}&sparkline=false&price_change_percentage=24h`;
+  const res = await fetchMarket(url, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent":
+        "PRONUXFIN/1.0 (+https://pronuxfin.com.br; agrega cotações públicas CoinGecko)",
+    },
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    throw new Error(`coingecko_status_${res.status}`);
+  }
+  return (await res.json()) as CoinGeckoMarketRow[];
+}
+
+/** Top criptos por market cap (CoinGecko) — uma ou poucas chamadas HTTP. */
+export async function fetchTopCoinGeckoMarketsBrl(
+  maxAssets = getLiveDeskCryptoMax(),
+): Promise<{ rows: QuoteSnapshot[]; partial: boolean }> {
+  const target = Math.max(1, Math.floor(maxAssets));
+  const pages = Math.max(1, Math.ceil(target / COINGECKO_MARKETS_PAGE_SIZE));
+  const attempt = async () => {
+    const settled = await Promise.allSettled(
+      Array.from({ length: pages }, (_, index) => fetchCoinGeckoMarketsPageBrl(index + 1)),
+    );
+    const rows: QuoteSnapshot[] = [];
+    const seen = new Set<string>();
+    let partial = false;
+
+    for (const result of settled) {
+      if (result.status !== "fulfilled") {
+        partial = true;
+        continue;
+      }
+      for (const row of result.value) {
+        const snap = mapCoinGeckoMarketRow(row);
+        if (!snap || seen.has(snap.symbol)) continue;
+        seen.add(snap.symbol);
+        rows.push(snap);
+        if (rows.length >= target) break;
+      }
+      if (rows.length >= target) break;
+    }
+
+    if (rows.length === 0) {
+      throw new Error("coingecko_top_markets_empty");
+    }
+
+    rows.sort(
+      (a, b) =>
+        (a.marketCapRank ?? Number.MAX_SAFE_INTEGER) -
+        (b.marketCapRank ?? Number.MAX_SAFE_INTEGER),
+    );
+
+    return { rows: rows.slice(0, target), partial };
+  };
+
+  try {
+    return await attempt();
+  } catch {
+    await new Promise((r) => setTimeout(r, 400));
+    return await attempt();
+  }
+}
 
 function chunkAssets<T>(rows: readonly T[], size: number): T[][] {
   const out: T[][] = [];
@@ -152,18 +253,18 @@ async function fetchCoinGeckoQuotesBrlForAssets(
 }
 
 export function simulatedCryptoQuotes(): QuoteSnapshot[] {
-  return simulatedCryptoQuotesForAssets(CORE_CRYPTO_ASSETS);
+  return [];
 }
 
 export async function fetchCryptoQuotesBrl(): Promise<{
   rows: QuoteSnapshot[];
   partial: boolean;
 }> {
-  return fetchCoinGeckoQuotesBrlForAssets(CORE_CRYPTO_ASSETS);
+  return fetchTopCoinGeckoMarketsBrl(getLiveDeskCryptoMax());
 }
 
 export function simulatedCryptoSectorQuotes(sector: CryptoSectorId): QuoteSnapshot[] {
-  return simulatedCryptoQuotesForAssets(listCryptoSectorAssets(sector));
+  return [];
 }
 
 export async function fetchCryptoSectorQuotesBrl(sector: CryptoSectorId): Promise<{

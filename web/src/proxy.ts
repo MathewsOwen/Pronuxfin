@@ -5,6 +5,8 @@ import {
   readRefreshCookieValue,
 } from "@/lib/auth/auth-cookie-names";
 import { verifyAccessJwt } from "@/lib/auth/jwt-crypto";
+import { confirmSessionViaUpstream } from "@/lib/auth/validate-access-session";
+import { isSessionVersionCheckEnabled } from "@/lib/auth/session-version-check";
 import { isJwtSecretConfigured } from "@/lib/env/server-env";
 import {
   buildContentSecurityPolicy,
@@ -12,13 +14,16 @@ import {
   resolveCspMode,
 } from "@/lib/security/csp";
 import { setCsrfCookie } from "@/lib/auth/csrf-cookie";
-import { CSRF_COOKIE_NAME } from "@/lib/security/csrf";
+import { CSRF_COOKIE_NAME } from "@/lib/security/csrf-constants";
 import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
 
 function newPageNonce(): string {
-  return Buffer.from(crypto.randomUUID()).toString("base64");
+  const bytes = new TextEncoder().encode(crypto.randomUUID());
+  let binary = "";
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
 }
 
 function finishPageResponse(
@@ -43,18 +48,6 @@ function finishPageResponse(
   return response;
 }
 
-function pathnameHasLocale(pathname: string): boolean {
-  return routing.locales.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
-  );
-}
-
-function toInternalLocalePath(pathname: string): string {
-  if (pathnameHasLocale(pathname)) return pathname;
-  if (pathname === "/") return `/${routing.defaultLocale}`;
-  return `/${routing.defaultLocale}${pathname}`;
-}
-
 const protectedPrefixes = [
   "/dashboard",
   "/assistant",
@@ -68,7 +61,17 @@ const protectedPrefixes = [
   "/perfil",
 ];
 
-export async function middleware(request: NextRequest) {
+function stripLocalePrefix(pathname: string): string {
+  for (const locale of routing.locales) {
+    if (pathname === `/${locale}`) return "/";
+    if (pathname.startsWith(`/${locale}/`)) {
+      return pathname.slice(`/${locale}`.length) || "/";
+    }
+  }
+  return pathname;
+}
+
+export async function proxy(request: NextRequest) {
   const existing = request.headers.get("x-request-id")?.trim();
   const rid = existing || crypto.randomUUID();
   const requestHeaders = new Headers(request.headers);
@@ -89,12 +92,14 @@ export async function middleware(request: NextRequest) {
   const nonce = newPageNonce();
   requestHeaders.set("x-nonce", nonce);
 
+  const barePath = stripLocalePrefix(pathname);
+
   const isProtected = protectedPrefixes.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
+    (p) => barePath === p || barePath.startsWith(`${p}/`),
   );
 
   const authEntryPaths = ["/login", "/register"];
-  const isAuthEntry = authEntryPaths.includes(pathname);
+  const isAuthEntry = authEntryPaths.includes(barePath);
 
   if (isProtected || isAuthEntry) {
     if (!isJwtSecretConfigured()) {
@@ -107,7 +112,7 @@ export async function middleware(request: NextRequest) {
       }
       const url = request.nextUrl.clone();
       url.pathname = "/login";
-      url.searchParams.set("from", pathname);
+      url.searchParams.set("from", barePath);
       const res = NextResponse.redirect(url);
       return finishPageResponse(res, rid, nonce, request);
     }
@@ -115,13 +120,10 @@ export async function middleware(request: NextRequest) {
     const token = readAuthCookieValue(request.cookies);
     const refreshToken = readRefreshCookieValue(request.cookies);
 
-    // When the (short-lived) access token is gone/expired but a refresh token
-    // is present, bounce through the silent refresh route instead of forcing
-    // a re-login. /api is outside this middleware, so there is no loop.
     const refreshRedirect = () => {
       const url = request.nextUrl.clone();
       url.pathname = "/api/auth/refresh";
-      url.search = `?from=${encodeURIComponent(pathname)}`;
+      url.search = `?from=${encodeURIComponent(barePath)}`;
       const res = NextResponse.redirect(url);
       return finishPageResponse(res, rid, nonce, request);
     };
@@ -135,7 +137,6 @@ export async function middleware(request: NextRequest) {
         const res = NextResponse.redirect(url);
         return finishPageResponse(res, rid, nonce, request);
       }
-      /* token inválido — deixa entrar em login */
     }
 
     if (isProtected) {
@@ -143,7 +144,7 @@ export async function middleware(request: NextRequest) {
         if (refreshToken) return refreshRedirect();
         const url = request.nextUrl.clone();
         url.pathname = "/login";
-        url.searchParams.set("from", pathname);
+        url.searchParams.set("from", barePath);
         const res = NextResponse.redirect(url);
         return finishPageResponse(res, rid, nonce, request);
       }
@@ -153,20 +154,23 @@ export async function middleware(request: NextRequest) {
         if (refreshToken) return refreshRedirect();
         const url = request.nextUrl.clone();
         url.pathname = "/login";
-        url.searchParams.set("from", pathname);
+        url.searchParams.set("from", barePath);
         const res = NextResponse.redirect(url);
         return finishPageResponse(res, rid, nonce, request);
       }
-    }
-  }
 
-  if (!pathnameHasLocale(pathname) && pathname !== "/") {
-    const url = request.nextUrl.clone();
-    url.pathname = toInternalLocalePath(pathname);
-    const rewriteRes = NextResponse.rewrite(url, {
-      request: { headers: requestHeaders },
-    });
-    return finishPageResponse(rewriteRes, rid, nonce, request);
+      if (isSessionVersionCheckEnabled()) {
+        const live = await confirmSessionViaUpstream(token);
+        if (!live) {
+          if (refreshToken) return refreshRedirect();
+          const url = request.nextUrl.clone();
+          url.pathname = "/login";
+          url.searchParams.set("from", barePath);
+          const res = NextResponse.redirect(url);
+          return finishPageResponse(res, rid, nonce, request);
+        }
+      }
+    }
   }
 
   const withRid = new NextRequest(request, { headers: requestHeaders });

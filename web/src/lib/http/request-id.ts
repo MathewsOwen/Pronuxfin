@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { applyApiSecurityHeaders } from "@/lib/security/api-security-headers";
+
 /** Nome normalizado pelo fetch (`Headers.get` usa lowercase). */
 export const REQUEST_ID_HEADER = "x-request-id";
 
@@ -7,5 +9,5 @@ export const REQUEST_ID_HEADER = "x-request-id";
 export function attachRequestId(req: Request, res: NextResponse): NextResponse {
   const id = req.headers.get(REQUEST_ID_HEADER)?.trim();
   if (id) res.headers.set("X-Request-Id", id);
-  return res;
+  return applyApiSecurityHeaders(res);
 }

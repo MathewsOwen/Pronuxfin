@@ -26,7 +26,7 @@ describe("GET /api/health/market", () => {
       recommendations: [],
     });
 
-    const res = await GET();
+    const res = await GET(new Request("http://localhost/api/health/market"));
     expect(res.status).toBe(200);
     expect((await res.json()).ok).toBe(true);
   });
@@ -42,7 +42,7 @@ describe("GET /api/health/market", () => {
       recommendations: ["configure BRAPI_TOKEN"],
     });
 
-    const res = await GET();
+    const res = await GET(new Request("http://localhost/api/health/market"));
     expect(res.status).toBe(503);
   });
 });

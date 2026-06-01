@@ -421,10 +421,10 @@ export function BolsaLiveHub() {
               <Layers className="size-3.5" aria-hidden />
               {t("badgeGlobal")}
             </Badge>
-            <h1 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl md:text-[2.75rem] md:leading-[1.12]">
+            <h2 className="font-heading text-3xl font-semibold tracking-tight sm:text-4xl md:text-[2.75rem] md:leading-[1.12]">
               {t("h1Lead")}{" "}
               <span className="text-gradient-brand">{t("h1Accent")}</span>
-            </h1>
+            </h2>
             <p className="text-muted-foreground leading-relaxed">{t("intro")}</p>
           </div>
           <div className="glass-panel card-shine flex w-full max-w-xl flex-col gap-3 rounded-2xl px-4 py-3 font-mono text-[11px] lg:w-auto lg:max-w-none">

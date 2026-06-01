@@ -15,7 +15,7 @@ export async function GET() {
   if (limited) return limited;
 
   try {
-    const diag = await loadCachedAggregatedNewsDiagnostics(80);
+    const diag = await loadCachedAggregatedNewsDiagnostics(120);
     const { articles, feedsAttempted, feedsSucceeded, sources } = diag;
 
     let hint: string | undefined;

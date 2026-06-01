@@ -18,7 +18,9 @@ import { PUBLIC_DESK_QUOTES_POLL_MS } from "@/lib/market/quotes-poll-interval";
 /** Um único ciclo `/api/quotes` — cadência institucional (≥60 s; `NEXT_PUBLIC_QUOTES_POLL_MS`). */
 export const QUOTES_POLL_MS = PUBLIC_DESK_QUOTES_POLL_MS;
 
-const QuotesContext = createContext<QuotesPayload | undefined>(undefined);
+const QuotesContext = createContext<
+  { payload: QuotesPayload; refresh: () => void } | undefined
+>(undefined);
 
 export function QuotesStreamProvider({ children }: { children: ReactNode }) {
   const [payload, setPayload] = useState<QuotesPayload>(deskBootstrapQuotesPayload);
@@ -54,7 +56,9 @@ export function QuotesStreamProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <QuotesContext.Provider value={payload}>{children}</QuotesContext.Provider>
+    <QuotesContext.Provider value={{ payload, refresh: pull }}>
+      {children}
+    </QuotesContext.Provider>
   );
 }
 
@@ -66,5 +70,10 @@ export function useQuotesStream(): QuotesPayload {
     }
     return deskBootstrapQuotesPayload();
   }
-  return ctx;
+  return ctx.payload;
+}
+
+export function useQuotesRefresh(): () => void {
+  const ctx = useContext(QuotesContext);
+  return ctx?.refresh ?? (() => {});
 }

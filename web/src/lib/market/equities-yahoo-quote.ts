@@ -1,6 +1,5 @@
 import { fetchMarket } from "@/lib/http/fetch-with-timeout";
 import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
-import { simulatedIntlEquitiesForSymbols } from "@/lib/market/equities-sim";
 import type { QuoteSnapshot } from "@/lib/market/types";
 
 const YAHOO_CHUNK = 56;
@@ -49,6 +48,23 @@ function mapYahooRow(row: Record<string, unknown>): QuoteSnapshot | null {
   };
 }
 
+function emptyIntlBook(
+  canonical: readonly string[],
+  warning: string,
+): {
+  rows: QuoteSnapshot[];
+  simulated: boolean;
+  partial: boolean;
+  warning: string;
+} {
+  return {
+    rows: [],
+    simulated: false,
+    partial: true,
+    warning,
+  };
+}
+
 /**
  * Snapshot via agregação Yahoo Finance (endpoint público não documentado oficialmente —
  * em produção comercial avalie provedor licenciado e troque apenas este módulo).
@@ -72,61 +88,47 @@ export async function fetchYahooQuotesForSymbols(
 
   try {
     const batches = chunk(uniq, YAHOO_CHUNK);
-    for (const batch of batches) {
-      if (batch.length === 0) continue;
-      const qs = encodeURIComponent(batch.join(","));
-      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${qs}`;
-      const res = await fetchMarket(url, {
-        headers: {
-          Accept: "application/json",
-          "User-Agent":
-            "Mozilla/5.0 (compatible; PRONUXFIN/1.0; +https://pronux.fin) AppleWebKit/537.36",
-        },
-        cache: "no-store",
-      });
+    const settled = await Promise.allSettled(
+      batches.map(async (batch) => {
+        if (batch.length === 0) return;
+        const qs = encodeURIComponent(batch.join(","));
+        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${qs}`;
+        const res = await fetchMarket(url, {
+          headers: {
+            Accept: "application/json",
+            "User-Agent":
+              "Mozilla/5.0 (compatible; PRONUXFIN/1.0; +https://pronux.fin) AppleWebKit/537.36",
+          },
+          cache: "no-store",
+        });
 
-      if (!res.ok) {
-        return {
-          rows: sortQuotesByCanonicalOrder(
-            simulatedIntlEquitiesForSymbols(canonical),
-            canonical,
-          ),
-          simulated: true,
-          partial: false,
-          warning: "intl_quotes_http",
+        if (!res.ok) {
+          throw new Error(`intl_quotes_http_${res.status}`);
+        }
+
+        const json = (await res.json()) as {
+          quoteResponse?: { result?: Array<Record<string, unknown>>; error?: unknown };
         };
-      }
 
-      const json = (await res.json()) as {
-        quoteResponse?: { result?: Array<Record<string, unknown>>; error?: unknown };
-      };
+        const raw = json.quoteResponse?.result ?? [];
+        for (const row of raw) {
+          const snap = mapYahooRow(row);
+          if (snap) merged.set(snap.symbol, snap);
+        }
+      }),
+    );
 
-      const raw = json.quoteResponse?.result ?? [];
-      for (const row of raw) {
-        const snap = mapYahooRow(row);
-        if (snap) merged.set(snap.symbol, snap);
-      }
+    const allFailed = settled.every((result) => result.status === "rejected");
+    if (allFailed) {
+      return emptyIntlBook(canonical, "intl_quotes_http");
     }
   } catch {
-    return {
-      rows: sortQuotesByCanonicalOrder(
-        simulatedIntlEquitiesForSymbols(canonical),
-        canonical,
-      ),
-      simulated: true,
-      partial: false,
-      warning: "intl_network",
-    };
+    return emptyIntlBook(canonical, "intl_network");
   }
 
   const sorted = sortQuotesByCanonicalOrder([...merged.values()], canonical);
   if (sorted.length === 0) {
-    return {
-      rows: sortQuotesByCanonicalOrder(simulatedIntlEquitiesForSymbols(canonical), canonical),
-      simulated: true,
-      partial: false,
-      warning: "intl_empty",
-    };
+    return emptyIntlBook(canonical, "intl_empty");
   }
 
   const partial = sorted.length < uniq.length;
