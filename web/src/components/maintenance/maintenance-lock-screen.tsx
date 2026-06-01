@@ -6,25 +6,47 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ProductionReadiness, ReadinessCheck } from "@/lib/production-readiness";
 
-type CheckKey = ReadinessCheck["key"];
+type CriticalCheckKey =
+  | "api_url_configured"
+  | "site_url_configured"
+  | "jwt_secret_configured"
+  | "database_configured"
+  | "internal_api_secret"
+  | "jwt_rs256"
+  | "cookie_samesite_strict"
+  | "ai_keys_encryption"
+  | "webauthn_production"
+  | "market_ai_engine";
 
-const FAIL_LABEL_KEYS: Record<CheckKey, string> = {
+const FAIL_LABEL_KEYS: Record<CriticalCheckKey, string> = {
   api_url_configured: "checks.apiUrlMissing",
   site_url_configured: "checks.siteUrlMissing",
   jwt_secret_configured: "checks.jwtSecretMissing",
   database_configured: "checks.databaseMissing",
-  backend_ready: "checks.backendDown",
-  database_ready: "checks.databaseDown",
+  internal_api_secret: "checks.internalApiSecretMissing",
+  jwt_rs256: "checks.jwtRs256Missing",
+  cookie_samesite_strict: "checks.cookieSameSiteMissing",
+  ai_keys_encryption: "checks.aiKeysEncryptionMissing",
+  webauthn_production: "checks.webauthnMissing",
+  market_ai_engine: "checks.marketAiMissing",
 };
 
-const CHECK_LABEL_KEYS: Record<CheckKey, string> = {
+const CHECK_LABEL_KEYS: Record<CriticalCheckKey, string> = {
   api_url_configured: "checks.apiUrlLabel",
   site_url_configured: "checks.siteUrlLabel",
   jwt_secret_configured: "checks.jwtSecretLabel",
   database_configured: "checks.databaseLabel",
-  backend_ready: "checks.backendLabel",
-  database_ready: "checks.databaseReadyLabel",
+  internal_api_secret: "checks.internalApiSecretLabel",
+  jwt_rs256: "checks.jwtRs256Label",
+  cookie_samesite_strict: "checks.cookieSameSiteLabel",
+  ai_keys_encryption: "checks.aiKeysEncryptionLabel",
+  webauthn_production: "checks.webauthnLabel",
+  market_ai_engine: "checks.marketAiLabel",
 };
+
+function isCriticalCheckKey(key: string): key is CriticalCheckKey {
+  return key in CHECK_LABEL_KEYS;
+}
 
 export async function MaintenanceLockScreen({
   readiness,
@@ -53,19 +75,9 @@ export async function MaintenanceLockScreen({
               {t("checksLabel")}
             </p>
             <ul className="space-y-2 text-sm">
-              {failedCritical.map((check) => {
-                const labelKey = CHECK_LABEL_KEYS[check.key as CheckKey];
-                const failKey = FAIL_LABEL_KEYS[check.key as CheckKey];
-                return (
-                  <li
-                    key={check.key}
-                    className="flex flex-col gap-1 rounded-lg border border-white/10 bg-background/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <span className="font-medium text-foreground/90">{t(labelKey)}</span>
-                    <span className="font-mono text-xs text-market-down">{t(failKey)}</span>
-                  </li>
-                );
-              })}
+              {failedCritical.map((check) => (
+                <FailedCheckRow key={check.key} check={check} t={t} />
+              ))}
             </ul>
             <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{t("operatorHint")}</p>
           </div>
@@ -99,5 +111,32 @@ export async function MaintenanceLockScreen({
         </p>
       </div>
     </main>
+  );
+}
+
+function FailedCheckRow({
+  check,
+  t,
+}: {
+  check: ReadinessCheck;
+  t: Awaited<ReturnType<typeof getTranslations<"Maintenance">>>;
+}) {
+  if (!isCriticalCheckKey(check.key)) {
+    return (
+      <li className="flex flex-col gap-1 rounded-lg border border-white/10 bg-background/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+        <span className="font-medium text-foreground/90">{check.key}</span>
+        <span className="font-mono text-xs text-market-down">{check.detail}</span>
+      </li>
+    );
+  }
+
+  const labelKey = CHECK_LABEL_KEYS[check.key];
+  const failKey = FAIL_LABEL_KEYS[check.key];
+
+  return (
+    <li className="flex flex-col gap-1 rounded-lg border border-white/10 bg-background/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+      <span className="font-medium text-foreground/90">{t(labelKey)}</span>
+      <span className="font-mono text-xs text-market-down">{t(failKey)}</span>
+    </li>
   );
 }

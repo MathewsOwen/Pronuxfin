@@ -92,20 +92,31 @@ Opcional mas útil:
 
 ### 4.1 Variáveis na Vercel (Settings → Environment Variables → Production)
 
+Gere o kit na raiz do repo:
+
+```bash
+npm run production:setup
+npm run production:verify -- .env.production.generated
+```
+
 | Nome | Valor |
 |------|--------|
-| `JWT_SECRET` | **Igual** ao do backend. |
-| `NEXT_PUBLIC_SITE_URL` | `https://www.pronuxfin.com.br` (ou temporariamente `https://<projeto>.vercel.app` até o DNS estar pronto). |
-| `API_URL` | URL **HTTPS** pública da API (ex. `https://api.pronuxfin.com.br`). **Sem barra final.** |
+| `NEXT_PUBLIC_SITE_URL` | `https://www.pronuxfin.com.br` |
+| `API_URL` | URL HTTPS da API Nest (ex.: `https://api.pronuxfin.com.br`) |
+| `DATABASE_URL` | Postgres (Parte 2) |
+| `JWT_ALGORITHM` | `RS256` |
+| `JWT_PUBLIC_KEY` | PEM pública (gerada por `production:setup`) |
+| `INTERNAL_API_SECRET` | ≥32 chars, **igual** ao backend |
+| `COOKIE_SAMESITE_STRICT` | `1` |
+| `CSRF_ENFORCE` | `1` |
+| `AUTH_SESSION_VERSION_CHECK` | `1` |
+| `AI_KEYS_ENCRYPTION_KEY` | 64 hex |
+| `WEBAUTHN_RP_ID` | `www.pronuxfin.com.br` |
+| `WEBAUTHN_ORIGIN` | `https://www.pronuxfin.com.br` |
+| `OPENAI_API_KEY` ou `GEMINI_API_KEY` | Obrigatório (sem IA = manutenção) |
+| `BRAPI_TOKEN`, `FMP_API_KEY` | Mercado ao vivo (recomendado) |
 
-Se usares watchlist / alertas / BYOK no Next com Prisma:
-
-| Nome | Valor |
-|------|--------|
-| `DATABASE_URL` | Mesma base (ou URL com pooler, conforme Parte 2). |
-| `AI_KEYS_ENCRYPTION_KEY` | 64 caracteres hex (32 bytes); ver comentário em `web/.env.example`. |
-
-Opcional: `BRAPI_TOKEN`, `FMP_API_KEY`, Sentry (`NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_DSN`), etc. — ver `web/.env.example`.
+Checklist completo: `docs/PRONUXFIN_OPERATOR_CHECKLIST.md`.
 
 5. **Redeploy** depois de guardar as variáveis (**Deployments → … → Redeploy**).
 

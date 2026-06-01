@@ -39,6 +39,8 @@ export type ProductionReadiness = {
 function shouldEnableReadinessGate() {
   if (process.env.MAINTENANCE_FORCE_OFF === "1") return false;
   if (process.env.MAINTENANCE_FORCE_ON === "1") return true;
+  // During `next build`, env is often incomplete — do not gate static generation.
+  if (process.env.NEXT_PHASE === "phase-production-build") return false;
   return isProductionRuntime();
 }
 

@@ -26,7 +26,10 @@
     "smoke:strict": "node scripts/smoke-strict.mjs",
     "smoke:ps1": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/smoke.ps1",
     "smoke:sh": "bash scripts/smoke.sh",
-    "release:check": "node scripts/release-readiness.mjs"
+    "release:check": "node scripts/release-readiness.mjs",
+    "security:generate-secrets": "node scripts/generate-production-secrets.mjs",
+    "production:setup": "node scripts/setup-pronuxfin-production.mjs",
+    "production:verify": "node scripts/verify-production-config.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0"

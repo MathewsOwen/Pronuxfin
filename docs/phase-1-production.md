@@ -45,8 +45,10 @@ Com `HEALTH_PROBE_SECRET` no web, `GET /api/health/ready` com header `Authorizat
 
 **Painel privado:** em `NODE_ENV=production`, o gate distingue dois níveis:
 
-- **Crítico (manutenção):** `API_URL`, `NEXT_PUBLIC_SITE_URL`, `JWT_SECRET` (≥32) ou `DATABASE_URL` em falta. O painel privado é bloqueado com `MaintenanceLockScreen` listando apenas o que está em falta — páginas públicas (`/bolsa`, `/noticias`, `/projecao`, `/ferramentas/*`, `/privacidade`, `/termos`) seguem ao vivo.
-- **Runtime (degradação):** backend Nest a inicializar ou base de dados temporariamente fora. O painel continua **navegável** com banner âmbar (`SystemDegradationBanner`); cada página trata o seu próprio empty/error state.
+- **Crítico (manutenção):** variáveis estáticas em falta — `API_URL`, `NEXT_PUBLIC_SITE_URL`, `JWT` (RS256 + `JWT_PUBLIC_KEY`), `DATABASE_URL`, `INTERNAL_API_SECRET`, `COOKIE_SAMESITE_STRICT`, `AI_KEYS_ENCRYPTION_KEY`, `WEBAUTHN_*`, motor de IA (`OPENAI_API_KEY` / `GEMINI_API_KEY`). O painel privado mostra `MaintenanceLockScreen` listando o que falta; páginas públicas seguem ao vivo.
+- **Runtime (degradação):** backend Nest a inicializar ou base temporariamente fora. Banner âmbar; painel continua navegável.
+
+Gere e valide env antes do deploy: `npm run production:setup` → `npm run production:verify -- .env.production.generated`.
 
 **Banner âmbar:** API fora do ar ou em warm-up — painel continua acessível com aviso (JWT local).
 

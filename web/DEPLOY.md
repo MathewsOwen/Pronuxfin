@@ -21,15 +21,30 @@
 1. Suba o código para um repositório **GitHub**.
 2. Em [vercel.com](https://vercel.com), **Add New Project** → importe o repo.
 3. Configure **Root Directory** = `web` (obrigatório: o Next vive em `web/` e as rotas públicas estão em `src/app/[locale]/`; sem isto verá 404 na home).
-4. Variáveis de ambiente (Production) — copie de `web/.env.example` o bloco comentado «Produção»:
+4. Variáveis de ambiente (Production) — gere o kit completo na raiz do repo:
+
+   ```bash
+   npm run production:setup
+   npm run production:verify -- .env.production.generated
+   ```
+
+   Cole na Vercel **todas** as variáveis do bloco WEB em `.env.production.generated`. Resumo:
 
    | Nome | Valor |
    |------|--------|
-   | `JWT_SECRET` | Mesmo segredo forte do backend (≥32 caracteres) |
-   | `NEXT_PUBLIC_SITE_URL` | `https://www.pronuxfin.com.br` (ou URL Vercel até o DNS estar pronto) |
-   | `API_URL` | URL HTTPS pública do NestJS (ex.: `https://api.pronuxfin.com.br`). Sem isto, login/registo quebram. |
-   | `BRAPI_TOKEN` | (opcional) Token [brapi.dev](https://brapi.dev) para cotações B3 mais estáveis |
-   | `FMP_API_KEY` ou `FINANCIAL_MODELING_PREP_API_KEY` | (opcional) Dossiês internacionais mais ricos |
+   | `NEXT_PUBLIC_SITE_URL` | `https://www.pronuxfin.com.br` |
+   | `API_URL` | URL HTTPS do NestJS |
+   | `DATABASE_URL` | PostgreSQL |
+   | `JWT_ALGORITHM` | `RS256` |
+   | `JWT_PUBLIC_KEY` | PEM pública |
+   | `INTERNAL_API_SECRET` | ≥32 chars (igual backend) |
+   | `COOKIE_SAMESITE_STRICT` | `1` |
+   | `AI_KEYS_ENCRYPTION_KEY` | 64 hex |
+   | `WEBAUTHN_RP_ID` / `WEBAUTHN_ORIGIN` | domínio produção |
+   | `OPENAI_API_KEY` ou `GEMINI_API_KEY` | motor IA obrigatório |
+   | `BRAPI_TOKEN`, `FMP_API_KEY` | mercado ao vivo |
+
+   Lista completa: `docs/PRONUXFIN_OPERATOR_CHECKLIST.md`.
 
    Admin no painel: define-se no **backend** (`PLATFORM_ADMIN_EMAILS` em `backend/.env` ou env do host), não na Vercel.
 

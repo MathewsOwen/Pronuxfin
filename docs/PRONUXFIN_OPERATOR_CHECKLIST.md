@@ -1,94 +1,114 @@
-# PRONUXFIN — checklist do operador (o que só você faz)
+# PRONUXFIN — checklist do operador (go-live 10/10)
 
-Este ficheiro lista o que **não está no código**: contas externas, chaves de API, variáveis de ambiente e verificações manuais. O repositório já inclui a lógica; falta configurar o ambiente e os fornecedores.
+O que **não está no código**: contas, chaves e variáveis de ambiente. Use este guia para **zero tela de manutenção** e site completo.
 
 ---
 
-## 1. Contas e alojamento (uma vez)
+## Passo 0 — Gerar segredos (1 minuto)
+
+Na raiz do repo:
+
+```bash
+npm run production:setup
+```
+
+Abre `.env.production.generated` (não vai para o Git). Preencha os campos `<<< MANUAL >>>` e valide:
+
+```bash
+npm run production:verify -- .env.production.generated
+```
+
+Só faça deploy quando o verify terminar com **OK**.
+
+---
+
+## 1. Contas e alojamento
 
 | O quê | Onde | Notas |
 |--------|------|--------|
-| Repositório Git | GitHub (ou outro) | Push da `main` / branch de produção. |
-| Frontend Next.js | **Vercel** | Root directory = `web`. |
-| API NestJS | **Render** (ou VM/Docker) | Deve ouvir `0.0.0.0` na porta do host. |
-| Base PostgreSQL | **Supabase** (ou Postgres gerido) | Mesma base para auth + dados de utilizador usados pelo Next (BYOK, etc.). |
+| Frontend Next.js | **Vercel** | Root directory = `web`, região `gru1` |
+| API NestJS | **Render / Railway / VPS** | HTTPS público (ex.: `api.pronuxfin.com.br`) |
+| PostgreSQL | **Neon / Supabase / RDS** | Mesma base para backend + Next (Prisma) |
+| Domínio | **Registro.br** | `www.pronuxfin.com.br` → CNAME Vercel |
 
 ---
 
-## 2. Variáveis obrigatórias (sem isto o produto quebra)
+## 2. Vercel — variáveis obrigatórias (Production)
 
-### Vercel (`web`)
+Sem **todas** estas, o painel privado mostra **manutenção** ou o servidor falha no arranque.
 
-| Variável | Obrigatório | Descrição |
-|----------|-------------|-----------|
-| `API_URL` | Sim | URL HTTPS pública da API Nest (ex.: `https://pronuxfin.onrender.com`). |
-| `JWT_SECRET` | Sim | **Exatamente o mesmo** valor que no backend (≥32 caracteres aleatórios). |
-| `NEXT_PUBLIC_SITE_URL` | Recomendado | URL pública do site (domínio ou `*.vercel.app`). |
+| Variável | Valor |
+|----------|--------|
+| `NEXT_PUBLIC_SITE_URL` | `https://www.pronuxfin.com.br` |
+| `API_URL` | `https://api.pronuxfin.com.br` (sem `/` final) |
+| `DATABASE_URL` | Connection string PostgreSQL |
+| `JWT_ALGORITHM` | `RS256` |
+| `JWT_PUBLIC_KEY` | PEM pública (só no web) |
+| `INTERNAL_API_SECRET` | ≥32 chars, **igual ao backend** |
+| `CSRF_ENFORCE` | `1` |
+| `AUTH_SESSION_VERSION_CHECK` | `1` |
+| `COOKIE_SAMESITE_STRICT` | `1` |
+| `CSP_MODE` | `enforce` |
+| `AI_KEYS_ENCRYPTION_KEY` | 64 caracteres hex |
+| `WEBAUTHN_RP_ID` | `www.pronuxfin.com.br` |
+| `WEBAUTHN_ORIGIN` | `https://www.pronuxfin.com.br` |
+| `OPENAI_API_KEY` **ou** `GEMINI_API_KEY` | Pelo menos um motor de IA |
 
-### Backend (Render / host da API)
+**Recomendado (mesa ao vivo + dossiê):**
 
-| Variável | Obrigatório | Descrição |
-|----------|-------------|-----------|
-| `DATABASE_URL` | Sim | `postgresql://…` da Supabase (pooler ou direct, conforme documentação Prisma). |
-| `JWT_SECRET` | Sim | Igual ao da Vercel. |
-| `FRONTEND_URL` | Recomendado | Origem do front (CORS / links em e-mails). |
+| Variável | Efeito |
+|----------|--------|
+| `BRAPI_TOKEN` | Cotações B3 estáveis |
+| `FMP_API_KEY` | Dossiê internacional (TTM, demonstrações) |
+| `HEALTH_PROBE_SECRET` | Probes detalhados em `/api/health/ready` |
+| `SECURITY_CONTACT_EMAIL` | `security.txt` |
+| `NEXT_PUBLIC_SENTRY_DSN` + `SENTRY_DSN` | Alertas de erro |
 
----
-
-## 3. Mercado e dossiê (qualidade “mesa”)
-
-Configurar na **Vercel** (rotas `/api/*` e carregamento do dossiê no servidor).
-
-| Variável | Obrigatório | Efeito |
-|----------|-------------|--------|
-| `BRAPI_TOKEN` | Muito recomendado (BR) | Cotações B3 mais estáveis; menos fallback simulado. |
-| `FMP_API_KEY` ou `FINANCIAL_MODELING_PREP_API_KEY` | Muito recomendado (exterior) | Perfil da empresa, **métricas TTM**, **DRE / balanço / fluxo (último ano anual)** no terminal do ativo. |
-| `MARKET_PROVIDER_FMP_ENABLED` | Opcional | Só use `false`/`0` se quiser **desligar** o FMP. |
-
-**O que você faz:** criar conta em [financialmodelingprep.com](https://financialmodelingprep.com), copiar a API key, colar na Vercel, redeploy.
-
-**Limites:** cada pedido ao dossiê internacional pode disparar várias chamadas FMP (perfil + TTM + 3 demonstrações). Escolha um plano FMP compatível com o tráfego esperado.
-
----
-
-## 4. IA (deixar de ser só “demo”)
-
-Na **Vercel** e/ou chaves do utilizador (BYOK):
-
-| Variável / ação | Efeito |
-|-----------------|--------|
-| `OPENAI_API_KEY` | Motor OpenAI no chat de mercado. |
-| `GOOGLE_GENERATIVE_AI_API_KEY` ou `GEMINI_API_KEY` | Motor Gemini. |
-| `PRONUX_MARKET_AI_OLLAMA_ORIGIN` | Ollama auto-hospedado (URL base). |
-| BYOK na app | Utilizador guarda chaves; exige `DATABASE_URL` + `AI_KEYS_ENCRYPTION_KEY` (hex 64) no Next — ver `web/DEPLOY.md`. |
-
-**Painel multi-IA (opcional):** com ≥2 motores ativos, o utilizador pode marcar “Painel multi-IA” no chat. Consome mais tokens. Desligar no servidor: `MARKET_AI_ENSEMBLE_DISABLED=1`. Limite de motores: `MARKET_AI_ENSEMBLE_MAX_ENGINES` (predefinição 3).
+**Proibido:** `MAINTENANCE_FORCE_OFF=1`, `CSRF_ENFORCE=0`, `MARKET_ALLOW_SIMULATION=1`.
 
 ---
 
-## 5. Admin e e-mail (opcional)
+## 3. Backend — variáveis obrigatórias
 
-| O quê | Onde |
-|--------|------|
-| `PLATFORM_ADMIN_EMAILS` | Env do **backend** — e-mails com acesso admin. |
-| SMTP / reset de palavra-passe | Variáveis de mail no backend (se usar recuperação de conta). |
+| Variável | Valor |
+|----------|--------|
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | Igual ao web |
+| `JWT_ALGORITHM` | `RS256` |
+| `JWT_PRIVATE_KEY` | PEM privada (**só backend**) |
+| `JWT_PUBLIC_KEY` | PEM pública |
+| `INTERNAL_API_SECRET` | Igual ao web |
+| `REFRESH_STRICT_BIND` | `1` |
+| `FRONTEND_URL` | `https://www.pronuxfin.com.br` |
+| `FRONTEND_URLS` | `https://pronuxfin.com.br,https://pronuxfin.vercel.app` |
+| `WEBAUTHN_RP_ID` / `WEBAUTHN_ORIGIN` | Igual ao web |
+| `TRUST_PROXY` | `1` (atrás de proxy/CDN) |
+| `SMTP_URL` + `SMTP_FROM` | Reset de senha por e-mail |
+| `PLATFORM_ADMIN_EMAILS` | Seu e-mail admin |
 
 ---
 
-## 6. Depois de configurar — verificação mínima
+## 4. Ordem de deploy
 
-1. `GET https://<sua-api>/health/live` e `/health/ready` — OK.  
-2. Registo e login no site.  
-3. Abrir um ativo **internacional** (ex.: `AAPL`) logado — ver secções **Fundamental TTM** e **Demonstrações financeiras** se o FMP estiver ativo.  
-4. Abrir **Central de IA** — enviar mensagem; se houver chave, `demo: false` na resposta JSON.  
-5. Se alterou variáveis na Vercel: **Redeploy** do projeto.
+1. Criar PostgreSQL e correr `npm run migrate:deploy`
+2. Deploy backend com env do bloco BACKEND
+3. Confirmar `GET https://api…/health/ready` → 200
+4. Colar env WEB na Vercel → **Redeploy**
+5. Apontar DNS `www` → Vercel
+6. Smoke: `WEB_BASE=https://www.pronuxfin.com.br npm run smoke:strict`
 
 ---
 
-## 7. O que a PRONUXFIN **não** faz por si
+## 5. Verificação manual (10/10)
 
-- Não audita demonstrações financeiras nem substitui filings SEC, IFRS ou auditoria.  
-- Não garante disponibilidade nem exatidão de Yahoo, BRAPI ou FMP (são terceiros).  
-- Não presta assessoria de investimento; o produto é infraestrutura e leitura informativa.
+- [ ] Home, bolsa, notícias, projeção, ferramentas — sem erro
+- [ ] Registo + login — **sem** tela de manutenção
+- [ ] Dashboard, carteira, alertas carregam
+- [ ] Chat de mercado responde (IA)
+- [ ] Ativo B3 e internacional com cotações reais
+- [ ] Recuperação de senha por e-mail
+- [ ] `/privacidade` e `/termos` acessíveis
 
-Para deploy passo a passo mais longo, veja também `docs/deploy-passo-a-passo.md` e `docs/github-production-checklist.md`.
+---
+
+Docs relacionados: `docs/deploy-passo-a-passo.md`, `docs/PRODUCTION-SECURITY-CHECKLIST.md`, `web/DEPLOY.md`.

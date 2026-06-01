@@ -38,6 +38,13 @@ describe("evaluateProductionReadiness", () => {
     vi.restoreAllMocks();
   });
 
+  it("is disabled during next build static generation", async () => {
+    vi.stubEnv("NEXT_PHASE", "phase-production-build");
+    const result = await evaluateProductionReadiness();
+    expect(result.enabled).toBe(false);
+    expect(result.criticalOk).toBe(true);
+  });
+
   it("is disabled outside production gate", async () => {
     vi.stubEnv("NODE_ENV", "development");
     const result = await evaluateProductionReadiness();
