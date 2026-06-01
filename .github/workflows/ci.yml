@@ -78,9 +78,17 @@ jobs:
       CI: true
       API_URL: http://127.0.0.1:5999
       JWT_SECRET: ci-e2e-placeholder-jwt-secret-min-32-characters
+      JWT_ALGORITHM: RS256
+      JWT_PUBLIC_KEY: "-----BEGIN PUBLIC KEY-----\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n-----END PUBLIC KEY-----"
       DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
       NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3000
-      ENABLE_CSP_REPORT_ONLY: "1"
+      INTERNAL_API_SECRET: ci-e2e-internal-api-secret-32chars!
+      COOKIE_SAMESITE_STRICT: "1"
+      AI_KEYS_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      WEBAUTHN_RP_ID: 127.0.0.1
+      WEBAUTHN_ORIGIN: https://127.0.0.1
+      OPENAI_API_KEY: sk-ci-e2e-placeholder
+      CSP_MODE: report-only
     steps:
       - uses: actions/checkout@v4
 
