@@ -109,18 +109,22 @@ export function NewsLiveHub({
   const [deskFilter, setDeskFilter] = useState<NewsDesk | null>(initialDesk);
   const [channelFilter, setChannelFilter] = useState<string | null>(initialChannel);
   const [regionFilter, setRegionFilter] = useState<NewsWorldRegion | null>(initialRegion);
+  const [prevInitialDesk, setPrevInitialDesk] = useState(initialDesk);
+  const [prevInitialChannel, setPrevInitialChannel] = useState(initialChannel);
+  const [prevInitialRegion, setPrevInitialRegion] = useState(initialRegion);
 
-  useEffect(() => {
+  if (initialDesk !== prevInitialDesk) {
+    setPrevInitialDesk(initialDesk);
     setDeskFilter(initialDesk);
-  }, [initialDesk]);
-
-  useEffect(() => {
+  }
+  if (initialChannel !== prevInitialChannel) {
+    setPrevInitialChannel(initialChannel);
     setChannelFilter(initialChannel);
-  }, [initialChannel]);
-
-  useEffect(() => {
+  }
+  if (initialRegion !== prevInitialRegion) {
+    setPrevInitialRegion(initialRegion);
     setRegionFilter(initialRegion);
-  }, [initialRegion]);
+  }
 
   const syncNewsUrl = useCallback(
     (opts?: { mesa?: NewsDesk; fonte?: string; regiao?: NewsWorldRegion }) => {

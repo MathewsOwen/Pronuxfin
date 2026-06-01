@@ -1,7 +1,6 @@
 "use client";
 
 import { useMessages, useTranslations } from "next-intl";
-import { PronuxFinLogo } from "@/components/brand/pronux-fin-logo";
 import {
   Brain,
   ChartSpline,

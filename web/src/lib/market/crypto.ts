@@ -1,6 +1,5 @@
 import { fetchMarket } from "@/lib/http/fetch-with-timeout";
 import {
-  CORE_CRYPTO_ASSETS,
   listCryptoSectorAssets,
   type CryptoAssetMeta,
   type CryptoSectorId,
@@ -131,31 +130,6 @@ function chunkAssets<T>(rows: readonly T[], size: number): T[][] {
   return out;
 }
 
-function simulatedCryptoQuotesForAssets(assets: readonly CryptoAssetMeta[]): QuoteSnapshot[] {
-  const t = Date.now() / 9500;
-  return assets.map(({ symbol, shortName }, i) => {
-    const seed = [...symbol].reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const wave = Math.cos(t + i * 0.85);
-    const pct = Number((wave * 3.1).toFixed(2));
-    const base = 120 + (seed % 9_500);
-    const multiplier = [1.3, 6.5, 24, 95, 420, 1_950][seed % 6] ?? 24;
-    const price = Number((base * multiplier + wave * multiplier * 6.5).toFixed(2));
-    const prev = price / (1 + pct / 100);
-    const change = Number((price - prev).toFixed(2));
-    return {
-      symbol,
-      shortName,
-      currency: "BRL",
-      regularMarketPrice: price,
-      regularMarketChange: change,
-      regularMarketChangePercent: pct,
-      regularMarketVolume: Number((price * (9_000 + (seed % 40_000))).toFixed(0)),
-      marketCapRank: i + 1,
-      segment: "crypto",
-    } satisfies QuoteSnapshot;
-  });
-}
-
 async function fetchCoinGeckoQuotesBrlForAssets(
   assets: readonly CryptoAssetMeta[],
 ): Promise<{ rows: QuoteSnapshot[]; partial: boolean }> {
@@ -264,6 +238,7 @@ export async function fetchCryptoQuotesBrl(): Promise<{
 }
 
 export function simulatedCryptoSectorQuotes(sector: CryptoSectorId): QuoteSnapshot[] {
+  void sector;
   return [];
 }
 
