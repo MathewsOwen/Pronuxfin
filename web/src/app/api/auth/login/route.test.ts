@@ -1,5 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/lib/security/auth-rate-limit", () => ({
+  getRateLimitClientKey: vi.fn(() => "test-client"),
+  rateLimitLogin: vi.fn().mockResolvedValue({ ok: true, retryAfterSec: 60 }),
+  authRateLimitedResponse: vi.fn(),
+}));
+
+vi.mock("@/lib/security/mutation-guard", () => ({
+  assertAuthEntryAllowed: vi.fn(() => null),
+}));
+
 import { POST } from "@/app/api/auth/login/route";
 
 describe("POST /api/auth/login", () => {
