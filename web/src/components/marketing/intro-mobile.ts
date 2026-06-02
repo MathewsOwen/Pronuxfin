@@ -20,11 +20,14 @@ export function useIntroMobile() {
   return isMobile;
 }
 
+/** 6 serviços principais — órbita travada no mobile. */
 export const MOBILE_INTRO_SERVICE_IDS = [
   "ai",
   "dashboard",
   "forecasts",
   "security",
+  "insights",
+  "monitoring",
 ] as const;
 
 export type SingularitySceneMode = "intro" | "ambient";
@@ -42,22 +45,26 @@ export function getSingularityViewportProfile(
       isMobile: false,
       isPortrait,
       shortFrame: false,
-      instanceCount: mode === "ambient" ? 4200 : 1400,
+      instanceCount: mode === "ambient" ? 4200 : 2800,
       pixelRatioCap: 2.5,
-      camDistance: mode === "ambient" ? 90 : 85,
-      orbitRadius: 41,
-      orbitSpread: 0.32,
-      crystalRadius: mode === "ambient" ? 0.5 : 0.55,
+      camDistance: mode === "ambient" ? 90 : 80,
+      orbitRadius: 40,
+      orbitSpread: 0,
+      crystalRadius: mode === "ambient" ? 0.5 : 0.62,
       sphereSegments: 64,
       labelCompact: false,
       showCrystalLabels: true,
-      diskRMax: 44,
+      crystalLockedOrbit: true,
+      diskRMax: 50,
+      diskOrbitScale: 0.82,
+      diskIntensity: 1.62,
+      auraIntensity: 1.48,
       fov: 40,
-      cameraPitch: 0.35,
+      cameraPitch: 0.31,
       cameraYOffset: 0,
       antialias: true,
-      toneMappingExposure: mode === "ambient" ? 1.45 : 1.6,
-      autoRotateSpeed: mode === "ambient" ? 0.045 : 0.06,
+      toneMappingExposure: mode === "ambient" ? 1.55 : 1.98,
+      autoRotateSpeed: mode === "ambient" ? 0.045 : 0.062,
       interactiveTilt: true,
     } as const;
   }
@@ -69,37 +76,33 @@ export function getSingularityViewportProfile(
     isPortrait,
     shortFrame,
     instanceCount: shortFrame
-      ? 520
+      ? 720
       : mode === "ambient"
         ? isPortrait
           ? 1800
           : 2400
         : isPortrait
-          ? 640
-          : 820,
+          ? 980
+          : 1020,
     pixelRatioCap: 1.5,
-    camDistance: intro
-      ? shortFrame
-        ? 74
-        : isPortrait
-          ? 96
-          : 88
-      : isPortrait
-        ? 100
-        : 94,
-    orbitRadius: intro ? (shortFrame ? 24 : isPortrait ? 30 : 33) : isPortrait ? 36 : 38,
-    orbitSpread: intro ? 0.12 : 0.2,
-    crystalRadius: intro ? (shortFrame ? 0.38 : 0.34) : 0.38,
+    camDistance: intro ? (shortFrame ? 72 : isPortrait ? 78 : 82) : isPortrait ? 100 : 94,
+    orbitRadius: intro ? (shortFrame ? 24 : isPortrait ? 26 : 28) : isPortrait ? 36 : 38,
+    orbitSpread: 0,
+    crystalRadius: intro ? 0.44 : 0.38,
     sphereSegments: 32,
     labelCompact: true,
-    showCrystalLabels: !intro,
-    diskRMax: intro ? (shortFrame ? 30 : 34) : 40,
-    fov: intro ? (shortFrame ? 58 : 50) : 42,
-    cameraPitch: shortFrame ? 0.24 : 0.34,
-    cameraYOffset: intro ? (shortFrame ? 2 : 4) : 2,
+    showCrystalLabels: intro,
+    crystalLockedOrbit: true,
+    diskRMax: intro ? (shortFrame ? 34 : 38) : 40,
+    diskOrbitScale: 0.78,
+    diskIntensity: 1.68,
+    auraIntensity: 1.52,
+    fov: intro ? (shortFrame ? 54 : 50) : 42,
+    cameraPitch: 0.34,
+    cameraYOffset: intro ? -1.2 : 0,
     antialias: true,
-    toneMappingExposure: intro ? (shortFrame ? 1.72 : 1.58) : 1.38,
-    autoRotateSpeed: mode === "ambient" ? 0.04 : 0.05,
+    toneMappingExposure: intro ? 2.02 : 1.38,
+    autoRotateSpeed: mode === "ambient" ? 0.04 : 0.058,
     interactiveTilt: !intro,
   } as const;
 }
@@ -109,17 +112,6 @@ export function getIntroViewportProfile(width: number, height: number) {
   return getSingularityViewportProfile(width, height, "intro");
 }
 
-/**
- * Pixel-budget device pixel ratio.
- *
- * Capping by `devicePixelRatio` alone is not enough for "4K without lag": a
- * large/ultrawide monitor can have a low DPR yet a huge surface, so the total
- * rendered pixel count explodes once heavy shaders + post-processing run.
- *
- * Instead we cap the *total* rendered pixels (width·dpr · height·dpr) to a
- * budget. On normal screens this lands at a crisp 1.2–2× ratio; on 4K/5K it
- * settles toward 1× native (still sharp) instead of multiplying the load.
- */
 export function computeBudgetedDpr(
   width: number,
   height: number,
@@ -127,12 +119,9 @@ export function computeBudgetedDpr(
 ) {
   const ratio = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
   const mobile = opts.mobile ?? width < 768;
-  // Intro carries 5 full-screen post passes, so it gets a tighter budget than
-  // the lighter ambient backdrop (callers can override).
   const budgetPx = opts.budgetPx ?? (mobile ? 2_400_000 : 5_200_000);
   const hardCap = opts.hardCap ?? (mobile ? 2 : 2.25);
   const area = Math.max(width * height, 1);
   const byBudget = Math.sqrt(budgetPx / area);
-  // Never upscale past the device ratio, never go under 1 (would look soft).
   return Math.min(ratio, hardCap, Math.max(1, byBudget));
 }

@@ -104,10 +104,55 @@ function placeDiskInstances(
   return positions;
 }
 
-/** Velocidades angularmente incomensuráveis — cristais não “alcançam” um ao outro. */
-const CRYSTAL_SPEED_FACTORS = [
-  0.82, 0.89, 0.94, 1.0, 1.06, 1.12, 1.18, 1.24, 1.31, 1.38,
-] as const;
+/** Órbita travada: mesmo raio + mesma velocidade angular = espaçamento fixo para sempre. */
+function buildCrystalSlots(
+  offerings: SingularityOffering[],
+  profile: ReturnType<typeof getSingularityViewportProfile>,
+  orbitGroup: THREE.Group,
+  crystalGeo: THREE.DodecahedronGeometry,
+): OrbitSlot[] {
+  const count = offerings.length;
+  if (count === 0) return [];
+
+  const orbitR = profile.orbitRadius;
+  const angularVelocity = diskOrbitalVelocity(orbitR, profile.diskOrbitScale);
+  const slots: OrbitSlot[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const item = offerings[i]!;
+    const color = OFFERING_COLORS[item.colorIndex ?? i % OFFERING_COLORS.length]!;
+    const initialAngle = (i / count) * Math.PI * 2 - Math.PI / 2;
+
+    const crystal = new THREE.Mesh(
+      crystalGeo,
+      new THREE.MeshBasicMaterial({
+        color: new THREE.Color(color),
+        transparent: true,
+        opacity: 0.96,
+        blending: THREE.AdditiveBlending,
+      }),
+    );
+    orbitGroup.add(crystal);
+
+    if (profile.showCrystalLabels) {
+      const label = new CSS2DObject(
+        createLabelElement(item.label, color, profile.labelCompact),
+      );
+      label.position.set(0, profile.labelCompact ? 0.62 : 1.05, 0);
+      crystal.add(label);
+    }
+
+    slots.push({
+      initialAngle,
+      yOffset: profile.crystalLockedOrbit ? 0 : 0,
+      orbitR,
+      angularVelocity,
+      crystal,
+    });
+  }
+
+  return slots;
+}
 
 export type MountSingularityOptions = {
   root: HTMLElement;
@@ -125,10 +170,12 @@ function syncCameraToProfile(
 ) {
   const d = distance;
   const pitch = profile.cameraPitch;
+  const azimuth = Math.PI / 4;
+  const horizontal = Math.cos(azimuth) * d * 0.88;
   camera.position.set(
-    d * 0.62,
+    horizontal,
     d * pitch + profile.cameraYOffset,
-    d * 0.62,
+    horizontal,
   );
   controls.target.set(0, 0, 0);
   camera.lookAt(0, 0, 0);
@@ -141,14 +188,14 @@ function diskOrbitalVelocity(r: number, orbitScale: number) {
 function createLabelElement(label: string, color: string, compact: boolean) {
   const el = document.createElement("div");
   el.className = compact
-    ? "whitespace-nowrap rounded-full border px-1.5 py-0.5 text-[8px] font-medium tracking-wide backdrop-blur-md select-none max-w-[9.5rem] truncate sm:max-w-none sm:truncate-none sm:px-3 sm:py-1 sm:text-[11px]"
-    : "whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-medium tracking-wide backdrop-blur-md sm:px-3 sm:text-[11px] select-none";
+    ? "whitespace-nowrap rounded-full border px-2 py-0.5 text-[8px] font-semibold tracking-wide backdrop-blur-md select-none max-w-[8.5rem] truncate sm:max-w-none sm:truncate-none sm:px-3 sm:py-1 sm:text-[11px]"
+    : "whitespace-nowrap rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-wide backdrop-blur-md sm:px-3 sm:text-[11px] select-none";
   el.textContent = label;
   el.title = label;
-  el.style.color = "rgba(255,255,255,0.94)";
-  el.style.borderColor = `${color}66`;
-  el.style.background = `linear-gradient(135deg, ${color}28, rgba(1,1,3,0.82))`;
-  el.style.boxShadow = `0 0 20px ${color}30, 0 4px 24px rgba(0,0,0,0.45)`;
+  el.style.color = "rgba(255,255,255,0.98)";
+  el.style.borderColor = `${color}aa`;
+  el.style.background = `linear-gradient(135deg, ${color}55, rgba(1,1,3,0.75))`;
+  el.style.boxShadow = `0 0 32px ${color}66, 0 0 16px rgba(255,255,255,0.35), 0 4px 24px rgba(0,0,0,0.5)`;
   el.style.pointerEvents = "none";
   return el;
 }
@@ -201,10 +248,12 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   controls.autoRotate = true;
   controls.autoRotateSpeed = profile0.autoRotateSpeed;
   controls.enablePan = false;
+  controls.enableRotate = mode !== "intro";
+  controls.enableZoom = false;
   controls.minDistance = profile0.isMobile ? 48 : 40;
   controls.maxDistance = profile0.isMobile ? profile0.camDistance + 24 : 120;
   controls.rotateSpeed = profile0.isMobile ? 0.55 : 0.7;
-  controls.enabled = mode === "intro";
+  controls.enabled = true;
 
   const seg = profile0.sphereSegments;
   const coreGroup = new THREE.Group();
@@ -218,14 +267,37 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   );
 
   const auraMat = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uIntensity: { value: 1.0 } },
+    uniforms: { uTime: { value: 0 }, uIntensity: { value: profile0.auraIntensity } },
     vertexShader: AURA_VERTEX,
     fragmentShader: AURA_FRAGMENT,
     side: THREE.BackSide,
     transparent: true,
     blending: THREE.AdditiveBlending,
+    depthWrite: false,
   });
-  coreGroup.add(new THREE.Mesh(new THREE.SphereGeometry(BH_RADIUS * 1.06, seg, seg), auraMat));
+  coreGroup.add(new THREE.Mesh(new THREE.SphereGeometry(BH_RADIUS * 1.08, seg, seg), auraMat));
+
+  const photonMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uIntensity: { value: profile0.auraIntensity * 1.22 } },
+    vertexShader: AURA_VERTEX,
+    fragmentShader: AURA_FRAGMENT,
+    side: THREE.FrontSide,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  coreGroup.add(new THREE.Mesh(new THREE.SphereGeometry(BH_RADIUS * 1.018, seg, seg), photonMat));
+
+  const outerHaloMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 }, uIntensity: { value: profile0.auraIntensity * 0.55 } },
+    vertexShader: AURA_VERTEX,
+    fragmentShader: AURA_FRAGMENT,
+    side: THREE.BackSide,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  coreGroup.add(new THREE.Mesh(new THREE.SphereGeometry(BH_RADIUS * 1.28, seg, seg), outerHaloMat));
 
   const streakGeo = new THREE.CylinderGeometry(0.01, 0.12, 2.2, 3);
   streakGeo.rotateX(Math.PI / 2);
@@ -233,10 +305,10 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   const diskMaterial = new THREE.ShaderMaterial({
     uniforms: {
       uTime: { value: 0 },
-      uMorph: { value: mode === "ambient" ? 0.08 : 0.1 },
+      uMorph: { value: mode === "ambient" ? 0.08 : 0.12 },
       uCompression: { value: 1.0 },
-      uIntensity: { value: mode === "ambient" ? 0.88 : 1.0 },
-      uOrbitScale: { value: 0.55 },
+      uIntensity: { value: profile0.diskIntensity },
+      uOrbitScale: { value: profile0.diskOrbitScale },
     },
     vertexShader: DISK_VERTEX(NOISE_CHUNK),
     fragmentShader: DISK_FRAGMENT,
@@ -248,8 +320,8 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   const instanceCount = profile0.instanceCount;
   const instancedDisk = new THREE.InstancedMesh(streakGeo, diskMaterial, instanceCount);
   const dummy = new THREE.Object3D();
-  const instanceScale = profile0.isMobile ? 0.52 : 0.62;
-  const minSep = profile0.isMobile ? 4.2 : 3.4;
+  const instanceScale = profile0.isMobile ? 0.58 : 0.68;
+  const minSep = profile0.isMobile ? 3.6 : 2.8;
   const diskPositions = placeDiskInstances(
     instanceCount,
     minSep,
@@ -271,56 +343,24 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     instancedDisk.setMatrixAt(i, dummy.matrix);
   }
   instancedDisk.instanceMatrix.needsUpdate = true;
-  scene.add(instancedDisk);
+
+  const diskTiltGroup = new THREE.Group();
+  scene.add(diskTiltGroup);
+  diskTiltGroup.add(instancedDisk);
 
   const orbitGroup = new THREE.Group();
-  instancedDisk.add(orbitGroup);
+  diskTiltGroup.add(orbitGroup);
 
   const slots: OrbitSlot[] = [];
-  const count = offerings.length;
   let crystalGeo: THREE.DodecahedronGeometry | null = null;
 
-  const sharedOrbitR = profile0.orbitRadius;
-  const orbitSpread = profile0.orbitSpread;
-
-  if (count > 0) {
+  if (offerings.length > 0) {
     crystalGeo = new THREE.DodecahedronGeometry(profile0.crystalRadius, 0);
-    const minAngleGap = (Math.PI * 2) / Math.max(count, 1);
-    for (let i = 0; i < count; i++) {
-      const item = offerings[i]!;
-      const color = OFFERING_COLORS[item.colorIndex ?? i % OFFERING_COLORS.length]!;
-      const initialAngle = i * minAngleGap + i * GOLDEN_ANGLE * 0.18;
-      const orbitT = count <= 1 ? 0.5 : i / (count - 1);
-      const orbitR = sharedOrbitR * (0.72 + orbitT * orbitSpread);
-      const yOffset =
-        (Math.sin(i * 1.7) * 0.38 + (i % 2 === 0 ? 0.14 : -0.14)) / orbitR;
-      const angularVelocity =
-        diskOrbitalVelocity(orbitR, 0.55) *
-        CRYSTAL_SPEED_FACTORS[i % CRYSTAL_SPEED_FACTORS.length]!;
-
-      const crystal = new THREE.Mesh(
-        crystalGeo,
-        new THREE.MeshBasicMaterial({
-          color: new THREE.Color(color),
-          transparent: true,
-          opacity: 0.88,
-          blending: THREE.AdditiveBlending,
-        }),
-      );
-      orbitGroup.add(crystal);
-
-      if (profile0.showCrystalLabels) {
-        const label = new CSS2DObject(
-          createLabelElement(item.label, color, profile0.labelCompact),
-        );
-        label.position.set(0, profile0.labelCompact ? 0.55 : 0.9, 0);
-        crystal.add(label);
-      }
-
-      slots.push({ initialAngle, yOffset, orbitR, angularVelocity, crystal });
-    }
+    slots.push(...buildCrystalSlots(offerings, profile0, orbitGroup, crystalGeo));
   }
+  const count = offerings.length;
   const camControl = { distance: profile0.camDistance };
+  let profile = profile0;
   const tilt = { targetX: 0, targetY: 0, x: 0, y: 0 };
   let paused = false;
   let raf = 0;
@@ -343,7 +383,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   const resize = () => {
     const w = root.clientWidth;
     const h = root.clientHeight;
-    const profile = getSingularityViewportProfile(w, h, mode);
+    profile = getSingularityViewportProfile(w, h, mode);
     camera.fov = profile.fov;
     camera.aspect = w / Math.max(h, 1);
     camera.updateProjectionMatrix();
@@ -356,6 +396,13 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     renderer.setSize(w, h, false);
     labelRenderer.setSize(w, h);
     camControl.distance = profile.camDistance;
+    diskMaterial.uniforms.uIntensity!.value = profile.diskIntensity;
+    diskMaterial.uniforms.uOrbitScale!.value = profile.diskOrbitScale;
+    auraMat.uniforms.uIntensity!.value = profile.auraIntensity;
+    photonMat.uniforms.uIntensity!.value = profile.auraIntensity * 1.22;
+    outerHaloMat.uniforms.uIntensity!.value = profile.auraIntensity * 0.55;
+    renderer.toneMappingExposure = profile.toneMappingExposure;
+    controls.autoRotateSpeed = profile.autoRotateSpeed;
     syncCameraToProfile(camera, controls, profile, camControl.distance);
   };
 
@@ -375,15 +422,20 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
 
     diskMaterial.uniforms.uTime!.value = time;
     auraMat.uniforms.uTime!.value = time;
-    auraMat.uniforms.uIntensity!.value = (mode === "ambient" ? 0.92 : 1) + warp * 1.4;
+    photonMat.uniforms.uTime!.value = time;
+    outerHaloMat.uniforms.uTime!.value = time;
+    const auraBoost = (mode === "ambient" ? 0.92 : 1) + warp * 1.4;
+    auraMat.uniforms.uIntensity!.value = profile.auraIntensity * auraBoost;
+    photonMat.uniforms.uIntensity!.value = profile.auraIntensity * auraBoost * 1.22;
+    outerHaloMat.uniforms.uIntensity!.value = profile.auraIntensity * auraBoost * 0.55;
     diskMaterial.uniforms.uIntensity!.value =
-      (mode === "ambient" ? 0.82 : 1) + warp * 0.8;
-    instancedDisk.rotation.y += 0.00012;
+      profile.diskIntensity * ((mode === "ambient" ? 0.82 : 1) + warp * 0.65);
+    instancedDisk.rotation.y += profile.isMobile ? 0.00024 : 0.00028;
 
     tilt.x += (tilt.targetX - tilt.x) * 0.04;
     tilt.y += (tilt.targetY - tilt.y) * 0.04;
-    instancedDisk.rotation.x = tilt.y * 0.07;
-    instancedDisk.rotation.z = tilt.x * 0.05;
+    diskTiltGroup.rotation.x = tilt.y * 0.07;
+    diskTiltGroup.rotation.z = tilt.x * 0.05;
 
     for (const slot of slots) {
       const angle = slot.initialAngle + time * slot.angularVelocity;
@@ -420,6 +472,8 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     crystalGeo?.dispose();
     diskMaterial.dispose();
     auraMat.dispose();
+    photonMat.dispose();
+    outerHaloMat.dispose();
     renderer.dispose();
     if (renderer.domElement.parentElement === root) root.removeChild(renderer.domElement);
     if (labelRenderer.domElement.parentElement === root) root.removeChild(labelRenderer.domElement);

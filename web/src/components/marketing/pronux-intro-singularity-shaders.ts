@@ -55,12 +55,20 @@ export const AURA_VERTEX = `
 `;
 
 export const AURA_FRAGMENT = `
+  uniform float uTime;
   uniform float uIntensity;
   varying vec3 vNormal;
   varying vec3 vView;
   void main() {
-    float rim = pow(1.0 - max(dot(vNormal, vView), 0.0), 4.0);
-    gl_FragColor = vec4(vec3(1.0, 0.45, 0.1) * rim * uIntensity * 5.0, 1.0);
+    float fresnel = 1.0 - max(dot(vNormal, vView), 0.0);
+    float warmRim = pow(fresnel, 3.2);
+    float whiteRim = pow(fresnel, 6.8);
+    float halo = pow(fresnel, 1.6);
+    float pulse = 0.84 + 0.16 * sin(uTime * 2.8);
+    float shimmer = 0.88 + 0.12 * sin(uTime * 6.2 + fresnel * 14.0);
+    vec3 warm = vec3(1.0, 0.55, 0.14) * warmRim * 7.2;
+    vec3 white = vec3(1.0, 0.99, 0.96) * (whiteRim * 13.5 + halo * 2.8) * pulse * shimmer;
+    gl_FragColor = vec4((warm + white) * uIntensity, 1.0);
   }
 `;
 
@@ -86,13 +94,15 @@ export const DISK_VERTEX = (noiseChunk: string) => `
     vec3 viewDir = normalize(cameraPosition - morphedWorldPos);
     vec3 orbitDir = normalize(vec3(-sin(currentAngle), 0.0, cos(currentAngle)));
     float doppler = dot(orbitDir, viewDir);
-    vec3 hot = vec3(1.0, 0.95, 0.9);
-    vec3 warm = vec3(1.0, 0.45, 0.1);
-    vec3 cool = vec3(0.1, 0.35, 1.0);
-    vec3 color = mix(cool, warm, smoothstep(45.0, 12.0, r));
+    vec3 hot = vec3(1.0, 0.97, 0.92);
+    vec3 warm = vec3(1.0, 0.48, 0.08);
+    vec3 cool = vec3(0.15, 0.42, 1.0);
+    vec3 accent = vec3(0.95, 0.35, 0.85);
+    vec3 color = mix(cool, accent, smoothstep(48.0, 18.0, r) * 0.35);
+    color = mix(color, warm, smoothstep(45.0, 12.0, r));
     color = mix(color, hot, smoothstep(10.0, 4.0, r));
-    vColor = color * (1.3 + doppler * 0.7) * uIntensity;
-    vOpacity = (smoothstep(3.8, 5.5, r) * (1.0 - smoothstep(38.0, 48.0, r))) * 0.8;
+    vColor = color * (1.72 + doppler * 0.95) * uIntensity;
+    vOpacity = (smoothstep(3.6, 5.2, r) * (1.0 - smoothstep(38.0, 52.0, r))) * 1.12;
     float deltaAngle = currentAngle - initialAngle;
     float c = cos(deltaAngle);
     float s = sin(deltaAngle);

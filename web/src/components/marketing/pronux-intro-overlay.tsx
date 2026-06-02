@@ -250,7 +250,7 @@ export function PronuxIntroOverlay() {
               <div className="relative z-10 min-h-0 flex-1">
                 <PronuxIntroSingularity warpOut={warpOut} offerings={offerings} />
                 <div
-                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_75%_at_50%_50%,transparent_0%,rgba(0,0,0,0.35)_70%,rgba(0,0,0,0.75)_100%)]"
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_80%_at_50%_48%,transparent_0%,rgba(0,0,0,0.22)_65%,rgba(0,0,0,0.55)_100%)]"
                   aria-hidden
                 />
               </div>
@@ -284,12 +284,12 @@ export function PronuxIntroOverlay() {
               <IntroLogoReveal visible={!exiting} />
 
               <div
-                className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.45)_100%)]"
+                className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_center,transparent_38%,rgba(0,0,0,0.32)_100%)]"
                 aria-hidden
               />
 
               <div
-                className="pointer-events-none absolute inset-0 z-[4] bg-[radial-gradient(circle,transparent_42%,black_120%)]"
+                className="pointer-events-none absolute inset-0 z-[4] bg-[radial-gradient(circle,transparent_48%,black_125%)]"
                 aria-hidden
               />
 
