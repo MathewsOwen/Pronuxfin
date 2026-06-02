@@ -171,6 +171,23 @@ html[data-pronux-intro] [data-pronux-intro-root] {
   pointer-events: auto;
 }
 
+/* Intro mobile: nada cortado nas bordas / notch */
+@media (max-width: 767px) {
+  html[data-pronux-intro-pending] body,
+  html[data-pronux-intro] body {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  [data-pronux-intro-root] {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

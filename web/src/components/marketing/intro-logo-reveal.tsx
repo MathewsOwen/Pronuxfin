@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useId, useState } from "react";
+import { cn } from "@/lib/utils";
 
 const GOLD = "#d4c4a8";
 const GOLD_LIGHT = "#ede4d4";
@@ -131,10 +132,10 @@ function IntroSlogan({ reduceMotion }: { reduceMotion: boolean | null }) {
         delay: reduceMotion ? 0 : SLOGAN_DELAY,
         ease: INTRO_EASE,
       }}
-      className="mt-3 max-w-[17rem] text-center sm:mt-5 sm:max-w-lg"
+      className="mt-2 max-w-[13.5rem] text-center max-md:max-w-[11.5rem] sm:mt-5 sm:max-w-lg"
     >
       <p
-        className="font-heading text-balance text-[0.95rem] font-light leading-[1.45] tracking-[0.015em] sm:text-xl md:text-[1.35rem]"
+        className="font-heading text-balance text-[0.8rem] font-light leading-[1.4] tracking-[0.015em] max-md:text-[0.78rem] sm:text-xl md:text-[1.35rem]"
         style={{
           background: "linear-gradient(105deg, #ede4d4 0%, #f5f0e8 42%, #d4c4a8 100%)",
           WebkitBackgroundClip: "text",
@@ -151,7 +152,13 @@ function IntroSlogan({ reduceMotion }: { reduceMotion: boolean | null }) {
   );
 }
 
-export function IntroLogoReveal({ visible }: { visible: boolean }) {
+export function IntroLogoReveal({
+  visible,
+  compact = false,
+}: {
+  visible: boolean;
+  compact?: boolean;
+}) {
   const reduceMotion = useReducedMotion();
   const gid = `intro-logo-${useId().replace(/:/g, "")}`;
   const gold = `url(#${gid}-gold)`;
@@ -170,14 +177,24 @@ export function IntroLogoReveal({ visible }: { visible: boolean }) {
   if (!visible) return null;
 
   return (
-    <header className="pointer-events-none absolute inset-x-0 top-[max(0.85rem,env(safe-area-inset-top))] z-[5] flex flex-col items-center px-4 sm:top-[max(1.25rem,env(safe-area-inset-top))] sm:px-8 md:top-8">
+    <header
+      className={cn(
+        "pointer-events-none absolute inset-x-0 z-[5] flex max-w-full flex-col items-center px-3 sm:px-8",
+        compact
+          ? "top-[max(0.5rem,env(safe-area-inset-top))] max-h-[38dvh]"
+          : "top-[max(0.85rem,env(safe-area-inset-top))] sm:top-[max(1.25rem,env(safe-area-inset-top))] md:top-8",
+      )}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 280 68"
         fill="none"
         role="img"
         aria-label="PRONUXFIN"
-        className="h-9 w-auto sm:h-[3.25rem] md:h-16"
+        className={cn(
+          "w-auto max-w-[min(92vw,17.5rem)]",
+          compact ? "h-7 sm:h-9" : "h-9 sm:h-[3.25rem] md:h-16",
+        )}
         preserveAspectRatio="xMidYMid meet"
       >
         <defs>

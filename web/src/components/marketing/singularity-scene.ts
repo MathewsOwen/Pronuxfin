@@ -44,13 +44,13 @@ type OrbitSlot = {
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 const DISK_R_MIN = 8;
-const DISK_R_MAX = 44;
 
 /** Distribuição tipo “espiral de galáxia” — evita aglomerados no disco de asteroides. */
 function placeDiskInstances(
   count: number,
   minSeparation: number,
   instanceScale: number,
+  diskRMax: number,
 ) {
   const positions: { x: number; y: number; z: number; angle: number; scale: number }[] =
     [];
@@ -58,7 +58,7 @@ function placeDiskInstances(
 
   for (let i = 0; i < count; i++) {
     const t = (i + 0.5) / count;
-    const r = DISK_R_MIN + Math.sqrt(t) * (DISK_R_MAX - DISK_R_MIN);
+    const r = DISK_R_MIN + Math.sqrt(t) * (diskRMax - DISK_R_MIN);
     const angle = i * GOLDEN_ANGLE;
     const lane = i % 5;
     const y =
@@ -147,8 +147,17 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x010103);
 
-  const camera = new THREE.PerspectiveCamera(40, w0 / Math.max(h0, 1), 0.1, 1000);
-  camera.position.set(60, 30, 60);
+  const camera = new THREE.PerspectiveCamera(
+    profile0.fov,
+    w0 / Math.max(h0, 1),
+    0.1,
+    1000,
+  );
+  camera.position.set(
+    profile0.camDistance * 0.7,
+    profile0.camDistance * 0.35 + profile0.cameraYOffset,
+    profile0.camDistance * 0.7,
+  );
 
   const renderer = new THREE.WebGLRenderer({
     antialias: profile0.antialias,
@@ -179,8 +188,8 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   controls.autoRotate = true;
   controls.autoRotateSpeed = profile0.autoRotateSpeed;
   controls.enablePan = false;
-  controls.minDistance = profile0.isMobile ? 36 : 40;
-  controls.maxDistance = profile0.isMobile ? 110 : 120;
+  controls.minDistance = profile0.isMobile ? 48 : 40;
+  controls.maxDistance = profile0.isMobile ? profile0.camDistance + 24 : 120;
   controls.rotateSpeed = profile0.isMobile ? 0.55 : 0.7;
   controls.enabled = mode === "intro";
 
@@ -228,7 +237,12 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   const dummy = new THREE.Object3D();
   const instanceScale = profile0.isMobile ? 0.52 : 0.62;
   const minSep = profile0.isMobile ? 4.2 : 3.4;
-  const diskPositions = placeDiskInstances(instanceCount, minSep, instanceScale);
+  const diskPositions = placeDiskInstances(
+    instanceCount,
+    minSep,
+    instanceScale,
+    profile0.diskRMax,
+  );
   for (let i = 0; i < instanceCount; i++) {
     const pos = diskPositions[i];
     if (!pos) continue;
@@ -254,7 +268,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   let crystalGeo: THREE.DodecahedronGeometry | null = null;
 
   const sharedOrbitR = profile0.orbitRadius;
-  const orbitSpread = profile0.isMobile ? 0.26 : 0.32;
+  const orbitSpread = profile0.orbitSpread;
 
   if (count > 0) {
     crystalGeo = new THREE.DodecahedronGeometry(profile0.crystalRadius, 0);
@@ -282,9 +296,13 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
       );
       orbitGroup.add(crystal);
 
-      const label = new CSS2DObject(createLabelElement(item.label, color, profile0.labelCompact));
-      label.position.set(0, profile0.labelCompact ? 0.65 : 0.9, 0);
-      crystal.add(label);
+      if (profile0.showCrystalLabels) {
+        const label = new CSS2DObject(
+          createLabelElement(item.label, color, profile0.labelCompact),
+        );
+        label.position.set(0, profile0.labelCompact ? 0.55 : 0.9, 0);
+        crystal.add(label);
+      }
 
       slots.push({ initialAngle, yOffset, orbitR, angularVelocity, crystal });
     }
@@ -313,6 +331,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     const w = root.clientWidth;
     const h = root.clientHeight;
     const profile = getSingularityViewportProfile(w, h, mode);
+    camera.fov = profile.fov;
     camera.aspect = w / Math.max(h, 1);
     camera.updateProjectionMatrix();
     renderer.setPixelRatio(

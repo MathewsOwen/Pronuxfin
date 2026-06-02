@@ -47,9 +47,14 @@ export function getSingularityViewportProfile(
       pixelRatioCap: 2.5,
       camDistance: mode === "ambient" ? 90 : 85,
       orbitRadius: 41,
+      orbitSpread: 0.32,
       crystalRadius: mode === "ambient" ? 0.5 : 0.55,
       sphereSegments: 64,
       labelCompact: false,
+      showCrystalLabels: true,
+      diskRMax: 44,
+      fov: 40,
+      cameraYOffset: 0,
       antialias: true,
       toneMappingExposure: mode === "ambient" ? 1.45 : 1.6,
       autoRotateSpeed: mode === "ambient" ? 0.045 : 0.06,
@@ -57,20 +62,33 @@ export function getSingularityViewportProfile(
     } as const;
   }
 
+  const intro = mode === "intro";
   return {
     isMobile: true,
     isPortrait,
-    instanceCount: mode === "ambient" ? (isPortrait ? 1800 : 2400) : isPortrait ? 720 : 960,
+    instanceCount:
+      mode === "ambient" ? (isPortrait ? 1800 : 2400) : isPortrait ? 640 : 820,
     pixelRatioCap: 1.5,
-    camDistance: mode === "ambient" ? (isPortrait ? 100 : 94) : isPortrait ? 98 : 92,
-    orbitRadius: isPortrait ? 38.5 : 40,
-    crystalRadius: mode === "ambient" ? 0.38 : 0.4,
+    camDistance: intro
+      ? isPortrait
+        ? 112
+        : 102
+      : isPortrait
+        ? 100
+        : 94,
+    orbitRadius: intro ? (isPortrait ? 27 : 31) : isPortrait ? 36 : 38,
+    orbitSpread: intro ? 0.14 : 0.2,
+    crystalRadius: intro ? 0.34 : 0.38,
     sphereSegments: 32,
     labelCompact: true,
+    showCrystalLabels: !intro,
+    diskRMax: intro ? 34 : 40,
+    fov: intro ? 46 : 42,
+    cameraYOffset: intro ? 5 : 2,
     antialias: true,
-    toneMappingExposure: mode === "ambient" ? 1.38 : 1.6,
-    autoRotateSpeed: mode === "ambient" ? 0.04 : 0.06,
-    interactiveTilt: true,
+    toneMappingExposure: mode === "ambient" ? 1.38 : 1.55,
+    autoRotateSpeed: mode === "ambient" ? 0.04 : 0.05,
+    interactiveTilt: !intro,
   } as const;
 }
 
