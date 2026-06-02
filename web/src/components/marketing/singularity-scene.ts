@@ -248,7 +248,8 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   controls.autoRotate = true;
   controls.autoRotateSpeed = profile0.autoRotateSpeed;
   controls.enablePan = false;
-  controls.enableRotate = mode !== "intro";
+  controls.enableRotate =
+    mode !== "intro" || (mode === "intro" && !profile0.isMobile);
   controls.enableZoom = false;
   controls.minDistance = profile0.isMobile ? 48 : 40;
   controls.maxDistance = profile0.isMobile ? profile0.camDistance + 24 : 120;
@@ -380,6 +381,8 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     auraMat.uniforms.uIntensity!.value = profile.auraIntensity;
     renderer.toneMappingExposure = profile.toneMappingExposure;
     controls.autoRotateSpeed = profile.autoRotateSpeed;
+    controls.enableRotate =
+      mode !== "intro" || (mode === "intro" && !profile.isMobile);
     syncCameraToProfile(camera, controls, profile, camControl.distance);
   };
 

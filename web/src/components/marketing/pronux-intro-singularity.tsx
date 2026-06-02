@@ -5,6 +5,7 @@ import {
   mountSingularityScene,
   type SingularityOffering,
 } from "@/components/marketing/singularity-scene";
+import { useIntroMobile } from "@/components/marketing/intro-mobile";
 import { cn } from "@/lib/utils";
 
 export function PronuxIntroSingularity({
@@ -18,6 +19,7 @@ export function PronuxIntroSingularity({
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const warpRef = useRef(warpOut);
+  const isMobile = useIntroMobile();
   const offeringsKey = offerings.map((o) => o.label).join("\0");
 
   useEffect(() => {
@@ -33,12 +35,10 @@ export function PronuxIntroSingularity({
       mode: "intro",
       offerings,
       getWarp: () => warpRef.current,
-      pointerInteractive: false,
+      pointerInteractive: !isMobile,
     });
-    // `offeringsKey` is a stable serialization of `offerings`; depending on the
-    // array itself would remount the scene on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [offeringsKey]);
+  }, [offeringsKey, isMobile]);
 
   return (
     <div
