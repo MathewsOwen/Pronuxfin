@@ -43,7 +43,7 @@ export function getSingularityViewportProfile(
     return {
       isMobile: false,
       isPortrait,
-      instanceCount: mode === "ambient" ? 4200 : 5000,
+      instanceCount: mode === "ambient" ? 4200 : 1400,
       pixelRatioCap: 2.5,
       camDistance: mode === "ambient" ? 90 : 85,
       orbitRadius: 41,
@@ -60,7 +60,7 @@ export function getSingularityViewportProfile(
   return {
     isMobile: true,
     isPortrait,
-    instanceCount: mode === "ambient" ? (isPortrait ? 1800 : 2400) : isPortrait ? 2200 : 2800,
+    instanceCount: mode === "ambient" ? (isPortrait ? 1800 : 2400) : isPortrait ? 720 : 960,
     pixelRatioCap: 1.5,
     camDistance: mode === "ambient" ? (isPortrait ? 100 : 94) : isPortrait ? 98 : 92,
     orbitRadius: isPortrait ? 38.5 : 40,

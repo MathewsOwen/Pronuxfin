@@ -42,42 +42,72 @@ type OrbitSlot = {
   crystal: THREE.Mesh;
 };
 
-/** Evita “asteroides”/cristais sobrepostos no disco de órbita. */
-function placeDiskInstances(count: number, minSeparation: number) {
-  const positions: { x: number; y: number; z: number; angle: number }[] = [];
-  const maxAttempts = 32;
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+const DISK_R_MIN = 8;
+const DISK_R_MAX = 44;
+
+/** Distribuição tipo “espiral de galáxia” — evita aglomerados no disco de asteroides. */
+function placeDiskInstances(
+  count: number,
+  minSeparation: number,
+  instanceScale: number,
+) {
+  const positions: { x: number; y: number; z: number; angle: number; scale: number }[] =
+    [];
+  const effectiveSep = minSeparation * instanceScale;
 
   for (let i = 0; i < count; i++) {
-    let placed = false;
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const r = 5 + Math.pow(Math.random(), 1.3) * 40;
-      const angle = Math.random() * Math.PI * 2;
-      const x = Math.cos(angle) * r;
-      const z = Math.sin(angle) * r;
-      const y = (Math.random() - 0.5) * (8 / r);
+    const t = (i + 0.5) / count;
+    const r = DISK_R_MIN + Math.sqrt(t) * (DISK_R_MAX - DISK_R_MIN);
+    const angle = i * GOLDEN_ANGLE;
+    const lane = i % 5;
+    const y =
+      ((lane / 5 - 0.5) * 2 + Math.sin(angle * 2.1) * 0.15) * (5.5 / r);
+    const x = Math.cos(angle) * r;
+    const z = Math.sin(angle) * r;
 
-      const crowded = positions.some(
-        (p) => Math.hypot(p.x - x, p.z - z) < minSeparation,
-      );
-      if (!crowded) {
-        positions.push({ x, y, z, angle });
-        placed = true;
+    const crowded = positions.some((p) => {
+      const dx = p.x - x;
+      const dy = p.y - y;
+      const dz = p.z - z;
+      return Math.sqrt(dx * dx + dy * dy + dz * dz) < effectiveSep;
+    });
+
+    if (!crowded) {
+      positions.push({ x, y, z, angle, scale: instanceScale });
+      continue;
+    }
+
+    // Fallback: desloca levemente na mesma espiral sem sobrepor vizinhos.
+    for (let k = 1; k <= 6; k++) {
+      const a2 = angle + k * 0.42;
+      const r2 = r + k * 0.35;
+      const x2 = Math.cos(a2) * r2;
+      const z2 = Math.sin(a2) * r2;
+      const ok = positions.every((p) => {
+        const dx = p.x - x2;
+        const dy = p.y - y;
+        const dz = p.z - z2;
+        return Math.sqrt(dx * dx + dy * dy + dz * dz) >= effectiveSep;
+      });
+      if (ok) {
+        positions.push({ x: x2, y, z: z2, angle: a2, scale: instanceScale });
         break;
       }
     }
-    if (!placed) {
-      const r = 5 + Math.pow(Math.random(), 1.3) * 40;
-      const angle = (i / count) * Math.PI * 2;
-      positions.push({
-        x: Math.cos(angle) * r,
-        y: (Math.random() - 0.5) * (8 / r),
-        z: Math.sin(angle) * r,
-        angle,
-      });
+
+    if (positions.length <= i) {
+      positions.push({ x, y, z, angle, scale: instanceScale });
     }
   }
+
   return positions;
 }
+
+/** Velocidades angularmente incomensuráveis — cristais não “alcançam” um ao outro. */
+const CRYSTAL_SPEED_FACTORS = [
+  0.82, 0.89, 0.94, 1.0, 1.06, 1.12, 1.18, 1.24, 1.31, 1.38,
+] as const;
 
 export type MountSingularityOptions = {
   root: HTMLElement;
@@ -196,11 +226,15 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   const instanceCount = profile0.instanceCount;
   const instancedDisk = new THREE.InstancedMesh(streakGeo, diskMaterial, instanceCount);
   const dummy = new THREE.Object3D();
-  const minSep = profile0.isMobile ? 2.8 : 2.2;
-  const diskPositions = placeDiskInstances(instanceCount, minSep);
+  const instanceScale = profile0.isMobile ? 0.52 : 0.62;
+  const minSep = profile0.isMobile ? 4.2 : 3.4;
+  const diskPositions = placeDiskInstances(instanceCount, minSep, instanceScale);
   for (let i = 0; i < instanceCount; i++) {
-    const { x, y, z, angle } = diskPositions[i]!;
+    const pos = diskPositions[i];
+    if (!pos) continue;
+    const { x, y, z, angle, scale } = pos;
     dummy.position.set(x, y, z);
+    dummy.scale.setScalar(scale);
     dummy.lookAt(
       dummy.position.x + Math.sin(angle),
       dummy.position.y,
@@ -220,8 +254,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   let crystalGeo: THREE.DodecahedronGeometry | null = null;
 
   const sharedOrbitR = profile0.orbitRadius;
-  const sharedAngularVelocity = diskOrbitalVelocity(sharedOrbitR, 0.55);
-  const orbitBandScale = profile0.isMobile ? [0.9, 0.98, 1.06] : [0.92, 1.0, 1.08];
+  const orbitSpread = profile0.isMobile ? 0.26 : 0.32;
 
   if (count > 0) {
     crystalGeo = new THREE.DodecahedronGeometry(profile0.crystalRadius, 0);
@@ -229,11 +262,14 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     for (let i = 0; i < count; i++) {
       const item = offerings[i]!;
       const color = OFFERING_COLORS[item.colorIndex ?? i % OFFERING_COLORS.length]!;
-      const initialAngle = i * minAngleGap + (i % 2) * minAngleGap * 0.22;
-      const orbitR = sharedOrbitR * orbitBandScale[i % orbitBandScale.length]!;
-      const yOffset = ((i % 2 === 0 ? 1 : -1) * 0.22) / orbitR;
+      const initialAngle = i * minAngleGap + i * GOLDEN_ANGLE * 0.18;
+      const orbitT = count <= 1 ? 0.5 : i / (count - 1);
+      const orbitR = sharedOrbitR * (0.72 + orbitT * orbitSpread);
+      const yOffset =
+        (Math.sin(i * 1.7) * 0.38 + (i % 2 === 0 ? 0.14 : -0.14)) / orbitR;
       const angularVelocity =
-        sharedAngularVelocity * (0.94 + (i % 3) * 0.04);
+        diskOrbitalVelocity(orbitR, 0.55) *
+        CRYSTAL_SPEED_FACTORS[i % CRYSTAL_SPEED_FACTORS.length]!;
 
       const crystal = new THREE.Mesh(
         crystalGeo,
