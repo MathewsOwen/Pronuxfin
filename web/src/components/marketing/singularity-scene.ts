@@ -115,7 +115,8 @@ function buildCrystalSlots(
   if (count === 0) return [];
 
   const orbitR = profile.orbitRadius;
-  const angularVelocity = diskOrbitalVelocity(orbitR, profile.diskOrbitScale);
+  const orbitBoost = profile.crystalOrbitScale ?? 1;
+  const angularVelocity = diskOrbitalVelocity(orbitR, profile.diskOrbitScale) * orbitBoost;
   const slots: OrbitSlot[] = [];
 
   for (let i = 0; i < count; i++) {
@@ -170,15 +171,20 @@ function syncCameraToProfile(
 ) {
   const d = distance;
   const pitch = profile.cameraPitch;
-  const azimuth = Math.PI / 4;
-  const horizontal = Math.cos(azimuth) * d * 0.88;
-  camera.position.set(
-    horizontal,
-    d * pitch + profile.cameraYOffset,
-    horizontal,
-  );
+  if (profile.centeredView) {
+    camera.position.set(0, d * pitch + profile.cameraYOffset, d);
+  } else {
+    const azimuth = Math.PI / 4;
+    const horizontal = Math.cos(azimuth) * d * 0.88;
+    camera.position.set(
+      horizontal,
+      d * pitch + profile.cameraYOffset,
+      horizontal,
+    );
+  }
   controls.target.set(0, 0, 0);
   camera.lookAt(0, 0, 0);
+  controls.update();
 }
 
 function diskOrbitalVelocity(r: number, orbitScale: number) {
@@ -245,7 +251,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   syncCameraToProfile(camera, controls, profile0, profile0.camDistance);
   controls.enableDamping = true;
   controls.dampingFactor = 0.03;
-  controls.autoRotate = true;
+  controls.autoRotate = profile0.autoRotate;
   controls.autoRotateSpeed = profile0.autoRotateSpeed;
   controls.enablePan = false;
   controls.enableRotate =
@@ -332,10 +338,31 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
 
   const slots: OrbitSlot[] = [];
   let crystalGeo: THREE.DodecahedronGeometry | null = null;
+  let innerCrystalGeo: THREE.DodecahedronGeometry | null = null;
 
   if (offerings.length > 0) {
     crystalGeo = new THREE.DodecahedronGeometry(profile0.crystalRadius, 0);
     slots.push(...buildCrystalSlots(offerings, profile0, orbitGroup, crystalGeo));
+    if (profile0.isMobile && mode === "intro") {
+      const innerR = profile0.orbitRadius * 0.52;
+      innerCrystalGeo = new THREE.DodecahedronGeometry(profile0.crystalRadius * 0.72, 0);
+      for (let i = 0; i < offerings.length; i++) {
+        const item = offerings[i]!;
+        const color = OFFERING_COLORS[item.colorIndex ?? i % OFFERING_COLORS.length]!;
+        const angle = (i / offerings.length) * Math.PI * 2 + Math.PI / offerings.length;
+        const gem = new THREE.Mesh(
+          innerCrystalGeo,
+          new THREE.MeshBasicMaterial({
+            color: new THREE.Color(color),
+            transparent: true,
+            opacity: 0.95,
+            blending: THREE.AdditiveBlending,
+          }),
+        );
+        gem.position.set(Math.cos(angle) * innerR, 0, Math.sin(angle) * innerR);
+        orbitGroup.add(gem);
+      }
+    }
   }
   const count = offerings.length;
   const camControl = { distance: profile0.camDistance };
@@ -380,6 +407,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     diskMaterial.uniforms.uOrbitScale!.value = profile.diskOrbitScale;
     auraMat.uniforms.uIntensity!.value = profile.auraIntensity;
     renderer.toneMappingExposure = profile.toneMappingExposure;
+    controls.autoRotate = profile.autoRotate;
     controls.autoRotateSpeed = profile.autoRotateSpeed;
     controls.enableRotate =
       mode !== "intro" || (mode === "intro" && !profile.isMobile);
@@ -406,34 +434,51 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     auraMat.uniforms.uIntensity!.value = profile.auraIntensity * auraBoost;
     diskMaterial.uniforms.uIntensity!.value =
       profile.diskIntensity * ((mode === "ambient" ? 0.82 : 1) + warp * 0.65);
-    instancedDisk.rotation.y += profile.isMobile ? 0.0002 : 0.00024;
+    instancedDisk.rotation.y += profile.isMobile ? 0.00032 : 0.00024;
 
     tilt.x += (tilt.targetX - tilt.x) * 0.04;
     tilt.y += (tilt.targetY - tilt.y) * 0.04;
-    diskTiltGroup.rotation.x = tilt.y * 0.07;
-    diskTiltGroup.rotation.z = tilt.x * 0.05;
+    if (!profile.centeredView) {
+      diskTiltGroup.rotation.x = tilt.y * 0.07;
+      diskTiltGroup.rotation.z = tilt.x * 0.05;
+    } else {
+      diskTiltGroup.rotation.x = 0;
+      diskTiltGroup.rotation.z = 0;
+    }
+
+    const ringSpeed =
+      diskOrbitalVelocity(profile.orbitRadius, profile.diskOrbitScale) *
+      (profile.crystalOrbitScale ?? 1);
+    orbitGroup.rotation.y = time * ringSpeed;
 
     for (const slot of slots) {
-      const angle = slot.initialAngle + time * slot.angularVelocity;
       slot.crystal.position.set(
-        Math.cos(angle) * slot.orbitR,
+        Math.cos(slot.initialAngle) * slot.orbitR,
         slot.yOffset,
-        Math.sin(angle) * slot.orbitR,
+        Math.sin(slot.initialAngle) * slot.orbitR,
       );
-      slot.crystal.rotation.set(time * 0.35 + slot.initialAngle, time * 0.5, time * 0.2);
+      slot.crystal.rotation.set(
+        time * 0.35 + slot.initialAngle,
+        time * 0.5,
+        time * 0.2,
+      );
       const dist = camera.position.distanceTo(slot.crystal.getWorldPosition(worldPos));
       const scaleRef = profile.orbitRadius * 2.15;
       const s = THREE.MathUtils.clamp(dist / scaleRef, 0.8, 1.06);
       slot.crystal.scale.setScalar(s);
     }
 
-    const currentDir = new THREE.Vector3()
-      .subVectors(camera.position, controls.target)
-      .normalize();
-    camera.position.x = controls.target.x + currentDir.x * camControl.distance;
-    camera.position.y =
-      controls.target.y + currentDir.y * camControl.distance;
-    camera.position.z = controls.target.z + currentDir.z * camControl.distance;
+    if (profile.centeredView && mode === "intro") {
+      syncCameraToProfile(camera, controls, profile, camControl.distance);
+    } else {
+      const currentDir = new THREE.Vector3()
+        .subVectors(camera.position, controls.target)
+        .normalize();
+      camera.position.x = controls.target.x + currentDir.x * camControl.distance;
+      camera.position.y =
+        controls.target.y + currentDir.y * camControl.distance;
+      camera.position.z = controls.target.z + currentDir.z * camControl.distance;
+    }
 
     controls.update();
     renderer.render(scene, camera);
@@ -450,6 +495,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     controls.dispose();
     streakGeo.dispose();
     crystalGeo?.dispose();
+    innerCrystalGeo?.dispose();
     diskMaterial.dispose();
     auraMat.dispose();
     renderer.dispose();
