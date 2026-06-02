@@ -247,10 +247,10 @@ export function PronuxIntroOverlay() {
                 <IntroLogoReveal visible={!exiting} compact embedded />
               </div>
 
-              <div className="relative z-10 min-h-0 flex-1">
+              <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
                 <PronuxIntroSingularity warpOut={warpOut} offerings={offerings} />
                 <div
-                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_80%_at_50%_48%,transparent_0%,rgba(0,0,0,0.22)_65%,rgba(0,0,0,0.55)_100%)]"
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_88%_78%_at_50%_50%,transparent_0%,rgba(0,0,0,0.18)_62%,rgba(0,0,0,0.48)_100%)]"
                   aria-hidden
                 />
               </div>
