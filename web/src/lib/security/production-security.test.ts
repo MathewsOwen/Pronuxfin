@@ -14,6 +14,7 @@ describe("production-security", () => {
   beforeEach(() => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("PLAYWRIGHT_E2E", "");
     vi.stubEnv("CSRF_ENFORCE", "1");
     vi.stubEnv("AUTH_SESSION_VERSION_CHECK", "1");
     vi.stubEnv("COOKIE_SAMESITE_STRICT", "1");
@@ -78,5 +79,13 @@ describe("production-security", () => {
     vi.stubEnv("GOOGLE_GENERATIVE_AI_API_KEY", "");
     vi.stubEnv("PRONUX_MARKET_AI_OLLAMA_ORIGIN", "");
     expect(isProductionSecurityEnvValid()).toBe(false);
+  });
+
+  it("skips checks during Playwright E2E", () => {
+    vi.stubEnv("PLAYWRIGHT_E2E", "1");
+    vi.stubEnv("CSRF_ENFORCE", "0");
+    vi.stubEnv("COOKIE_SAMESITE_STRICT", "0");
+    expect(() => assertProductionSecurityEnv()).not.toThrow();
+    expect(isProductionSecurityEnvValid()).toBe(true);
   });
 });

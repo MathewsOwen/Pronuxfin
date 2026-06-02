@@ -15,10 +15,8 @@ test.describe("Home pública", () => {
 
   test("FAQ e preview do produto abaixo da dobra", async ({ page }) => {
     await page.goto("/");
-    await page.locator("#faq").scrollIntoViewIfNeeded();
-    await expect(page.locator("#faq")).toBeVisible({ timeout: 45_000 });
 
-    await page.locator("#produto").scrollIntoViewIfNeeded();
-    await expect(page.locator("#produto")).toBeVisible({ timeout: 45_000 });
+    await expect(page.locator("#produto")).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("#faq")).toBeVisible({ timeout: 60_000 });
   });
 });

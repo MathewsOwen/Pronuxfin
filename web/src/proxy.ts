@@ -77,8 +77,10 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", rid);
 
+  // Playwright E2E runs `next start` over plain HTTP on 127.0.0.1 (no TLS terminator).
   if (
     process.env.NODE_ENV === "production" &&
+    process.env.PLAYWRIGHT_E2E !== "1" &&
     request.headers.get("x-forwarded-proto") === "http"
   ) {
     const httpsUrl = request.nextUrl.clone();

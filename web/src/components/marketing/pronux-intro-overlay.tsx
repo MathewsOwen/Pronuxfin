@@ -36,6 +36,7 @@ const IntroLogoReveal = dynamic(
 const INTRO_SEEN_KEY = "pronux-intro-seen-v3";
 
 function wantsIntro(): boolean {
+  if (process.env.NEXT_PUBLIC_PLAYWRIGHT_E2E === "1") return false;
   try {
     const params = new URLSearchParams(window.location.search);
     if (params.get("intro") === "1" || params.get("intro") === "reset") return true;

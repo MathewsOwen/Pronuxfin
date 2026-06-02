@@ -4,6 +4,10 @@ import { motion, useReducedMotion, type Variants } from "framer-motion";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
+function skipRevealAnimations(): boolean {
+  return process.env.NEXT_PUBLIC_PLAYWRIGHT_E2E === "1";
+}
+
 export const landingEase = [0.22, 1, 0.36, 1] as const;
 
 export const viewportStandard = {
@@ -48,7 +52,7 @@ type RevealSectionProps = {
 
 /** Outer section choreography: headings + grids reveal in sequence when scrolling. */
 export function RevealSection({ children, className }: RevealSectionProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || skipRevealAnimations();
   if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div
@@ -71,7 +75,7 @@ type RevealBlockProps = {
 };
 
 export function RevealBlock({ children, className, tight }: RevealBlockProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || skipRevealAnimations();
   if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div className={className} variants={tight ? landingItemTight : landingItem}>
@@ -88,7 +92,7 @@ type RevealListProps = {
 
 /** Stagger list with own `whileInView` (headings standalone below a section heading, etc.). */
 export function RevealStaggerList({ children, className, as = "div" }: RevealListProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || skipRevealAnimations();
   if (reduce) {
     const Cmp = as;
     return <Cmp className={className}>{children}</Cmp>;
@@ -134,7 +138,7 @@ export function RevealStaggerList({ children, className, as = "div" }: RevealLis
 
 /** Stagger orchestrator nested under `RevealSection` (inherits show/hidden; no duplicate viewport). */
 export function NestStaggerRoot({ children, className, as = "div" }: RevealListProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || skipRevealAnimations();
   if (reduce) {
     const Cmp = as;
     return <Cmp className={className}>{children}</Cmp>;
@@ -155,7 +159,7 @@ export function NestStaggerLi({
   children: ReactNode;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || skipRevealAnimations();
   if (reduce) return <li className={className}>{children}</li>;
   return (
     <motion.li className={className} variants={landingItemTight}>
@@ -165,7 +169,7 @@ export function NestStaggerLi({
 }
 
 export function RevealListRow({ children, className }: { children: ReactNode; className?: string }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || skipRevealAnimations();
   if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div variants={landingItemTight} className={className}>
@@ -181,7 +185,7 @@ type RevealCardProps = {
 
 /** Hover lift + spring snap (still respects MotionConfig reducedMotion). */
 export function RevealCard({ children, className }: RevealCardProps) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || skipRevealAnimations();
   if (reduce) {
     return <div className={cn("rounded-2xl border border-transparent", className)}>{children}</div>;
   }
@@ -206,7 +210,7 @@ export function RevealOnce({
   className?: string;
   y?: number;
 }) {
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotion() || skipRevealAnimations();
   if (reduce) return <div className={className}>{children}</div>;
   return (
     <motion.div

@@ -10,6 +10,7 @@ const e2ePublicKey =
 
 const e2eServerEnv: Record<string, string> = {
   PLAYWRIGHT_E2E: "1",
+  NEXT_PUBLIC_PLAYWRIGHT_E2E: "1",
   API_URL: process.env.API_URL ?? "http://127.0.0.1:5999",
   JWT_SECRET:
     process.env.JWT_SECRET ??
@@ -52,6 +53,8 @@ export default defineConfig({
     baseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
+    /** Skip Framer scroll reveals + intro motion in headless CI. */
+    contextOptions: { reducedMotion: "reduce" },
   },
   projects: [
     {
@@ -67,7 +70,8 @@ export default defineConfig({
     ? undefined
     : {
         command: "npx next start -H 127.0.0.1 -p 3000",
-        url: baseURL,
+        /** Lightweight probe — avoids middleware HTTP→HTTPS redirect in production. */
+        url: `${baseURL}/api/health`,
         reuseExistingServer: !process.env.CI,
         /** `next start` + cold boot pode exceder 2 min em CI ou HDD lento */
         timeout: 180_000,

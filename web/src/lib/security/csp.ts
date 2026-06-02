@@ -79,7 +79,7 @@ export function buildContentSecurityPolicy(opts: {
     "report-uri /api/security/csp-report",
   ];
 
-  if (isProd) {
+  if (isProd && process.env.PLAYWRIGHT_E2E !== "1") {
     directives.push("upgrade-insecure-requests");
   }
 

@@ -15,8 +15,14 @@ function isTruthyEnv(name: string): boolean {
   return v === "1" || v === "true" || v === "yes";
 }
 
+/** Playwright boots `next start` in production mode without a full deploy stack. */
+function isPlaywrightE2e(): boolean {
+  return process.env.PLAYWRIGHT_E2E === "1";
+}
+
 /** Production must not run with security features explicitly disabled. */
 export function assertProductionSecurityEnv(): void {
+  if (isPlaywrightE2e()) return;
   if (!isStrictProductionEnv()) return;
 
   if (process.env.CSRF_ENFORCE === "0") {

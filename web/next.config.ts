@@ -41,7 +41,10 @@ const nextConfig: NextConfig = {
       { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
       { key: "Origin-Agent-Cluster", value: "?1" },
     ];
-    if (process.env.NODE_ENV === "production") {
+    const prodHeaders =
+      process.env.NODE_ENV === "production" &&
+      process.env.PLAYWRIGHT_E2E !== "1";
+    if (prodHeaders) {
       base.push({
         key: "Strict-Transport-Security",
         value: "max-age=63072000; includeSubDomains; preload",
