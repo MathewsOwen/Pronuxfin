@@ -92,7 +92,7 @@ export function getSingularityViewportProfile(
           ? 900
           : 980,
     pixelRatioCap: 1.5,
-    camDistance: intro ? (shortFrame ? 84 : isPortrait ? 92 : 88) : isPortrait ? 100 : 94,
+    camDistance: intro ? (shortFrame ? 102 : isPortrait ? 118 : 108) : isPortrait ? 100 : 94,
     orbitRadius: intro ? (shortFrame ? 24 : isPortrait ? 26 : 28) : isPortrait ? 36 : 38,
     orbitSpread: 0,
     crystalRadius: intro ? 0.42 : 0.38,
