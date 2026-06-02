@@ -10,7 +10,6 @@ const e2ePublicKey =
 
 const e2eServerEnv: Record<string, string> = {
   PLAYWRIGHT_E2E: "1",
-  NEXT_PUBLIC_PLAYWRIGHT_E2E: "1",
   API_URL: process.env.API_URL ?? "http://127.0.0.1:5999",
   JWT_SECRET:
     process.env.JWT_SECRET ??
