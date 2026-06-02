@@ -37,8 +37,47 @@ export type SingularityOffering = {
 type OrbitSlot = {
   initialAngle: number;
   yOffset: number;
+  orbitR: number;
+  angularVelocity: number;
   crystal: THREE.Mesh;
 };
+
+/** Evita “asteroides”/cristais sobrepostos no disco de órbita. */
+function placeDiskInstances(count: number, minSeparation: number) {
+  const positions: { x: number; y: number; z: number; angle: number }[] = [];
+  const maxAttempts = 32;
+
+  for (let i = 0; i < count; i++) {
+    let placed = false;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const r = 5 + Math.pow(Math.random(), 1.3) * 40;
+      const angle = Math.random() * Math.PI * 2;
+      const x = Math.cos(angle) * r;
+      const z = Math.sin(angle) * r;
+      const y = (Math.random() - 0.5) * (8 / r);
+
+      const crowded = positions.some(
+        (p) => Math.hypot(p.x - x, p.z - z) < minSeparation,
+      );
+      if (!crowded) {
+        positions.push({ x, y, z, angle });
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      const r = 5 + Math.pow(Math.random(), 1.3) * 40;
+      const angle = (i / count) * Math.PI * 2;
+      positions.push({
+        x: Math.cos(angle) * r,
+        y: (Math.random() - 0.5) * (8 / r),
+        z: Math.sin(angle) * r,
+        angle,
+      });
+    }
+  }
+  return positions;
+}
 
 export type MountSingularityOptions = {
   root: HTMLElement;
@@ -157,14 +196,11 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   const instanceCount = profile0.instanceCount;
   const instancedDisk = new THREE.InstancedMesh(streakGeo, diskMaterial, instanceCount);
   const dummy = new THREE.Object3D();
+  const minSep = profile0.isMobile ? 2.8 : 2.2;
+  const diskPositions = placeDiskInstances(instanceCount, minSep);
   for (let i = 0; i < instanceCount; i++) {
-    const r = 5 + Math.pow(Math.random(), 1.3) * 40;
-    const angle = Math.random() * Math.PI * 2;
-    dummy.position.set(
-      Math.cos(angle) * r,
-      (Math.random() - 0.5) * (8 / r),
-      Math.sin(angle) * r,
-    );
+    const { x, y, z, angle } = diskPositions[i]!;
+    dummy.position.set(x, y, z);
     dummy.lookAt(
       dummy.position.x + Math.sin(angle),
       dummy.position.y,
@@ -183,14 +219,21 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   const count = offerings.length;
   let crystalGeo: THREE.DodecahedronGeometry | null = null;
 
+  const sharedOrbitR = profile0.orbitRadius;
+  const sharedAngularVelocity = diskOrbitalVelocity(sharedOrbitR, 0.55);
+  const orbitBandScale = profile0.isMobile ? [0.9, 0.98, 1.06] : [0.92, 1.0, 1.08];
+
   if (count > 0) {
     crystalGeo = new THREE.DodecahedronGeometry(profile0.crystalRadius, 0);
-    const sharedOrbitR = profile0.orbitRadius;
+    const minAngleGap = (Math.PI * 2) / Math.max(count, 1);
     for (let i = 0; i < count; i++) {
       const item = offerings[i]!;
       const color = OFFERING_COLORS[item.colorIndex ?? i % OFFERING_COLORS.length]!;
-      const initialAngle = (i / count) * Math.PI * 2;
-      const yOffset = ((i % 2 === 0 ? 1 : -1) * 0.18) / sharedOrbitR;
+      const initialAngle = i * minAngleGap + (i % 2) * minAngleGap * 0.22;
+      const orbitR = sharedOrbitR * orbitBandScale[i % orbitBandScale.length]!;
+      const yOffset = ((i % 2 === 0 ? 1 : -1) * 0.22) / orbitR;
+      const angularVelocity =
+        sharedAngularVelocity * (0.94 + (i % 3) * 0.04);
 
       const crystal = new THREE.Mesh(
         crystalGeo,
@@ -207,12 +250,9 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
       label.position.set(0, profile0.labelCompact ? 0.65 : 0.9, 0);
       crystal.add(label);
 
-      slots.push({ initialAngle, yOffset, crystal });
+      slots.push({ initialAngle, yOffset, orbitR, angularVelocity, crystal });
     }
   }
-
-  const sharedOrbitR = profile0.orbitRadius;
-  const sharedAngularVelocity = diskOrbitalVelocity(sharedOrbitR, 0.55);
   const camControl = { distance: profile0.camDistance };
   const tilt = { targetX: 0, targetY: 0, x: 0, y: 0 };
   let paused = false;
@@ -277,11 +317,11 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     instancedDisk.rotation.z = tilt.x * 0.05;
 
     for (const slot of slots) {
-      const angle = slot.initialAngle + time * sharedAngularVelocity;
+      const angle = slot.initialAngle + time * slot.angularVelocity;
       slot.crystal.position.set(
-        Math.cos(angle) * sharedOrbitR,
+        Math.cos(angle) * slot.orbitR,
         slot.yOffset,
-        Math.sin(angle) * sharedOrbitR,
+        Math.sin(angle) * slot.orbitR,
       );
       slot.crystal.rotation.set(time * 0.35 + slot.initialAngle, time * 0.5, time * 0.2);
     }

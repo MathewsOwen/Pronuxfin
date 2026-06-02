@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+/** Evita HTML da home cacheado com intro antiga na CDN. */
+export const dynamic = "force-dynamic";
 import { getLocale, getTranslations } from "next-intl/server";
 import { HomeBelowFold } from "@/components/marketing/home-below-fold";
 import { HomeIntroOverlay } from "@/components/marketing/home-intro-overlay";

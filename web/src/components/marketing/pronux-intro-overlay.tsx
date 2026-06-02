@@ -1,17 +1,27 @@
 ﻿"use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Hand, Move3d, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { PronuxFinLogo } from "@/components/brand/pronux-fin-logo";
-import { PronuxIntroCosmos } from "@/components/marketing/pronux-intro-cosmos";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import {
+  MOBILE_INTRO_SERVICE_IDS,
+  useIntroMobile,
+} from "@/components/marketing/intro-mobile";
+import { PronuxIntroSingularity } from "@/components/marketing/pronux-intro-singularity";
 
-const INTRO_EASE = [0.16, 1, 0.3, 1] as const;
+const IntroLogoReveal = dynamic(
+  () =>
+    import("@/components/marketing/intro-logo-reveal").then((mod) => ({
+      default: mod.IntroLogoReveal,
+    })),
+  { ssr: false },
+);
 
-/** Intro Cosmos — diferencial da marca; `?intro=0` só para E2E. */
+/** Intro 3D Singularity — diferencial da marca; `?intro=0` só para E2E. */
 function wantsIntro(): boolean {
   try {
     if (new URLSearchParams(window.location.search).get("intro") === "0") {
@@ -23,313 +33,160 @@ function wantsIntro(): boolean {
   return true;
 }
 
-function IntroLogoHalo({ reduceMotion }: { reduceMotion: boolean | null }) {
-  return (
-    <div className="relative flex items-center justify-center">
-      {!reduceMotion
-        ? [0, 1, 2, 3].map((i) => (
-            <motion.span
-              key={i}
-              className={cn(
-                "pointer-events-none absolute rounded-full",
-                i === 0 ? "border border-[#ede4d4]/35" : "border border-primary/25",
-              )}
-              style={{
-                width: `${8.5 + i * 3.2}rem`,
-                height: `${2.9 + i * 1}rem`,
-              }}
-              animate={{
-                opacity: [0.12, i === 0 ? 0.55 : 0.38, 0.12],
-                scale: [0.95, 1.04 + i * 0.008, 0.95],
-              }}
-              transition={{
-                duration: 4.2 + i * 0.45,
-                repeat: Infinity,
-                delay: i * 0.28,
-                ease: "easeInOut",
-              }}
-              aria-hidden
-            />
-          ))
-        : null}
-      {!reduceMotion ? (
-        <>
-          <motion.div
-            className="absolute inset-0 -z-10 blur-3xl"
-            animate={{ opacity: [0.45, 0.85, 0.45] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-            style={{
-              background:
-                "radial-gradient(ellipse at center, color-mix(in oklch, var(--primary) 48%, transparent) 0%, color-mix(in oklch, var(--cognitive) 22%, transparent) 42%, transparent 72%)",
-            }}
-            aria-hidden
-          />
-          <motion.div
-            className="absolute -inset-8 -z-10 rounded-full blur-2xl"
-            animate={{ opacity: [0.25, 0.5, 0.25], scale: [1, 1.08, 1] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            style={{
-              background:
-                "radial-gradient(circle, rgba(212,196,168,0.2) 0%, transparent 70%)",
-            }}
-            aria-hidden
-          />
-        </>
-      ) : null}
-      <div className="relative z-10 drop-shadow-[0_0_40px_color-mix(in_oklch,var(--primary)_40%,transparent)]">
-        <PronuxFinLogo
-          variant="full"
-          className="h-[4.75rem] w-auto sm:h-[5.25rem] md:h-24"
-        />
-      </div>
-    </div>
-  );
+const INTRO_EASE = [0.16, 1, 0.3, 1] as const;
+const INTRO_EXIT_MS = 480;
+
+const SERVICE_IDS = [
+  "ai",
+  "automation",
+  "forecasts",
+  "management",
+  "analytics",
+  "dashboard",
+  "security",
+  "insights",
+  "monitoring",
+  "operations",
+] as const;
+
+function syncIntroHtmlLock(locked: boolean) {
+  const root = document.documentElement;
+  if (locked) {
+    root.removeAttribute("data-pronux-intro-pending");
+    root.setAttribute("data-pronux-intro", "");
+  } else {
+    root.removeAttribute("data-pronux-intro");
+    root.removeAttribute("data-pronux-intro-pending");
+  }
 }
 
-function FilmGrain() {
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-[5] opacity-[0.035] mix-blend-soft-light"
-      aria-hidden
-      style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundSize: "160px 160px",
-      }}
-    />
-  );
-}
-
-function PremiumHud({
-  labels,
-  orbitChips,
-}: {
-  labels: { nux: string; ai: string; markets: string };
-  orbitChips: string[];
-}) {
-  return (
-    <>
-      <div className="pointer-events-none absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-30 sm:left-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-black/28 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-[#d6c5a4]/70 backdrop-blur-md sm:text-[10px]">
-          <span className="relative inline-flex size-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
-            <span className="relative inline-flex size-2 rounded-full bg-primary/80" />
-          </span>
-          Live Intro Session
-        </div>
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 top-[calc(max(1rem,env(safe-area-inset-top))+2.75rem)] z-20 px-4 md:hidden">
-        <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {orbitChips.map((item, idx) => (
-            <motion.div
-              key={item}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45 + idx * 0.08, duration: 0.5, ease: INTRO_EASE }}
-              className="shrink-0 rounded-full border border-white/10 bg-black/35 px-3 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md"
-            >
-              <p className="whitespace-nowrap font-mono text-[8px] uppercase tracking-[0.14em] text-[#d9c9ab]/78">
-                {item}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      <div className="pointer-events-none absolute right-4 top-24 z-20 hidden w-52 space-y-2.5 md:block lg:right-8">
-        {[labels.nux, labels.ai, labels.markets].map((item, idx) => (
-          <motion.div
-            key={item}
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.55 + idx * 0.12, duration: 0.55, ease: INTRO_EASE }}
-            className="rounded-xl border border-white/[0.08] bg-black/22 px-3.5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-md"
-          >
-            <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#d9c9ab]/72">{item}</p>
-          </motion.div>
-        ))}
-      </div>
-    </>
-  );
-}
-
-function IntroDescPanel({
+function HoverExplainPanel({
   text,
-  revealHint,
-  revealHintMobile,
+  hint,
   reduceMotion,
 }: {
   text: string;
-  revealHint: string;
-  revealHintMobile: string;
+  hint: string;
   reduceMotion: boolean | null;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const [coarsePointer, setCoarsePointer] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(hover: none), (pointer: coarse)");
-    const sync = () => setCoarsePointer(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
-
-  const touchMode = coarsePointer;
-  const showFull = touchMode ? expanded : false;
-
-  const panelShimmer = reduceMotion ? null : (
-    <motion.div
-      initial={{ x: "-120%" }}
-      animate={{ x: ["-120%", "120%"] }}
-      transition={{ duration: 2.4, repeat: Infinity, ease: INTRO_EASE }}
-      className="pointer-events-none absolute left-0 top-0 h-px w-full bg-gradient-to-r from-transparent via-[#ede4d4]/45 to-transparent"
-      aria-hidden
-    />
-  );
+  const [revealed, setRevealed] = useState(false);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.55, duration: 0.85, ease: INTRO_EASE }}
-      className={cn(
-        "pointer-events-auto relative w-full max-w-2xl overflow-hidden rounded-2xl border bg-black/26 shadow-[0_0_80px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl transition-[border-color,box-shadow] duration-300 lg:mx-2 lg:flex-1",
-        touchMode
-          ? expanded
-            ? "border-[#ede4d4]/28 shadow-[0_0_48px_rgba(212,196,168,0.12)]"
-            : "border-white/[0.08]"
-          : "group/desc border-white/[0.08] hover:border-[#ede4d4]/22 hover:shadow-[0_0_56px_rgba(212,196,168,0.1)]",
-      )}
-      onClick={touchMode ? () => setExpanded((v) => !v) : undefined}
-      onKeyDown={
-        touchMode
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setExpanded((v) => !v);
-              }
-            }
-          : undefined
-      }
-      role={touchMode ? "button" : undefined}
-      tabIndex={touchMode ? 0 : undefined}
-      aria-expanded={touchMode ? expanded : undefined}
+    <div
+      className="pointer-events-auto absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-3 z-20 w-[min(calc(100%-6.5rem),22rem)] sm:left-6 sm:w-[min(calc(100%-8rem),26rem)] md:left-8"
+      onMouseEnter={() => setRevealed(true)}
+      onMouseLeave={() => setRevealed(false)}
+      onClick={() => setRevealed((v) => !v)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setRevealed((v) => !v);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-expanded={revealed}
+      aria-describedby="pronux-intro-desc"
     >
-      {panelShimmer}
-      <div
+      <motion.div
+        animate={{
+          opacity: revealed ? 1 : 0.42,
+          backgroundColor: revealed ? "rgba(1, 1, 3, 0.78)" : "rgba(1, 1, 3, 0.22)",
+          borderColor: revealed ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.1)",
+        }}
+        transition={{ duration: reduceMotion ? 0 : 0.45, ease: INTRO_EASE }}
         className={cn(
-          "pointer-events-none absolute inset-0 bg-gradient-to-t from-[#030508]/55 via-transparent to-transparent md:hidden",
-          touchMode && !expanded ? "opacity-100" : "opacity-0",
+          "cursor-default rounded-2xl border px-4 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.35)]",
+          revealed ? "py-4 sm:px-5 sm:py-5" : "py-3",
         )}
-        aria-hidden
-      />
-      <div className="relative px-4 py-4 sm:px-6 sm:py-5">
-        <p
-          className={cn(
-            "font-mono text-[8px] uppercase tracking-[0.16em] transition-colors duration-300",
-            touchMode
-              ? "text-[#c9b896]/55"
-              : "text-[#c9b896]/35 group-hover/desc:text-[#d4c4a8]/65",
-          )}
-        >
-          {touchMode ? revealHintMobile : revealHint}
-        </p>
+      >
+        {!revealed ? (
+          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/55 sm:text-[10px]">
+            {hint}
+          </p>
+        ) : null}
         <p
           id="pronux-intro-desc"
           className={cn(
-            "text-pretty text-sm leading-[1.75] transition-[color,opacity] duration-300 sm:text-[0.95rem]",
-            touchMode
-              ? showFull
-                ? "mt-2 text-[#e8dcc8]/94"
-                : "mt-2 line-clamp-3 text-[#e8dcc8]/88"
-              : "mt-2 text-[#e8dcc8]/22 group-hover/desc:text-[#e8dcc8]/92",
+            "text-pretty text-sm leading-[1.75] text-white/82 sm:text-[0.92rem]",
+            revealed ? "block" : "hidden",
           )}
         >
           {text}
         </p>
-        {touchMode && !expanded && !reduceMotion ? (
-          <motion.span
-            className="mt-3 block h-px w-full bg-gradient-to-r from-transparent via-[#ede4d4]/35 to-transparent"
-            animate={{ opacity: [0.35, 0.85, 0.35] }}
-            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-            aria-hidden
-          />
-        ) : null}
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
 
 export function PronuxIntroOverlay() {
   const t = useTranslations("SiteIntro");
   const reduceMotion = useReducedMotion();
+  const isMobile = useIntroMobile();
+  const [clientReady, setClientReady] = useState(false);
   const [open, setOpen] = useState(true);
-  const [mounted, setMounted] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const [warpOut, setWarpOut] = useState(0);
+  const warpRafRef = useRef(0);
 
-  const offerings = [
-    {
-      label: t("offeringAi"),
-      colorIndex: 3,
-      ring: 0,
-      phase: 2.45,
-      emphasis: "inner" as const,
-    },
-    { label: t("offeringMarkets"), colorIndex: 0, ring: 1 },
-    { label: t("offeringProjection"), colorIndex: 1, ring: 2 },
-    { label: t("offeringNews"), colorIndex: 2, ring: 2 },
-    { label: t("offeringPortfolio"), colorIndex: 4, ring: 3 },
-    { label: t("offeringTools"), colorIndex: 5, ring: 4 },
-  ];
-  const hudLabels = {
-    nux: t("offeringNux"),
-    ai: t("offeringAi"),
-    markets: t("offeringMarkets"),
-  };
-  const mobileOrbitChips = [
-    t("offeringAi"),
-    t("offeringMarkets"),
-    t("offeringProjection"),
-    t("offeringNews"),
-    t("offeringPortfolio"),
-  ];
+  const offerings = useMemo(() => {
+    const ids = isMobile ? MOBILE_INTRO_SERVICE_IDS : SERVICE_IDS;
+    return ids.map((id) => ({
+      label: t(`services.${id}.label`),
+      colorIndex: SERVICE_IDS.indexOf(id),
+    }));
+  }, [t, isMobile]);
 
   useLayoutEffect(() => {
+    setClientReady(true);
     if (!wantsIntro()) {
       setOpen(false);
-      setMounted(true);
+      syncIntroHtmlLock(false);
       document.documentElement.removeAttribute("data-pronux-intro-pending");
       return;
     }
-    setMounted(true);
     setOpen(true);
+    syncIntroHtmlLock(true);
+    return () => syncIntroHtmlLock(false);
   }, []);
+
+  useEffect(() => {
+    if (open) return;
+    document.documentElement.removeAttribute("data-pronux-intro-pending");
+  }, [open]);
 
   const dismiss = useCallback(() => {
     if (exiting) return;
     setExiting(true);
-    const delay = reduceMotion ? 180 : 900;
+    const duration = reduceMotion ? 180 : INTRO_EXIT_MS;
+
+    if (reduceMotion) {
+      setWarpOut(1);
+    } else {
+      const start = performance.now();
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - start) / duration);
+        setWarpOut(1 - Math.pow(1 - progress, 3));
+        if (progress < 1) {
+          warpRafRef.current = requestAnimationFrame(tick);
+        }
+      };
+      warpRafRef.current = requestAnimationFrame(tick);
+    }
+
     window.setTimeout(() => {
       setOpen(false);
       setExiting(false);
-      document.documentElement.removeAttribute("data-pronux-intro-pending");
-    }, delay);
+      setWarpOut(0);
+      syncIntroHtmlLock(false);
+    }, duration);
   }, [exiting, reduceMotion]);
 
   useEffect(() => {
-    if (!open) {
-      document.documentElement.removeAttribute("data-pronux-intro-pending");
-      return;
-    }
-    document.documentElement.setAttribute("data-pronux-intro", "");
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     return () => {
-      document.documentElement.removeAttribute("data-pronux-intro");
-      document.body.style.overflow = prev;
+      if (warpRafRef.current) cancelAnimationFrame(warpRafRef.current);
     };
-  }, [open]);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -342,23 +199,11 @@ export function PronuxIntroOverlay() {
 
   if (!open) return null;
 
-  if (!mounted) {
+  if (!clientReady) {
     return (
-      <div
-        className="fixed inset-0 z-[200] bg-[#030508]"
-        data-pronux-intro-root
-        aria-hidden
-      />
+      <div className="fixed inset-0 z-[200] bg-[#010103]" data-pronux-intro-root aria-hidden />
     );
   }
-
-  const hintPulse =
-    reduceMotion
-      ? {}
-      : {
-          animate: { opacity: [0.55, 0.95, 0.55], scale: [1, 1.02, 1] },
-          transition: { duration: 2.8, repeat: Infinity, ease: INTRO_EASE },
-        };
 
   return (
     <AnimatePresence>
@@ -366,160 +211,64 @@ export function PronuxIntroOverlay() {
         <motion.div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="pronux-intro-tagline"
           aria-describedby="pronux-intro-desc"
-          initial={{ opacity: 0 }}
-          animate={{
-            opacity: exiting ? 0 : 1,
-            scale: exiting ? 1.14 : 1,
-            filter: exiting ? "blur(18px) brightness(1.4)" : "blur(0px) brightness(1)",
-          }}
-          exit={{ opacity: 0, scale: 1.12, filter: "blur(12px)" }}
+          data-pronux-intro-root
+          data-pronux-intro-variant="singularity"
+          initial={false}
+          animate={{ opacity: exiting ? 0 : 1 }}
+          exit={{ opacity: 0 }}
           transition={{
-            duration: reduceMotion ? 0.2 : exiting ? 0.9 : 0.7,
+            duration: reduceMotion ? 0.15 : exiting ? INTRO_EXIT_MS / 1000 : 0,
             ease: INTRO_EASE,
           }}
-          className="fixed inset-0 z-[200] overflow-hidden bg-[#030508]"
+          className="fixed inset-0 z-[200] overflow-hidden bg-[#010103]"
         >
-          <motion.div
-            className="absolute inset-0"
-            initial={{ scale: 1.2 }}
-            animate={{ scale: exiting ? 1.26 : 1 }}
-            transition={{
-              duration: reduceMotion ? 0 : exiting ? 0.9 : 2.8,
-              ease: INTRO_EASE,
-            }}
-          >
-            <PronuxIntroCosmos offerings={offerings} />
-          </motion.div>
+          <PronuxIntroSingularity warpOut={warpOut} offerings={offerings} />
+
+          <IntroLogoReveal visible={!exiting} />
 
           <div
-            className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_80%_60%_at_50%_38%,transparent_0%,rgba(3,5,8,0.25)_45%,rgba(3,5,8,0.94)_100%)]"
+            className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.45)_100%)]"
             aria-hidden
           />
-          <div
-            className="pointer-events-none absolute inset-0 z-[3] bg-[linear-gradient(125deg,transparent_30%,color-mix(in_oklch,var(--primary)_8%,transparent)_48%,color-mix(in_oklch,#d4c4a8_6%,transparent)_52%,transparent_70%)]"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute inset-0 z-[4] opacity-[0.045] mix-blend-overlay"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, rgba(237,228,212,0.55) 1px, transparent 1px), linear-gradient(to bottom, rgba(45,212,191,0.25) 1px, transparent 1px)",
-              backgroundSize: "72px 72px",
-            }}
-            aria-hidden
-          />
-          <FilmGrain />
-          <PremiumHud labels={hudLabels} orbitChips={mobileOrbitChips} />
 
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[6] h-44 bg-gradient-to-t from-[#030508] via-[#030508]/88 to-transparent md:h-36"
+            className="pointer-events-none fixed inset-0 z-[4] bg-[radial-gradient(circle,transparent_50%,black_150%)]"
             aria-hidden
           />
 
           <button
             type="button"
             onClick={dismiss}
-            className="pointer-events-auto absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 min-h-11 min-w-11 px-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#c9b896]/50 transition-colors hover:text-[#ede4d4] sm:right-6"
+            className="pointer-events-auto absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-30 min-h-11 rounded-full border border-white/[0.08] bg-white/[0.04] px-4 font-mono text-[10px] uppercase tracking-[0.16em] text-white/45 backdrop-blur-md transition-colors hover:border-white/[0.14] hover:text-white/80 sm:right-6"
           >
             {t("skip")}
           </button>
 
-          <div className="pointer-events-none relative z-10 flex h-full flex-col items-center justify-center px-5 pb-[max(7rem,calc(6.5rem+env(safe-area-inset-bottom)))] pt-[max(5.5rem,calc(4.5rem+env(safe-area-inset-top)))] text-center sm:px-8 sm:pb-32 sm:pt-14">
-            <motion.p
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: INTRO_EASE }}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.22em] text-[#c9b896]/70 backdrop-blur-md sm:text-[10px]"
-            >
-              <Sparkles className="size-3 text-primary/70" aria-hidden />
-              {t("eyebrow")}
-            </motion.p>
+          <HoverExplainPanel
+            text={t("subline")}
+            hint={isMobile ? t("descRevealHintMobile") : t("descRevealHint")}
+            reduceMotion={reduceMotion}
+          />
 
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, ease: INTRO_EASE }}
-            >
-              <IntroLogoHalo reduceMotion={reduceMotion} />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.7, ease: INTRO_EASE }}
-              className="mt-4 rounded-xl border border-[#ede4d4]/25 bg-black/28 px-4 py-2 backdrop-blur-lg"
-            >
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#faf3e2]">
-                {t("offeringNux")}
-              </p>
-              <p className="mt-1 font-mono text-[9px] tracking-[0.12em] text-[#c9b896]/75">
-                {t("offeringNuxSub")}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.8, ease: INTRO_EASE }}
-              className="mt-9 max-w-4xl sm:mt-11"
-            >
-              <p
-                id="pronux-intro-tagline"
-                className="font-heading bg-gradient-to-b from-[#faf6ee] via-[#ede4d4] to-[#c9b896] bg-clip-text text-balance text-[0.68rem] font-semibold uppercase leading-snug tracking-[0.22em] text-transparent sm:text-xs sm:tracking-[0.2em] md:text-sm md:tracking-[0.17em]"
-              >
-                {t("taglineEn")}
-              </p>
-              <p className="mt-2.5 font-mono text-[10px] tracking-[0.14em] text-primary/90 sm:text-[11px]">
-                {t("taglinePt")}
-              </p>
-            </motion.div>
-
-          </div>
-
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col gap-3 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:p-6 md:p-8">
-            <motion.div
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.55, ease: INTRO_EASE }}
-              className="pointer-events-none max-w-full sm:max-w-[min(100%,17rem)]"
-            >
-              <motion.p
-                {...hintPulse}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/[0.06] bg-black/28 px-3.5 py-2.5 font-mono text-[9px] uppercase leading-snug tracking-[0.17em] text-[#c9b896]/58 backdrop-blur-md sm:text-[10px]"
-              >
-                <Hand className="size-3 shrink-0 text-primary/55 md:hidden" aria-hidden />
-                <Move3d className="hidden size-3 shrink-0 text-primary/45 md:block" aria-hidden />
-                <span className="md:hidden">{t("interactionHintMobile")}</span>
-                <span className="hidden md:inline">{t("interactionHint")}</span>
-              </motion.p>
-            </motion.div>
-
-            <IntroDescPanel
-              text={t("subline")}
-              revealHint={t("descRevealHint")}
-              revealHintMobile={t("descRevealHintMobile")}
-              reduceMotion={reduceMotion}
-            />
-
+          <div className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-3 z-20 sm:right-6 md:right-8">
             <motion.button
-              key="interactive-cta"
               type="button"
-              initial={{ opacity: 0, y: 22 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ delay: 0.05, duration: 0.65, ease: INTRO_EASE }}
+              transition={{ delay: 1.8, duration: 0.5, ease: INTRO_EASE }}
               onClick={dismiss}
               className={cn(
                 buttonVariants({ size: "lg" }),
-                "pointer-events-auto group relative h-12 w-full overflow-hidden gap-2.5 border border-[#d4c4a8]/35 bg-gradient-to-b from-[#141a22]/90 to-[#0a0e14]/95 px-9 text-sm font-medium tracking-wide text-[#faf6ee] shadow-[0_0_64px_color-mix(in_oklch,var(--primary)_18%,transparent),0_0_32px_rgba(212,196,168,0.12),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-xl transition-[transform,box-shadow,border-color] active:scale-[0.98] hover:-translate-y-0.5 hover:border-[#ede4d4]/50 hover:shadow-[0_0_80px_color-mix(in_oklch,var(--primary)_28%,transparent),0_0_40px_rgba(212,196,168,0.2)] sm:h-[3.35rem] sm:w-auto sm:max-w-none",
+                "pointer-events-auto group relative h-12 shrink-0 overflow-hidden gap-2 rounded-xl border border-white/[0.12] bg-white/[0.06] px-5 text-[0.8125rem] font-medium tracking-[0.02em] text-white shadow-[0_20px_60px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition-[transform,box-shadow,border-color,background-color] active:scale-[0.98] hover:-translate-y-0.5 hover:border-[#2dd4bf]/40 hover:bg-white/[0.09] sm:h-[3.5rem] sm:gap-2.5 sm:px-10 sm:text-sm",
               )}
             >
-              <span
-                className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[#ede4d4]/15 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
-                aria-hidden
-              />
+              {!reduceMotion ? (
+                <span
+                  className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+                  aria-hidden
+                />
+              ) : null}
               {t("enterSite")}
               <ArrowRight
                 className="relative size-4 transition-transform group-hover:translate-x-1"
