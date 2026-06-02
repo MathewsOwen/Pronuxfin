@@ -97,9 +97,9 @@ function HoverExplainPanel({
     >
       <motion.div
         animate={{
-          opacity: revealed ? 1 : 0.78,
-          backgroundColor: revealed ? "rgba(1, 1, 3, 0.88)" : "rgba(1, 1, 3, 0.42)",
-          borderColor: revealed ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.14)",
+          opacity: revealed ? 1 : 0.88,
+          backgroundColor: revealed ? "rgba(1, 1, 3, 0.88)" : "rgba(1, 1, 3, 0.58)",
+          borderColor: revealed ? "rgba(255,255,255,0.22)" : "rgba(255,255,255,0.18)",
         }}
         transition={{ duration: reduceMotion ? 0 : 0.45, ease: INTRO_EASE }}
         className={cn(
@@ -114,7 +114,7 @@ function HoverExplainPanel({
               "font-mono uppercase tracking-[0.14em] sm:text-[10px]",
               stacked
                 ? "text-[10px] text-white/72"
-                : "text-[9px] text-white/55 sm:text-[10px]",
+                : "text-[9px] text-white/68 sm:text-[10px]",
             )}
           >
             {hint}
