@@ -136,7 +136,8 @@ export function PronuxIntroOverlay() {
   const reduceMotion = useReducedMotion();
   const isMobile = useIntroMobile();
   const [clientReady, setClientReady] = useState(false);
-  const [open, setOpen] = useState(false);
+  /** Começa aberta para não haver frame vazio com o shell oculto pelo boot script. */
+  const [open, setOpen] = useState(true);
   const [exiting, setExiting] = useState(false);
   const [warpOut, setWarpOut] = useState(0);
   const warpRafRef = useRef(0);
@@ -152,13 +153,21 @@ export function PronuxIntroOverlay() {
   useLayoutEffect(() => {
     setClientReady(true);
     if (!wantsIntro()) {
+      setOpen(false);
       syncIntroHtmlLock(false);
+      document.documentElement.removeAttribute("data-pronux-intro-pending");
       return;
     }
     setOpen(true);
     syncIntroHtmlLock(true);
     return () => syncIntroHtmlLock(false);
   }, []);
+
+  /** Se o overlay não abrir, libera a home (evita página presa em preto). */
+  useEffect(() => {
+    if (open) return;
+    document.documentElement.removeAttribute("data-pronux-intro-pending");
+  }, [open]);
 
   const dismiss = useCallback(() => {
     if (exiting) return;
