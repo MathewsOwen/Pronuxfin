@@ -9,7 +9,7 @@ export function PronuxIntroBootScript({ nonce }: { nonce?: string }) {
       id="pronux-intro-boot"
       nonce={nonce}
       strategy="beforeInteractive"
-    >{`try{var p=location.pathname;var q=location.search||"";if(/^\\/(pt-BR|en)\\/?$/.test(p)||p==="/"){if(/[?&]intro=0(?:&|$)/.test(q))return;if(/[?&]intro=(1|reset)(?:&|$)/.test(q)){document.documentElement.setAttribute("data-pronux-intro-pending","");return;}if(localStorage.getItem("pronux-intro-seen-v3")==="1")return;document.documentElement.setAttribute("data-pronux-intro-pending","");}}catch(e){}`}</Script>
+    >{`try{var p=location.pathname;var q=location.search||"";if(/^\\/(pt-BR|en)\\/?$/.test(p)||p==="/"){if(/[?&]intro=0(?:&|$)/.test(q))return;document.documentElement.setAttribute("data-pronux-intro-pending","");}}catch(e){}`}</Script>
   );
 }
 

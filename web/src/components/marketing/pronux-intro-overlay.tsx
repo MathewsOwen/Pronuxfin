@@ -33,33 +33,16 @@ const IntroLogoReveal = dynamic(
   { ssr: false },
 );
 
-const INTRO_SEEN_KEY = "pronux-intro-seen-v3";
-
+/** Intro 3D é o diferencial — mostra em toda visita à home; `?intro=0` só para E2E. */
 function wantsIntro(): boolean {
   try {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("intro") === "1" || params.get("intro") === "reset") return true;
-    if (params.get("intro") === "0") return false;
+    if (new URLSearchParams(window.location.search).get("intro") === "0") {
+      return false;
+    }
   } catch {
     /* ignore */
   }
-  return !hasSeenIntro();
-}
-
-function hasSeenIntro(): boolean {
-  try {
-    return localStorage.getItem(INTRO_SEEN_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function markIntroSeen(): void {
-  try {
-    localStorage.setItem(INTRO_SEEN_KEY, "1");
-  } catch {
-    /* ignore */
-  }
+  return true;
 }
 
 const INTRO_EASE = [0.16, 1, 0.3, 1] as const;
@@ -197,7 +180,6 @@ export function PronuxIntroOverlay() {
     }
 
     window.setTimeout(() => {
-      markIntroSeen();
       setOpen(false);
       setExiting(false);
       setWarpOut(0);
