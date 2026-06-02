@@ -17,7 +17,9 @@ const SECTOR_WINDOW_MS = 60_000;
 const SECTOR_MAX_PER_WINDOW = 48;
 
 export async function GET(req: NextRequest) {
-  const limited = await rateLimitResponse("quotes-sector", SECTOR_MAX_PER_WINDOW, SECTOR_WINDOW_MS);
+  const limited = await rateLimitResponse("quotes-sector", SECTOR_MAX_PER_WINDOW, SECTOR_WINDOW_MS, {
+    failClosed: false,
+  });
   if (limited) return limited;
 
   const url = new URL(req.url);

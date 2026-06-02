@@ -11,7 +11,9 @@ const NEWS_WINDOW_MS = 60_000;
 const NEWS_MAX_PER_WINDOW = 40;
 
 export async function GET() {
-  const limited = await rateLimitResponse("news", NEWS_MAX_PER_WINDOW, NEWS_WINDOW_MS);
+  const limited = await rateLimitResponse("news", NEWS_MAX_PER_WINDOW, NEWS_WINDOW_MS, {
+    failClosed: false,
+  });
   if (limited) return limited;
 
   try {

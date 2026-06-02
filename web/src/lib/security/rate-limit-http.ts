@@ -16,17 +16,22 @@ export async function clientIpFromHeaders(): Promise<string> {
   return forwarded || h.get("x-real-ip")?.trim() || "unknown";
 }
 
+export type RateLimitResponseOptions = {
+  /** Deny when Postgres is unavailable (auth/sensitive). Public read APIs should use false. */
+  failClosed?: boolean;
+};
+
 /** Retorna resposta 429 ou `null` se dentro do limite (Postgres distribuído). */
 export async function rateLimitResponse(
   keyPrefix: string,
   max: number,
   windowMs: number,
+  options?: RateLimitResponseOptions,
 ): Promise<NextResponse | null> {
   const ip = await clientIpFromHeaders();
   const key = `${keyPrefix}:${ip}`;
-  const result = await consumeRateLimit(key, max, windowMs, {
-    failClosed: isStrictProductionEnv(),
-  });
+  const failClosed = options?.failClosed ?? isStrictProductionEnv();
+  const result = await consumeRateLimit(key, max, windowMs, { failClosed });
   if (result.ok) return null;
 
   const retryAfterSec = result.retryAfterSec;

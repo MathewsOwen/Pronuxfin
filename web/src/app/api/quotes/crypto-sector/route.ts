@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
     "quotes-crypto-sector",
     CRYPTO_SECTOR_MAX_PER_WINDOW,
     CRYPTO_SECTOR_WINDOW_MS,
+    { failClosed: false },
   );
   if (limited) return limited;
 

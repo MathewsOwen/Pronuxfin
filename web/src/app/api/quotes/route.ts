@@ -14,6 +14,7 @@ export async function GET() {
     "quotes",
     QUOTES_MAX_PER_WINDOW,
     QUOTES_WINDOW_MS,
+    { failClosed: false },
   );
   if (limited) return limited;
 

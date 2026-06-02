@@ -18,6 +18,7 @@ export async function GET(req: Request) {
     "quotes-lookup",
     LOOKUP_MAX_PER_WINDOW,
     LOOKUP_WINDOW_MS,
+    { failClosed: false },
   );
   if (limited) return limited;
 

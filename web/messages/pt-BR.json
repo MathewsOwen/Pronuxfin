@@ -30,7 +30,7 @@
     "learn": "Aprenda",
     "about": "Sobre nós",
     "ia": "IA",
-    "benefits": "Por que PRONUX",
+    "benefits": "Por que PRONUXFIN",
     "features": "O que você ganha",
     "product": "Painel",
     "login": "Entrar",
@@ -40,7 +40,7 @@
     "navPrimaryAria": "Navegação principal do site",
     "brandHomeAria": "PRONUXFIN — início",
     "marketDeskEyebrow": "Mercado por módulo",
-    "marketDeskHint": "Passe o rato e entre direto no bloco que quer monitorar: ações por setores ou cripto em majors e cestas temáticas.",
+    "marketDeskHint": "Passe o mouse e entre direto no bloco que quer monitorar: ações por setores ou cripto em majors e cestas temáticas.",
     "marketEquitiesLabel": "Ações",
     "marketCryptoLabel": "Cripto",
     "marketIndicesLink": "Índices e blue chips",
@@ -205,7 +205,7 @@
     "p1Title": "Equities · ritmo institucional",
     "p1Body": "Blue chips BR e proxies de índice com atualização em cadência institucional quando o provedor coopera — a UI marca agregações parciais sem misturá-las com histórias inventadas.",
     "p2Title": "Tape cripto com fonte explícita",
-    "p2Body": "Cotações públicas referenciadas (ex.: CoinGecko no radar gratuito): último delta em BRL, com link aos termos da API — método antes de lore anônimo.",
+    "p2Body": "Cotações públicas referenciadas (ex.: CoinGecko no radar gratuito): último delta em BRL, com link aos termos da API — método antes de tickers anônimos.",
     "p3Title": "Governança de rótulo",
     "p3Body": "Hipótese, demo e dado incompleto aparecem com selo antes de você confundir contexto editorial com ordem ou carteira na corretora."
   },
@@ -244,7 +244,7 @@
       "Mesa ao vivo: ações brasileiras + cripto cotadas em BRL, cadência institucional (~60 s) e provedores nomeados",
       "Radar de notícias: feeds RSS de veículos reconhecidos — manchete e fonte sempre visíveis",
       "Projeção em cenários: quadros de alta/baixa com linguagem institucional — hipóteses, não promessa de retorno",
-      "Painel privado com KPIs, fluxo e insights em tom neutro — placeholders até dados reais entrarem",
+      "Painel privado com KPIs, fluxo e insights em tom neutro — dados provisórios até entradas reais",
       "Assistente contextual preparado para plugar modelos e dados da conta com guardrails",
       "Trilhas de educação financeira gamificadas — ritmo respeitoso, sem infantilizar o usuário",
       "Metas e simulações com vocabulário sob controle — método antes de \"dica quente\"",
@@ -265,7 +265,7 @@
     "calendarLead": "Macro, política monetária e temporada de resultados.",
     "calendarCta": "Ver calendário completo",
     "portfolioTitle": "Carteira simulada (com conta)",
-    "portfolioLead": "Registe posições fictícias e acompanhe valor de mercado, ganhos e quedas com cotações ao vivo.",
+    "portfolioLead": "Registre posições fictícias e acompanhe valor de mercado, ganhos e quedas com cotações ao vivo.",
     "portfolioCta": "Criar conta grátis"
   },
   "Tools": {
@@ -524,7 +524,7 @@
           "body": "Conforme a LGPD, você pode solicitar acesso, correção, portabilidade ou eliminação dos dados pessoais, além de revogar consentimentos quando aplicável."
         },
         "contact": {
-          "title": "Contacto",
+          "title": "Contato",
           "body": "Questões de privacidade: utilize o canal indicado no site ou o e-mail de suporte da instância que você utiliza."
         }
       }
@@ -566,7 +566,7 @@
           "body": "Podemos atualizar estes termos; o uso continuado após publicação constitui aceitação da versão vigente."
         },
         "contact": {
-          "title": "Contacto",
+          "title": "Contato",
           "body": "Dúvidas legais ou operacionais: utilize os canais oficiais publicados no site."
         }
       }
@@ -695,7 +695,7 @@
     "AUTH_RATE_LIMIT_FORGOT_PASSWORD": "Muitas tentativas de recuperação. Aguarde antes de tentar novamente.",
     "AUTH_RATE_LIMIT_RESET_PASSWORD": "Muitas tentativas de redefinição. Aguarde antes de tentar novamente.",
     "AUTH_RATE_LIMIT": "Muitas solicitações. Aguarde e tente novamente.",
-    "API_MISCONFIGURED": "Servidor sem configuração de API de autenticação. Contacte o suporte técnico.",
+    "API_MISCONFIGURED": "Servidor sem configuração de API de autenticação. Entre em contato com o suporte técnico.",
     "INVALID_AUTH_RESPONSE": "Resposta inesperada do serviço de autenticação. Tente de novo em instantes.",
     "AUTH_INVALID_CREDENTIALS": "E-mail ou senha incorretos.",
     "AUTH_EMAIL_IN_USE": "Este e-mail já está cadastrado.",
@@ -873,7 +873,7 @@
     "closePanel": "Fechar",
     "chatSendAria": "Enviar mensagem",
     "chatTypingStatus": "Respondendo…",
-    "chatInputPlaceholder": "Macros, cenários, risco… (não substitui consultoria registada)",
+    "chatInputPlaceholder": "Macros, cenários, risco… (não substitui consultoria registrada)",
     "chatInputLabel": "Mensagem ao assistente",
     "chatOfflineMetaEconom": "Vamos rever metas: sugiro reserva de emergência em parcelas e revisão semanal de gastos variáveis.",
     "chatOfflineInvest": "Distribuição ilustrativa: 60% conservador, 25% balanceado, 15% growth — adapto quando houver perfil e dados reais.",
@@ -967,7 +967,7 @@
     "portfolioEmptyEyebrow": "Carteira vazia",
     "portfolioEmptyTitle": "Nenhuma posição na carteira simulada",
     "portfolioEmptyLead": "Watchlist e radar são para acompanhar ativos; a carteira só existe quando você regista quantidade e preço médio. Comece do zero — sem importação automática.",
-    "portfolioEmptyWatchlistNote": "Você tem {count} ativo(s) na watchlist — isso não cria posição na carteira até você guardar qty e preço médio.",
+    "portfolioEmptyWatchlistNote": "Você tem {count} ativo(s) na watchlist — isso não cria posição na carteira até você salvar quantidade e preço médio.",
     "portfolioEmptyCta": "Montar carteira",
     "kpiEmptyPortfolio": "Carteira",
     "kpiEmptyHint": "Adicione posições",
@@ -1165,7 +1165,7 @@
       "title": "Ferramentas",
       "description": "Calculadora de juros compostos e calendário econômico — simulação e contexto de mercado.",
       "ogTitle": "Ferramentas | PRONUXFIN",
-      "ogDescription": "Planeie patrimônio e acompanhe o calendário macro na PRONUXFIN."
+      "ogDescription": "Planeje patrimônio e acompanhe o calendário macro na PRONUXFIN."
     },
     "compound": {
       "title": "Calculadora de juros compostos grátis",

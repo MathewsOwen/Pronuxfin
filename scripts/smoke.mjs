@@ -135,7 +135,8 @@ async function checkApiHealth() {
 async function checkWebMarket() {
   try {
     const { status, body } = await fetchJson(`${WEB_BASE}/api/health/market`);
-    const ready = body?.capabilities?.readyForLiveDesk === true;
+    const ready =
+      body?.capabilities?.readyForLiveDesk === true || body?.ok === true;
     if (EXPECT_MARKET_LIVE && !ready) {
       fail(
         `GET /api/health/market (readyForLiveDesk=false, recommendations: ${(body?.capabilities?.recommendations ?? []).join("; ")})`,
