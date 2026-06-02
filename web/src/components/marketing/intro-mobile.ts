@@ -25,8 +25,6 @@ export const MOBILE_INTRO_SERVICE_IDS = [
   "dashboard",
   "forecasts",
   "security",
-  "insights",
-  "operations",
 ] as const;
 
 export type SingularitySceneMode = "intro" | "ambient";
@@ -43,6 +41,7 @@ export function getSingularityViewportProfile(
     return {
       isMobile: false,
       isPortrait,
+      shortFrame: false,
       instanceCount: mode === "ambient" ? 4200 : 1400,
       pixelRatioCap: 2.5,
       camDistance: mode === "ambient" ? 90 : 85,
@@ -54,6 +53,7 @@ export function getSingularityViewportProfile(
       showCrystalLabels: true,
       diskRMax: 44,
       fov: 40,
+      cameraPitch: 0.35,
       cameraYOffset: 0,
       antialias: true,
       toneMappingExposure: mode === "ambient" ? 1.45 : 1.6,
@@ -63,30 +63,42 @@ export function getSingularityViewportProfile(
   }
 
   const intro = mode === "intro";
+  const shortFrame = intro && height < 520;
   return {
     isMobile: true,
     isPortrait,
-    instanceCount:
-      mode === "ambient" ? (isPortrait ? 1800 : 2400) : isPortrait ? 640 : 820,
+    shortFrame,
+    instanceCount: shortFrame
+      ? 520
+      : mode === "ambient"
+        ? isPortrait
+          ? 1800
+          : 2400
+        : isPortrait
+          ? 640
+          : 820,
     pixelRatioCap: 1.5,
     camDistance: intro
-      ? isPortrait
-        ? 112
-        : 102
+      ? shortFrame
+        ? 74
+        : isPortrait
+          ? 96
+          : 88
       : isPortrait
         ? 100
         : 94,
-    orbitRadius: intro ? (isPortrait ? 27 : 31) : isPortrait ? 36 : 38,
-    orbitSpread: intro ? 0.14 : 0.2,
-    crystalRadius: intro ? 0.34 : 0.38,
+    orbitRadius: intro ? (shortFrame ? 24 : isPortrait ? 30 : 33) : isPortrait ? 36 : 38,
+    orbitSpread: intro ? 0.12 : 0.2,
+    crystalRadius: intro ? (shortFrame ? 0.38 : 0.34) : 0.38,
     sphereSegments: 32,
     labelCompact: true,
     showCrystalLabels: !intro,
-    diskRMax: intro ? 34 : 40,
-    fov: intro ? 46 : 42,
-    cameraYOffset: intro ? 5 : 2,
+    diskRMax: intro ? (shortFrame ? 30 : 34) : 40,
+    fov: intro ? (shortFrame ? 58 : 50) : 42,
+    cameraPitch: shortFrame ? 0.24 : 0.34,
+    cameraYOffset: intro ? (shortFrame ? 2 : 4) : 2,
     antialias: true,
-    toneMappingExposure: mode === "ambient" ? 1.38 : 1.55,
+    toneMappingExposure: intro ? (shortFrame ? 1.72 : 1.58) : 1.38,
     autoRotateSpeed: mode === "ambient" ? 0.04 : 0.05,
     interactiveTilt: !intro,
   } as const;

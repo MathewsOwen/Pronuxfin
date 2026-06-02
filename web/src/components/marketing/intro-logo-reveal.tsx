@@ -116,7 +116,13 @@ function OChartBars({ reduceMotion, active }: { reduceMotion: boolean | null; ac
   );
 }
 
-function IntroSlogan({ reduceMotion }: { reduceMotion: boolean | null }) {
+function IntroSlogan({
+  reduceMotion,
+  compact,
+}: {
+  reduceMotion: boolean | null;
+  compact?: boolean;
+}) {
   const t = useTranslations("SiteIntro");
   const locale = useLocale();
   const isPt = locale === "pt-BR";
@@ -132,10 +138,18 @@ function IntroSlogan({ reduceMotion }: { reduceMotion: boolean | null }) {
         delay: reduceMotion ? 0 : SLOGAN_DELAY,
         ease: INTRO_EASE,
       }}
-      className="mt-2 max-w-[13.5rem] text-center max-md:max-w-[11.5rem] sm:mt-5 sm:max-w-lg"
+      className={cn(
+        "text-center",
+        compact ? "mt-1.5 max-w-[12rem]" : "mt-2 max-w-[13.5rem] max-md:max-w-[11.5rem] sm:mt-5 sm:max-w-lg",
+      )}
     >
       <p
-        className="font-heading text-balance text-[0.8rem] font-light leading-[1.4] tracking-[0.015em] max-md:text-[0.78rem] sm:text-xl md:text-[1.35rem]"
+        className={cn(
+          "font-heading text-balance font-light leading-[1.4] tracking-[0.015em]",
+          compact
+            ? "text-[0.72rem] leading-snug"
+            : "text-[0.8rem] max-md:text-[0.78rem] sm:text-xl md:text-[1.35rem]",
+        )}
         style={{
           background: "linear-gradient(105deg, #ede4d4 0%, #f5f0e8 42%, #d4c4a8 100%)",
           WebkitBackgroundClip: "text",
@@ -145,9 +159,11 @@ function IntroSlogan({ reduceMotion }: { reduceMotion: boolean | null }) {
       >
         {primary}
       </p>
-      <p className="font-heading mt-2 text-pretty text-[0.72rem] font-extralight italic leading-relaxed tracking-[0.06em] text-white/38 sm:text-[0.82rem]">
-        {secondary}
-      </p>
+      {!compact ? (
+        <p className="font-heading mt-2 text-pretty text-[0.72rem] font-extralight italic leading-relaxed tracking-[0.06em] text-white/38 sm:text-[0.82rem]">
+          {secondary}
+        </p>
+      ) : null}
     </motion.div>
   );
 }
@@ -155,9 +171,11 @@ function IntroSlogan({ reduceMotion }: { reduceMotion: boolean | null }) {
 export function IntroLogoReveal({
   visible,
   compact = false,
+  embedded = false,
 }: {
   visible: boolean;
   compact?: boolean;
+  embedded?: boolean;
 }) {
   const reduceMotion = useReducedMotion();
   const gid = `intro-logo-${useId().replace(/:/g, "")}`;
@@ -179,10 +197,15 @@ export function IntroLogoReveal({
   return (
     <header
       className={cn(
-        "pointer-events-none absolute inset-x-0 z-[5] flex max-w-full flex-col items-center px-3 sm:px-8",
-        compact
-          ? "top-[max(0.5rem,env(safe-area-inset-top))] max-h-[38dvh]"
-          : "top-[max(0.85rem,env(safe-area-inset-top))] sm:top-[max(1.25rem,env(safe-area-inset-top))] md:top-8",
+        "pointer-events-none z-[5] flex w-full max-w-full flex-col items-center",
+        embedded
+          ? "relative px-1"
+          : cn(
+              "absolute inset-x-0 px-3 sm:px-8",
+              compact
+                ? "top-[max(0.5rem,env(safe-area-inset-top))] max-h-[38dvh]"
+                : "top-[max(0.85rem,env(safe-area-inset-top))] sm:top-[max(1.25rem,env(safe-area-inset-top))] md:top-8",
+            ),
       )}
     >
       <svg
@@ -309,7 +332,7 @@ export function IntroLogoReveal({
         </RevealGroup>
       </svg>
 
-      <IntroSlogan reduceMotion={reduceMotion} />
+      <IntroSlogan reduceMotion={reduceMotion} compact={compact} />
     </header>
   );
 }

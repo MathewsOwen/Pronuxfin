@@ -97,18 +97,26 @@ function HoverExplainPanel({
     >
       <motion.div
         animate={{
-          opacity: revealed ? 1 : 0.42,
-          backgroundColor: revealed ? "rgba(1, 1, 3, 0.78)" : "rgba(1, 1, 3, 0.22)",
-          borderColor: revealed ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.1)",
+          opacity: revealed ? 1 : 0.78,
+          backgroundColor: revealed ? "rgba(1, 1, 3, 0.88)" : "rgba(1, 1, 3, 0.42)",
+          borderColor: revealed ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.14)",
         }}
         transition={{ duration: reduceMotion ? 0 : 0.45, ease: INTRO_EASE }}
         className={cn(
           "cursor-default rounded-2xl border px-4 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.35)]",
           revealed ? "py-4 sm:px-5 sm:py-5" : "py-3",
+          stacked && "border-white/14 bg-black/45",
         )}
       >
         {!revealed ? (
-          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-white/55 sm:text-[10px]">
+          <p
+            className={cn(
+              "font-mono uppercase tracking-[0.14em] sm:text-[10px]",
+              stacked
+                ? "text-[10px] text-white/72"
+                : "text-[9px] text-white/55 sm:text-[10px]",
+            )}
+          >
             {hint}
           </p>
         ) : null}
@@ -228,60 +236,68 @@ export function PronuxIntroOverlay() {
             duration: reduceMotion ? 0.15 : exiting ? INTRO_EXIT_MS / 1000 : 0,
             ease: INTRO_EASE,
           }}
-          className="fixed inset-0 z-[200] overflow-hidden overscroll-none bg-[#010103] max-md:touch-none supports-[min-height:100dvh]:min-h-[100dvh] min-h-screen"
+        className={cn(
+          "fixed inset-0 z-[200] overflow-hidden overscroll-none bg-[#010103] max-md:touch-none supports-[min-height:100dvh]:min-h-[100dvh] min-h-screen",
+          isMobile && "flex flex-col",
+        )}
         >
-          <PronuxIntroSingularity warpOut={warpOut} offerings={offerings} />
-
-          <IntroLogoReveal visible={!exiting} compact={isMobile} />
-
-          <div
-            className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.45)_100%)]"
-            aria-hidden
-          />
-
-          <div
-            className="pointer-events-none absolute inset-0 z-[4] bg-[radial-gradient(circle,transparent_42%,black_120%)] max-md:bg-[radial-gradient(ellipse_90%_70%_at_50%_38%,transparent_0%,rgba(0,0,0,0.55)_55%,black_100%)]"
-            aria-hidden
-          />
-
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-[min(48vh,22rem)] bg-gradient-to-t from-[#010103] via-[#010103]/92 to-transparent md:h-40"
-            aria-hidden
-          />
-
-          <button
-            type="button"
-            onClick={dismiss}
-            className="pointer-events-auto absolute right-3 top-[max(0.65rem,env(safe-area-inset-top))] z-30 max-w-[42vw] truncate rounded-full border border-white/[0.08] bg-black/40 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.14em] text-white/45 backdrop-blur-md transition-colors hover:border-white/[0.14] hover:text-white/80 sm:right-6 sm:max-w-none sm:px-4 sm:py-2.5 sm:text-[10px]"
-          >
-            {t("skip")}
-          </button>
-
           {isMobile ? (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex max-h-[46dvh] flex-col justify-end gap-2 overflow-hidden px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
-              <HoverExplainPanel
-                text={t("subline")}
-                hint={t("descRevealHintMobile")}
-                reduceMotion={reduceMotion}
-                stacked
-              />
-              <motion.button
-                type="button"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.4, duration: 0.5, ease: INTRO_EASE }}
-                onClick={dismiss}
-                className={cn(
-                  buttonVariants({ size: "lg" }),
-                  "pointer-events-auto h-11 w-full max-w-full shrink-0 gap-2 rounded-xl border border-white/[0.12] bg-white/[0.08] px-4 text-[0.8125rem] font-medium text-white shadow-[0_16px_48px_rgba(0,0,0,0.4)] backdrop-blur-xl active:scale-[0.98]",
-                )}
-              >
-                {t("enterSite")}
-                <ArrowRight className="size-4 shrink-0" aria-hidden />
-              </motion.button>
-            </div>
+            <>
+              <div className="pointer-events-none relative z-20 shrink-0 px-3 pt-[max(0.35rem,env(safe-area-inset-top))]">
+                <IntroLogoReveal visible={!exiting} compact embedded />
+              </div>
+
+              <div className="relative z-10 min-h-0 flex-1">
+                <PronuxIntroSingularity warpOut={warpOut} offerings={offerings} />
+                <div
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_75%_at_50%_50%,transparent_0%,rgba(0,0,0,0.35)_70%,rgba(0,0,0,0.75)_100%)]"
+                  aria-hidden
+                />
+              </div>
+
+              <div className="pointer-events-none relative z-20 shrink-0 space-y-2 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1">
+                <HoverExplainPanel
+                  text={t("subline")}
+                  hint={t("descRevealHintMobile")}
+                  reduceMotion={reduceMotion}
+                  stacked
+                />
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2, duration: 0.5, ease: INTRO_EASE }}
+                  onClick={dismiss}
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "pointer-events-auto h-11 w-full gap-2 rounded-xl border border-white/[0.14] bg-white/[0.1] px-4 text-[0.8125rem] font-medium text-white shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl active:scale-[0.98]",
+                  )}
+                >
+                  {t("enterSite")}
+                  <ArrowRight className="size-4 shrink-0" aria-hidden />
+                </motion.button>
+              </div>
+            </>
           ) : (
             <>
+              <PronuxIntroSingularity warpOut={warpOut} offerings={offerings} />
+              <IntroLogoReveal visible={!exiting} />
+
+              <div
+                className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(circle_at_center,transparent_30%,rgba(0,0,0,0.45)_100%)]"
+                aria-hidden
+              />
+
+              <div
+                className="pointer-events-none absolute inset-0 z-[4] bg-[radial-gradient(circle,transparent_42%,black_120%)]"
+                aria-hidden
+              />
+
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 z-[3] h-40 bg-gradient-to-t from-[#010103] via-[#010103]/92 to-transparent"
+                aria-hidden
+              />
+
               <HoverExplainPanel
                 text={t("subline")}
                 hint={t("descRevealHint")}
@@ -315,6 +331,14 @@ export function PronuxIntroOverlay() {
               </div>
             </>
           )}
+
+          <button
+            type="button"
+            onClick={dismiss}
+            className="pointer-events-auto absolute right-3 top-[max(0.65rem,env(safe-area-inset-top))] z-30 max-w-[46vw] truncate rounded-full border border-white/10 bg-black/50 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] text-white/60 backdrop-blur-md sm:right-6 sm:max-w-none sm:px-4 sm:py-2.5 sm:text-[10px]"
+          >
+            {t("skip")}
+          </button>
         </motion.div>
       ) : null}
     </AnimatePresence>

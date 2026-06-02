@@ -117,6 +117,23 @@ export type MountSingularityOptions = {
   pointerInteractive?: boolean;
 };
 
+function syncCameraToProfile(
+  camera: THREE.PerspectiveCamera,
+  controls: OrbitControls,
+  profile: ReturnType<typeof getSingularityViewportProfile>,
+  distance: number,
+) {
+  const d = distance;
+  const pitch = profile.cameraPitch;
+  camera.position.set(
+    d * 0.62,
+    d * pitch + profile.cameraYOffset,
+    d * 0.62,
+  );
+  controls.target.set(0, 0, 0);
+  camera.lookAt(0, 0, 0);
+}
+
 function diskOrbitalVelocity(r: number, orbitScale: number) {
   return (1.5 / Math.sqrt(r)) * orbitScale;
 }
@@ -153,11 +170,6 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     0.1,
     1000,
   );
-  camera.position.set(
-    profile0.camDistance * 0.7,
-    profile0.camDistance * 0.35 + profile0.cameraYOffset,
-    profile0.camDistance * 0.7,
-  );
 
   const renderer = new THREE.WebGLRenderer({
     antialias: profile0.antialias,
@@ -183,6 +195,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   root.appendChild(labelRenderer.domElement);
 
   const controls = new OrbitControls(camera, renderer.domElement);
+  syncCameraToProfile(camera, controls, profile0, profile0.camDistance);
   controls.enableDamping = true;
   controls.dampingFactor = 0.03;
   controls.autoRotate = true;
@@ -343,6 +356,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     renderer.setSize(w, h, false);
     labelRenderer.setSize(w, h);
     camControl.distance = profile.camDistance;
+    syncCameraToProfile(camera, controls, profile, camControl.distance);
   };
 
   resize();
@@ -385,6 +399,8 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
       .subVectors(camera.position, controls.target)
       .normalize();
     camera.position.x = controls.target.x + currentDir.x * camControl.distance;
+    camera.position.y =
+      controls.target.y + currentDir.y * camControl.distance;
     camera.position.z = controls.target.z + currentDir.z * camControl.distance;
 
     controls.update();
