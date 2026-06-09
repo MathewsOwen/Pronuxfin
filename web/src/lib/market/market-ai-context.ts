@@ -30,7 +30,7 @@ const labels = {
       "Sem perfil/registro/regulatória completos não indico entrada/saída em ativos; posso apenas listar perguntas e checagens típicas de mesa (liquidez, stress, cenários).",
     radar: "Radar (snapshot do servidor):",
     demoFooter:
-      "Para respostas completas com IA generativa, configure Ollama, OpenAI ou Gemini nas variáveis do serviço (painel do operador).",
+      "Para respostas completas com IA generativa, configure FABLE 5, OpenAI, Gemini ou Ollama nas variáveis do serviço (painel do operador).",
     remoteFail:
       "Falha ao contatar modelo remoto neste ciclo — exibindo apenas contexto de mercado ao vivo.",
   },
@@ -61,7 +61,7 @@ const labels = {
       "Without disclosures, onboarding and supervisory cover I cannot prescribe trade tickets; share the checklist desks use (liquidity, stress, disclosures).",
     radar: "Desk snapshot (server):",
     demoFooter:
-      "For full generative answers, configure Ollama, OpenAI or Gemini in service environment variables.",
+      "For full generative answers, configure FABLE 5, OpenAI, Gemini or Ollama in service environment variables.",
     remoteFail:
       "Remote model unavailable this round — showing live market context only.",
   },
@@ -72,7 +72,7 @@ export function summarizeQuotesForAi(
   p: QuotesPayload,
   headlineHints: string[],
   locale: AiLocale,
-  maxChars = 2200,
+  maxChars = 4200,
 ): string {
   const L = labels[locale];
   const lines: string[] = [];
@@ -82,17 +82,18 @@ export function summarizeQuotesForAi(
   if (p.cryptoSimulated) lines.push(L.warnCrypto);
   if (p.equitiesPartial) lines.push(L.warnPartial);
 
-  const eq = sortQuotesForDesk(p.results ?? []).slice(0, 14);
+  const eq = sortQuotesForDesk(p.results ?? []).slice(0, 32);
   for (const row of eq) {
     const name = row.shortName ?? row.symbol;
     const px = row.regularMarketPrice;
     const ch = row.regularMarketChangePercent;
+    const vol = row.regularMarketVolume;
     lines.push(
-      `${L.brDesk} ${name} (${row.symbol}) — px ${px ?? "—"}, var% ${ch != null ? ch.toFixed(2) : "—"}`,
+      `${L.brDesk} ${name} (${row.symbol}) — px ${px ?? "—"}, var% ${ch != null ? ch.toFixed(2) : "—"}${vol != null ? `, vol ${vol}` : ""}`,
     );
   }
 
-  const crypto = (p.crypto ?? []).slice(0, 10);
+  const crypto = (p.crypto ?? []).slice(0, 18);
   for (const row of crypto) {
     const px = row.regularMarketPrice;
     const ch = row.regularMarketChangePercent;
@@ -103,7 +104,7 @@ export function summarizeQuotesForAi(
 
   if (headlineHints.length) {
     lines.push(L.headlines);
-    lines.push(...headlineHints.slice(0, 8));
+    lines.push(...headlineHints.slice(0, 14));
   }
 
   let text = lines.join("\n");

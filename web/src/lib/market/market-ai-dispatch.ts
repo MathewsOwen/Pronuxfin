@@ -1,3 +1,4 @@
+import { runFableMarketInfer } from "@/lib/market/market-ai-fable";
 import { runGeminiMarketInfer } from "@/lib/market/market-ai-gemini";
 import { runMarketInferModel } from "@/lib/market/market-ai-llm";
 import { runOpenAiMarketInfer } from "@/lib/market/market-ai-openai";
@@ -20,6 +21,8 @@ export async function runMarketEngine(
   keyOverrides?: UserKeyOverrides | null,
 ): Promise<{ text: string; provider: MarketInferProviderId } | null> {
   switch (engine) {
+    case "fable":
+      return runFableMarketInfer(options);
     case "ollama":
       return runMarketInferModel(options);
     case "openai":

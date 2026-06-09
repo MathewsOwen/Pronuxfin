@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import { jsonPayloadHeaders } from "@/lib/auth/forward-request-headers";
 import { readRequestJson } from "@/lib/http/read-json-body";
+import { isPasswordBreached } from "@/lib/security/password-breach-check";
 import {
   apiBaseUrl,
   AuthUpstreamTimeoutError,
@@ -62,6 +63,21 @@ export async function forwardAuthPost(
       typeof parsedBody.value === "object" && parsedBody.value !== null
         ? (parsedBody.value as Record<string, unknown>)
         : {};
+  }
+
+  const password =
+    typeof payload.password === "string" ? payload.password : null;
+  if (password && (await isPasswordBreached(password))) {
+    return {
+      error: NextResponse.json(
+        {
+          message:
+            "This password appeared in a data breach. Choose a different password.",
+          code: "PASSWORD_BREACH_BLOCKED",
+        },
+        { status: 400 },
+      ),
+    };
   }
 
   let upstream: Response;

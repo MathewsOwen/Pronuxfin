@@ -6,6 +6,10 @@ vi.mock("@/lib/health/web-readiness", () => ({
   evaluateWebReadiness: vi.fn(),
 }));
 
+vi.mock("@/lib/security/distributed-rate-limit", () => ({
+  consumeRateLimit: vi.fn(async () => ({ ok: true, retryAfterSec: 60 })),
+}));
+
 import { evaluateWebReadiness } from "@/lib/health/web-readiness";
 
 const mockEvaluate = vi.mocked(evaluateWebReadiness);
@@ -61,7 +65,7 @@ describe("GET /api/health/ready", () => {
   });
 
   it("includes checks when probe secret matches", async () => {
-    vi.stubEnv("HEALTH_PROBE_SECRET", "probe-test-secret");
+    vi.stubEnv("HEALTH_PROBE_SECRET", "a".repeat(32));
     mockEvaluate.mockResolvedValue({
       ok: false,
       checks: {
@@ -79,7 +83,7 @@ describe("GET /api/health/ready", () => {
 
     const res = await GET(
       new Request("http://localhost/api/health/ready", {
-        headers: { Authorization: "Bearer probe-test-secret" },
+        headers: { Authorization: `Bearer ${"a".repeat(32)}` },
       }),
     );
     const body = await res.json();

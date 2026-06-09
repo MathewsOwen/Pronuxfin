@@ -15,6 +15,14 @@ import {
 import { RefreshTokenService, type TokenMeta } from './refresh-token.service';
 import { SecurityEventService } from './security-event.service';
 import { WebAuthnService } from './webauthn.service';
+import { LoginLockoutService } from './login-lockout.service';
+import {
+  passwordPolicyMessage,
+  validatePasswordPolicy,
+} from './password-policy.util';
+import { isPasswordBreached } from './password-breach-check.util';
+import { isPlatformAdminIpAllowed } from './platform-admin-ip.util';
+import { rolesForEmail } from './platform-admin.util';
 
 const DEFAULT_RESET_TTL_MIN = 30;
 
@@ -28,6 +36,7 @@ export class AuthService {
     private readonly refreshTokens: RefreshTokenService,
     private readonly securityEvents: SecurityEventService,
     private readonly webauthn: WebAuthnService,
+    private readonly loginLockout: LoginLockoutService,
   ) {}
 
   /**
@@ -42,6 +51,30 @@ export class AuthService {
     name: string,
     locale: 'pt-BR' | 'en' = 'pt-BR',
   ) {
+    const policy = validatePasswordPolicy(password);
+    if (!policy.ok) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: passwordPolicyMessage(policy.code),
+          code: policy.code,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (await isPasswordBreached(password)) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message:
+            'This password appeared in a data breach. Choose a different password.',
+          code: 'PASSWORD_BREACH_BLOCKED',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const existing = await this.users.findByEmail(email);
     if (existing) {
       try {
@@ -85,6 +118,8 @@ export class AuthService {
     locale: 'pt-BR' | 'en' = 'pt-BR',
   ) {
     const user = await this.users.findByEmail(email);
+    await this.loginLockout.assertLoginAllowed(email, user?.id ?? null, meta);
+
     if (!user) {
       await verifyPasswordDummy(password);
       await this.securityEvents.record('LOGIN_FAILED', null, meta);
@@ -288,6 +323,30 @@ export class AuthService {
       );
     }
 
+    const policy = validatePasswordPolicy(password);
+    if (!policy.ok) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: passwordPolicyMessage(policy.code),
+          code: policy.code,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (await isPasswordBreached(password)) {
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message:
+            'This password appeared in a data breach. Choose a different password.',
+          code: 'PASSWORD_BREACH_BLOCKED',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     const passwordHash = await hashPassword(password);
     try {
       await this.users.consumePasswordResetToken({
@@ -320,6 +379,22 @@ export class AuthService {
     meta?: TokenMeta,
     locale: 'pt-BR' | 'en' = 'pt-BR',
   ) {
+    const isAdmin = rolesForEmail(user.email, this.config).length > 0;
+    if (
+      isAdmin &&
+      !isPlatformAdminIpAllowed(meta?.ip ?? null, this.config)
+    ) {
+      await this.securityEvents.record('ADMIN_IP_DENIED', user.id, meta);
+      throw new HttpException(
+        {
+          statusCode: HttpStatus.FORBIDDEN,
+          message: 'Admin sign-in is not allowed from this network.',
+          code: 'AUTH_ADMIN_IP_FORBIDDEN',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     await this.securityEvents.record('LOGIN_SUCCESS', user.id, meta);
     await this.maybeNotifyNewLogin(user, meta, locale);
     return this.issueTokens(user, meta);

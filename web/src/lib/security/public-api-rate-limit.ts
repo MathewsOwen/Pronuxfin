@@ -3,13 +3,6 @@ import { NextResponse } from "next/server";
 
 import { consumeRateLimit } from "@/lib/security/distributed-rate-limit";
 
-function isStrictProductionEnv(): boolean {
-  return (
-    process.env.NODE_ENV === "production" ||
-    process.env.VERCEL_ENV === "production"
-  );
-}
-
 export async function getPublicApiClientKey(): Promise<string> {
   const h = await headers();
   const forwarded = h.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -24,7 +17,7 @@ export async function rateLimitPublicApi(
 ): Promise<NextResponse | null> {
   const key = await getPublicApiClientKey();
   const result = await consumeRateLimit(`public:${bucket}:${key}`, max, windowMs, {
-    failClosed: isStrictProductionEnv(),
+    failClosed: false,
   });
   if (result.ok) return null;
 

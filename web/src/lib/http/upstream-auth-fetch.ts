@@ -34,12 +34,21 @@ export async function fetchAuthUpstream(
   }
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-  // A backend cold start (e.g. idle Render dyno) could otherwise leave the
-  // request hanging indefinitely; bound it so the user gets a fast, clear
-  // answer instead of a spinner stuck for tens of seconds.
-  // Prove this call comes from the trusted BFF (see InternalApiGuard).
+  const bodyText =
+    typeof init?.body === "string"
+      ? init.body
+      : init?.body == null
+        ? ""
+        : "";
+
   const headers = new Headers(init?.headers);
-  for (const [k, v] of Object.entries(internalApiHeaders())) {
+  for (const [k, v] of Object.entries(
+    internalApiHeaders({
+      method: init?.method ?? "GET",
+      path: normalizedPath,
+      body: bodyText,
+    }),
+  )) {
     headers.set(k, v);
   }
 

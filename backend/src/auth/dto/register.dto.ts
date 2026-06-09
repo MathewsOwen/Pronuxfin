@@ -4,7 +4,6 @@ import {
   IsIn,
   IsOptional,
   IsString,
-  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -19,12 +18,8 @@ export class RegisterDto {
   email!: string;
 
   @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long.' })
-  @MaxLength(128)
-  @Matches(/[A-Za-z]/, {
-    message: 'Password must contain at least one letter.',
-  })
-  @Matches(/[0-9]/, { message: 'Password must contain at least one digit.' })
+  @MinLength(12, { message: 'Password must be at least 12 characters long.' })
+  @MaxLength(256)
   password!: string;
 
   @Transform(({ value }: { value: unknown }) =>

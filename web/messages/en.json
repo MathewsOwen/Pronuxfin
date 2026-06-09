@@ -882,6 +882,7 @@
     "chatNoEngineConfigured": "No AI engine is available. Set OPENAI_API_KEY, GEMINI_API_KEY, or Ollama on the server, or save BYOK keys in your profile.",
     "chatErrorUnknown": "Unknown error.",
     "chatErrorSession401": " Sign in again from the dashboard menu (your session may have expired).",
+    "chatFableFooter": "\n\n— PRONUX engine: FABLE 5 (advanced financial analysis).",
     "chatOllamaFooter": "\n\n— PRONUX engine: Ollama (/api/chat).",
     "chatOpenAiFooter": "\n\n— Cloud engine: OpenAI API.",
     "chatGeminiFooter": "\n\n— Cloud engine: Google Gemini API.",
@@ -889,6 +890,7 @@
     "engineAuto": "Automatic (best available engine for channel & question)",
     "ensembleLabel": "Multi-AI panel",
     "ensembleHint": "Queries several engines in parallel (slower, higher token use). Needs at least two configured engines.",
+    "engineFable": "FABLE 5 (PRONUX)",
     "engineOllama": "Ollama (local / self-host)",
     "engineOpenai": "OpenAI",
     "engineGemini": "Google Gemini",
@@ -1326,6 +1328,40 @@
       "breadcrumbHome": "Home",
       "breadcrumbLearn": "Learn",
       "backToHub": "Back to Learn"
+    },
+    "videos": {
+      "eyebrow": "Video lessons",
+      "title": "Start from zero with educational videos",
+      "lead": "Curated selection from official channels and open-license content — no reuploads, with attribution to the original author.",
+      "licenseBadge": "Licensed & official sources",
+      "level_beginner": "Beginner",
+      "level_intermediate": "Intermediate",
+      "sourceAttribution": "Source: {channel} · {license}",
+      "disclaimer": "Third-party videos embedded for education. PRONUXFIN is not responsible for original channel content.",
+      "intro-acoes-khan": {
+        "title": "Introduction to stocks and bonds",
+        "description": "Fundamental concepts of equities, bonds and how capital markets work."
+      },
+      "comprar-acao-khan": {
+        "title": "What it means to buy a stock",
+        "description": "Understand what you acquire when investing in a listed company."
+      },
+      "bolsa-ted-ed": {
+        "title": "How the stock market works",
+        "description": "Animated explainer on stock markets and price formation."
+      },
+      "renda-fixa-b3": {
+        "title": "Fixed income basics",
+        "description": "Official B3 introduction to fixed-income products and portfolio fit."
+      },
+      "diversificacao-khan": {
+        "title": "Portfolio diversification",
+        "description": "Why diversification reduces risk and how to build balanced allocation."
+      },
+      "juros-compostos-khan": {
+        "title": "Compound interest explained",
+        "description": "The power of compounding over time — the foundation of financial planning."
+      }
     },
     "glossaryHub": {
       "eyebrow": "Glossary",

@@ -1,6 +1,6 @@
 # Auditoria de segurança — PRONUXFIN (web + BFF)
 
-Data: 2026-05-28. Escopo: páginas App Router, rotas `/api/*`, middleware, auth backend.
+Data: 2026-05-29. Escopo: páginas App Router, rotas `/api/*`, middleware, auth backend.
 
 Legenda: **OK** | **MÉDIO** (melhoria) | **CORRIGIDO** nesta auditoria
 
@@ -11,21 +11,76 @@ Legenda: **OK** | **MÉDIO** (melhoria) | **CORRIGIDO** nesta auditoria
 | Área | Estado |
 |------|--------|
 | Auth sessão (refresh rotativo, cookies HttpOnly) | OK |
-| APIs `/api/user/*` | OK (401 sem sessão; queries com `userId`) |
+| APIs `/api/user/*` | OK (401 sem sessão; queries com `userId`; rate limit em mutações) |
 | XSS (CSP nonce, JSON-LD escapado) | OK (enforcement em prod) |
 | Open redirect pós-login | OK (`safeInternalRedirectPath`) |
-| Rate limit auth + mercado | OK |
+| Rate limit auth + mercado | OK (Postgres distribuído; auth fail-closed) |
 | BYOK (chaves IA cifradas) | OK |
 | RS256 / Argon2id / cookies prefixados | OK (opt-in RS256; migração bcrypt→Argon2 no login) |
 | CSRF (double-submit + `apiMutation`) | OK |
+| BFF auth validation (Zod server-side) | OK |
+| SSRF (DNS rebinding + redirects bloqueados) | OK |
+| Backend isolado (`INTERNAL_API_SECRET`) | OK (HMAC signing em prod; raw header só dev) |
+| WebAuthn amarrado ao JWT | OK |
+| Revogação de sessão unificada | OK (`tokenVersion` + upstream no middleware) |
+| Startup fail-fast produção | OK (`instrumentation.ts`) |
 | Rotação de segredos (runbook) | OK — ver [SECURITY-OPERATIONS.md](./SECURITY-OPERATIONS.md) |
 | Gestão de sessões (perfil) | OK — listar/revogar famílias refresh |
-| `tokenVersion` validado no BFF | OK (opt-out `AUTH_SESSION_VERSION_CHECK=0`) |
-| Refresh strict bind IP/UA | OK (opt-in `REFRESH_STRICT_BIND=1` no backend) |
-| Rate limit mutações sensíveis | OK — perfil, BYOK, bulk carteira, sessões |
+| `tokenVersion` validado no BFF | OK (opt-out proibido em prod) |
+| Refresh strict bind IP/UA | OK (obrigatório em prod no backend) |
+| Rate limit mutações sensíveis | OK — perfil, BYOK, carteira, watchlist, rotas, IA |
 | WebAuthn 2FA + audit log + login alert | OK — ver P10 |
 
-Correções aplicadas na auditoria:
+Correções aplicadas (2026-06-01 — nível Big Tech):
+- **Assinatura HMAC BFF→Nest:** cada pedido interno leva `x-internal-timestamp`, `x-internal-body-sha256` e `x-internal-signature` (anti-replay ±120s); o segredo raw **não** trafega em produção.
+- **HIBP (Have I Been Pwned):** registo/reset bloqueiam senhas em breach conhecidas (k-anonymity, fail-open em falha de rede); audit `PASSWORD_BREACH_BLOCKED`.
+- **Admin IP allowlist:** logins de contas em `PLATFORM_ADMIN_EMAILS` podem exigir IP em `PLATFORM_ADMIN_IP_ALLOWLIST`; audit `ADMIN_IP_DENIED`.
+- **Boot fail-fast:** `INTERNAL_API_REQUEST_SIGNING=1` obrigatório em web + backend.
+
+Correções aplicadas (2026-06-03 — nível enterprise):
+- **Lockout de login:** após 8 falhas / 15 min → bloqueio 30 min (`AUTH_ACCOUNT_LOCKED`); audit `ACCOUNT_LOCKOUT`.
+- **Senha forte:** mínimo 12 chars + 3 classes (maiúsc/minúsc/número/símbolo) + blocklist comum (registo/reset).
+- **Sessões:** máx. 8 famílias refresh activas por utilizador (`MAX_REFRESH_FAMILIES_PER_USER`).
+- **API Nest:** audit `INTERNAL_API_PROBE_FAILED` em tentativas sem/forged `x-internal-auth`.
+- **Segredos:** validação de entropia em `INTERNAL_API_SECRET` + `HEALTH_PROBE_SECRET` no boot web.
+- **CSP:** `form-action 'self'`, `frame-src 'none'`, `media-src 'self'`.
+- **Backend:** middleware de headers de segurança + `X-Powered-By` desactivado.
+
+Correções aplicadas (2026-06-03 — elevação adicional):
+- **BFF → Nest:** encaminha `X-Forwarded-For` + `User-Agent` do cliente (REFRESH_STRICT_BIND eficaz).
+- **DoS:** limites de corpo JSON em todas as mutações de utilizador (16–256 KB conforme rota).
+- **Produção:** `API_URL`, `NEXT_PUBLIC_SITE_URL` e `WEBAUTHN_ORIGIN` devem ser HTTPS; `DATABASE_URL` obrigatório.
+- **Backend:** `TRUST_PROXY=1`, WebAuthn e HSTS via Helmet; `/health` resumo mínimo sem probe interno.
+- **Proxy:** bloqueia métodos `TRACE`/`TRACK`/`CONNECT` em `/api/*`.
+- **Health ready:** rate limit + comparação timing-safe do `HEALTH_PROBE_SECRET`.
+
+Correções aplicadas (2026-06-03):
+- **Backend:** `InternalApiGuard` global (`APP_GUARD`) — `/auth/*` bloqueado sem `x-internal-auth`; só `/health/*` é `@PublicRoute()`.
+- **Backend:** throttle em `/health/live` e `/health/ready`; SMTP obrigatório no boot de produção.
+- **Backend:** CORS sem fallback `localhost` em `NODE_ENV=production`.
+- **Web:** comparação timing-safe de `INTERNAL_API_SECRET` (`secure-compare.ts`) em probes internos.
+- **Web:** headers de segurança em todas as respostas `/api/*` (proxy + `next.config`).
+- **Web:** `HEALTH_PROBE_SECRET` obrigatório no fail-fast de produção.
+- **Web:** rate limits públicos e CSP report fail-open (disponibilidade sem abrir brute-force em auth).
+
+Correções aplicadas (2026-05-30):
+- Quotes/lookup migrados para rate limit **Postgres distribuído** (fail-closed em prod).
+- Mutações exigem **`Content-Type: application/json`** (415 se inválido).
+- **`/api/auth/refresh`**: rate limit + validação same-origin no GET (middleware redirect).
+- Headers de segurança em respostas API via `applyApiSecurityHeaders`.
+- HSTS com **`preload`** (2 anos).
+- JWT RS256 suportado no fail-fast de produção (`JWT_PUBLIC_KEY`).
+
+Correções aplicadas (2026-05-29):
+- Rate limits **fail-closed** em auth, mutações de utilizador e `/api/market-ai`.
+- Validação **Zod server-side** em todas as rotas auth do BFF antes de forward ao Nest.
+- **DNS rebinding** bloqueado em fetches de mercado/RSS (`assertSafeFetchTarget`).
+- **`instrumentation.ts`** falha no boot se env de produção estiver fraca.
+- **`REFRESH_STRICT_BIND=1`** obrigatório no backend em produção.
+- Rate limits distribuídos em portfolio, watchlist, compound-scenarios, financial-routes.
+- Headers adicionais: `X-Permitted-Cross-Domain-Policies`, `Origin-Agent-Cluster`.
+
+Correções anteriores (2026-05-28):
 - `/api/market-ai` validava JWT só com HS256 → agora usa `verifyAccessJwt` (RS256 compatível).
 - Links `website` do dossiê aceitavam esquemas perigosos → `safeExternalUrl`.
 - `POST /api/quotes/lookup/batch` exige sessão + rate limit por `userId`.

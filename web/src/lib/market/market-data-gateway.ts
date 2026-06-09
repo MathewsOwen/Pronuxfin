@@ -37,10 +37,10 @@ import type {
 } from "@/lib/market/types";
 
 const CACHE_TTL = {
-  liveDeskMs: 15_000,
-  sectorBookMs: 20_000,
-  cryptoSectorBookMs: 20_000,
-  relatedNewsMs: 10 * 60_000,
+  liveDeskMs: 10_000,
+  sectorBookMs: 15_000,
+  cryptoSectorBookMs: 15_000,
+  relatedNewsMs: 2 * 60_000,
 } as const;
 
 export async function loadCachedQuotesPayload(): Promise<{
@@ -243,7 +243,7 @@ export async function loadCachedAggregatedNews(
       return articles;
     },
     {
-      shortTtlMs: 30_000,
+      shortTtlMs: 15_000,
       shouldRetain: (articles) => articles.length > 0,
     },
   );
@@ -267,7 +267,7 @@ export async function loadCachedAggregatedNewsDiagnostics(
       return diag;
     },
     {
-      shortTtlMs: 30_000,
+      shortTtlMs: 15_000,
       shouldRetain: (diag) => diag.articles.length > 0,
     },
   );

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { parseZodBody } from "@/lib/http/parse-zod-body";
+import { MAX_BULK_BODY_BYTES } from "@/lib/http/read-json-body";
 import {
   bulkUpsertUserPortfolio,
   MAX_BULK_PORTFOLIO_ITEMS,
@@ -34,7 +35,9 @@ export async function POST(req: Request) {
   const limited = await rateLimitUserMutation(userId, "portfolio-bulk", 15);
   if (limited) return limited;
 
-  const parsed = await parseZodBody(req, bodySchema);
+  const parsed = await parseZodBody(req, bodySchema, {
+    maxBytes: MAX_BULK_BODY_BYTES,
+  });
   if (!parsed.ok) return parsed.response;
 
   const result = await bulkUpsertUserPortfolio(userId, parsed.data.positions);

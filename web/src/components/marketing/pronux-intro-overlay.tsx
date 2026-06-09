@@ -243,38 +243,33 @@ export function PronuxIntroOverlay() {
         >
           {isMobile ? (
             <>
-              <div className="pointer-events-none relative z-20 shrink-0 px-3 pt-[max(0.35rem,env(safe-area-inset-top))]">
-                <IntroLogoReveal visible={!exiting} compact embedded />
+              <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+                <IntroLogoReveal visible={!exiting} compact />
               </div>
 
-              <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
-                <PronuxIntroSingularity warpOut={warpOut} offerings={offerings} />
-                <div
-                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_88%_78%_at_50%_50%,transparent_0%,rgba(0,0,0,0.18)_62%,rgba(0,0,0,0.48)_100%)]"
-                  aria-hidden
-                />
-              </div>
-
-              <div className="pointer-events-none relative z-20 shrink-0 space-y-2 px-3 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-1">
-                <HoverExplainPanel
-                  text={t("subline")}
-                  hint={t("descRevealHintMobile")}
-                  reduceMotion={reduceMotion}
-                  stacked
-                />
+              <div className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-3 z-20">
                 <motion.button
                   type="button"
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.2, duration: 0.5, ease: INTRO_EASE }}
+                  transition={{ delay: 1.4, duration: 0.5, ease: INTRO_EASE }}
                   onClick={dismiss}
                   className={cn(
                     buttonVariants({ size: "lg" }),
-                    "pointer-events-auto h-11 w-full gap-2 rounded-xl border border-white/[0.14] bg-white/[0.1] px-4 text-[0.8125rem] font-medium text-white shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl active:scale-[0.98]",
+                    "pointer-events-auto group relative h-12 shrink-0 overflow-hidden gap-2 rounded-xl border border-white/[0.12] bg-white/[0.06] px-5 text-[0.8125rem] font-medium tracking-[0.02em] text-white shadow-[0_20px_60px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition-[transform,box-shadow,border-color,background-color] active:scale-[0.98] hover:border-[#2dd4bf]/40 hover:bg-white/[0.09]",
                   )}
                 >
+                  {!reduceMotion ? (
+                    <span
+                      className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+                      aria-hidden
+                    />
+                  ) : null}
                   {t("enterSite")}
-                  <ArrowRight className="size-4 shrink-0" aria-hidden />
+                  <ArrowRight
+                    className="relative size-4 transition-transform group-hover:translate-x-1"
+                    aria-hidden
+                  />
                 </motion.button>
               </div>
             </>

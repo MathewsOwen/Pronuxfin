@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSessionUser } from "@/lib/auth/require-session-user";
+import { parseZodBody } from "@/lib/http/parse-zod-body";
+import { MAX_USER_MUTATION_BODY_BYTES } from "@/lib/http/read-json-body";
 import { prisma } from "@/lib/prisma";
 import {
   detectWatchlistRegion,
@@ -127,29 +129,10 @@ async function parseMutationBody(
   | { ok: true; symbol: string }
   | { ok: false; response: NextResponse<{ ok: false; message: string }> }
 > {
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        { ok: false as const, message: "JSON inválido no corpo." },
-        { status: 400 },
-      ),
-    };
-  }
-
-  const parsed = mutationSchema.safeParse(body);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        { ok: false as const, message: "Body inválido: informe o símbolo." },
-        { status: 400 },
-      ),
-    };
-  }
+  const parsed = await parseZodBody(req, mutationSchema, {
+    maxBytes: MAX_USER_MUTATION_BODY_BYTES,
+  });
+  if (!parsed.ok) return { ok: false, response: parsed.response };
 
   const symbol = normalizeWatchlistSymbol(parsed.data.symbol);
   if (!isValidWatchlistSymbol(symbol)) {

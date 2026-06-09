@@ -29,7 +29,10 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 
   try {
     const res = await fetch(`${apiUrl.replace(/\/+$/, "")}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}`, ...internalApiHeaders() },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...internalApiHeaders({ method: "GET", path: "/auth/me" }),
+      },
       cache: "no-store",
     });
 

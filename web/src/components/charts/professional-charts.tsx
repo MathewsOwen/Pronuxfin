@@ -81,25 +81,82 @@ function ChartFrame({
   locale,
   valueMode,
   ariaLabel,
+  accentStroke = "var(--primary)",
 }: {
   children: ReactNode;
   layout: ReturnType<typeof useChartLayout>;
   locale: string;
   valueMode: "number" | "percent";
   ariaLabel: string;
+  accentStroke?: string;
 }) {
-  const { width, height, pad, max, gridY } = layout;
+  const gridId = useId().replace(/:/g, "");
+  const glowId = useId().replace(/:/g, "");
+  const { width, height, pad, max, gridY, innerW } = layout;
   const formatY = (v: number) =>
     valueMode === "percent" ? formatAxisPercent(v, locale) : formatAxisNumber(v, locale);
+
+  const vLines = [0, 0.25, 0.5, 0.75, 1].map(
+    (t) => pad.left + t * innerW,
+  );
 
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      className="h-auto w-full select-none"
+      className="h-auto w-full select-none drop-shadow-[0_8px_32px_rgba(0,0,0,0.35)]"
       role="img"
       aria-label={ariaLabel}
     >
-      <rect x={0} y={0} width={width} height={height} rx={16} fill="oklch(0 0 0 / 0.22)" />
+      <defs>
+        <pattern id={`${gridId}-mesh`} width="24" height="24" patternUnits="userSpaceOnUse">
+          <path
+            d="M 24 0 L 0 0 0 24"
+            fill="none"
+            stroke="oklch(1 0 0 / 0.03)"
+            strokeWidth="0.5"
+          />
+        </pattern>
+        <linearGradient id={`${gridId}-bg`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="oklch(0.12 0.02 265 / 0.95)" />
+          <stop offset="50%" stopColor="oklch(0.08 0.015 265 / 0.88)" />
+          <stop offset="100%" stopColor="oklch(0.06 0.01 265 / 0.92)" />
+        </linearGradient>
+        <filter id={glowId} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <radialGradient id={`${gridId}-spot`} cx="72%" cy="18%" r="55%">
+          <stop offset="0%" stopColor={accentStroke} stopOpacity="0.12" />
+          <stop offset="100%" stopColor="transparent" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <rect x={0} y={0} width={width} height={height} rx={16} fill={`url(#${gridId}-bg)`} />
+      <rect x={0} y={0} width={width} height={height} rx={16} fill={`url(#${gridId}-mesh)`} />
+      <rect x={0} y={0} width={width} height={height} rx={16} fill={`url(#${gridId}-spot)`} />
+      <rect
+        x={pad.left}
+        y={pad.top}
+        width={innerW}
+        height={layout.innerH}
+        rx={8}
+        fill="oklch(0 0 0 / 0.18)"
+        stroke="oklch(1 0 0 / 0.05)"
+        strokeWidth={1}
+      />
+      {vLines.map((x, i) => (
+        <line
+          key={`v-${i}`}
+          x1={x}
+          x2={x}
+          y1={pad.top}
+          y2={pad.top + layout.innerH}
+          stroke="oklch(1 0 0 / 0.03)"
+          strokeDasharray="2 8"
+        />
+      ))}
       {gridY.map((y, i) => (
         <g key={i}>
           <line
@@ -107,7 +164,7 @@ function ChartFrame({
             x2={width - pad.right}
             y1={y}
             y2={y}
-            stroke="oklch(1 0 0 / 0.06)"
+            stroke="oklch(1 0 0 / 0.07)"
             strokeDasharray="4 6"
           />
           <text
@@ -120,7 +177,7 @@ function ChartFrame({
           </text>
         </g>
       ))}
-      {children}
+      <g filter={`url(#${glowId})`}>{children}</g>
     </svg>
   );
 }
@@ -179,26 +236,57 @@ export function ProfessionalAreaChart({
     return <p className="py-12 text-center text-sm text-muted-foreground">{emptyLabel}</p>;
   }
 
-  const { points, pad, innerH } = layout;
+  const { points, pad, innerH, max } = layout;
   const line = points.map((p) => `${p.x},${p.y}`).join(" ");
   const area = `M ${pad.left} ${pad.top + innerH} L ${points.map((p) => `${p.x} ${p.y}`).join(" L ")} L ${points.at(-1)!.x} ${pad.top + innerH} Z`;
   const active = hover != null ? points[hover] : null;
 
+  const volumeBars = points.map((p, i) => {
+    const prev = points[i - 1]?.value ?? p.value;
+    const vol = Math.abs(p.value - prev) / Math.max(max, 0.001);
+    const barH = vol * innerH * 0.22;
+    return { x: p.x, h: barH };
+  });
+
   return (
     <div className="relative">
-      <ChartFrame layout={layout} locale={locale} valueMode={valueMode} ariaLabel={ariaLabel}>
+      <ChartFrame
+        layout={layout}
+        locale={locale}
+        valueMode={valueMode}
+        ariaLabel={ariaLabel}
+        accentStroke={colors.stroke}
+      >
         <defs>
           <linearGradient id={`${gradientId}-area`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={colors.fillTop} />
+            <stop offset="55%" stopColor={colors.fillTop} stopOpacity="0.35" />
             <stop offset="100%" stopColor={colors.fillBottom} />
           </linearGradient>
+          <linearGradient id={`${gradientId}-line`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor={colors.stroke} stopOpacity="0.55" />
+            <stop offset="50%" stopColor={colors.stroke} />
+            <stop offset="100%" stopColor={colors.stroke} stopOpacity="0.75" />
+          </linearGradient>
         </defs>
+        {volumeBars.map((b, i) => (
+          <rect
+            key={`vol-${i}`}
+            x={b.x - 3}
+            y={pad.top + innerH - b.h}
+            width={6}
+            height={b.h}
+            rx={2}
+            fill={colors.stroke}
+            opacity={0.12}
+          />
+        ))}
         <path d={area} fill={`url(#${gradientId}-area)`} />
         <polyline
           points={line}
           fill="none"
-          stroke={colors.stroke}
-          strokeWidth={2.5}
+          stroke={`url(#${gradientId}-line)`}
+          strokeWidth={2.75}
           strokeLinejoin="round"
           strokeLinecap="round"
         />

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSessionUser } from "@/lib/auth/require-session-user";
+import { parseZodBody } from "@/lib/http/parse-zod-body";
+import { MAX_USER_MUTATION_BODY_BYTES } from "@/lib/http/read-json-body";
 import { persistWatchlistSignalSnapshots } from "@/lib/user-watchlist/history";
 import { listUserWatchlist } from "@/lib/user-watchlist/load";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
@@ -49,26 +51,14 @@ export async function POST(req: Request) {
   const limited = await rateLimitUserMutation(userId, "watchlist-signals", 30);
   if (limited) return limited;
 
-  let body: z.infer<typeof bodySchema>;
-  try {
-    const parsed = bodySchema.safeParse(await req.json());
-    if (!parsed.success) {
-      return NextResponse.json(
-        { ok: false as const, message: "Body inválido para histórico da watchlist." },
-        { status: 400 },
-      );
-    }
-    body = parsed.data;
-  } catch {
-    return NextResponse.json(
-      { ok: false as const, message: "JSON inválido no corpo." },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseZodBody(req, bodySchema, {
+    maxBytes: MAX_USER_MUTATION_BODY_BYTES,
+  });
+  if (!parsed.ok) return parsed.response;
 
   const watchlist = await listUserWatchlist(userId);
   const allowed = new Set(watchlist.map((item) => item.symbol));
-  const filtered = body.signals.filter((item) => allowed.has(item.symbol));
+  const filtered = parsed.data.signals.filter((item) => allowed.has(item.symbol));
 
   await persistWatchlistSignalSnapshots(
     userId,

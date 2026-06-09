@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireSessionUser } from "@/lib/auth/require-session-user";
+import { parseZodBody } from "@/lib/http/parse-zod-body";
+import { MAX_USER_MUTATION_BODY_BYTES } from "@/lib/http/read-json-body";
 import { prisma } from "@/lib/prisma";
 import type { CompoundScenarioPayload } from "@/lib/tools/compound-interest";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
@@ -62,23 +64,10 @@ export async function POST(req: Request) {
   const limited = await rateLimitUserMutation(userId, "compound-scenarios", 20);
   if (limited) return limited;
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { ok: false as const, message: "JSON inválido." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = createSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { ok: false as const, message: "Cenário inválido." },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseZodBody(req, createSchema, {
+    maxBytes: MAX_USER_MUTATION_BODY_BYTES,
+  });
+  if (!parsed.ok) return parsed.response;
 
   const scenarioCount = await prisma.userCompoundScenario.count({ where: { userId } });
   if (scenarioCount >= MAX_COMPOUND_SCENARIOS) {
@@ -127,23 +116,10 @@ export async function DELETE(req: Request) {
   const limited = await rateLimitUserMutation(userId, "compound-scenarios", 20);
   if (limited) return limited;
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json(
-      { ok: false as const, message: "JSON inválido." },
-      { status: 400 },
-    );
-  }
-
-  const parsed = deleteSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { ok: false as const, message: "ID inválido." },
-      { status: 400 },
-    );
-  }
+  const parsed = await parseZodBody(req, deleteSchema, {
+    maxBytes: MAX_USER_MUTATION_BODY_BYTES,
+  });
+  if (!parsed.ok) return parsed.response;
 
   await prisma.userCompoundScenario.deleteMany({
     where: { id: parsed.data.id, userId },

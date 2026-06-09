@@ -1,7 +1,10 @@
 import { resolveJwtAlgorithm } from "@/lib/auth/jwt-crypto";
 import { isByokCryptoConfigured } from "@/lib/crypto/ai-keys-crypto";
+import { readTrimmedEnv } from "@/lib/env/server-env";
 import { listEnginesFromEnv } from "@/lib/market/market-ai-providers";
 import { resolveCspMode } from "@/lib/security/csp";
+import { assertStrongProductionSecret } from "@/lib/security/secret-strength";
+import { assertHttpsProductionUrl } from "@/lib/security/validate-production-urls";
 
 function isStrictProductionEnv(): boolean {
   return (
@@ -40,6 +43,19 @@ export function assertProductionSecurityEnv(): void {
   if (!isTruthyEnv("COOKIE_SAMESITE_STRICT")) {
     throw new Error("COOKIE_SAMESITE_STRICT=1 is required in production.");
   }
+  if (!isTruthyEnv("CSRF_ENFORCE")) {
+    throw new Error("CSRF_ENFORCE=1 is required in production.");
+  }
+  if (!isTruthyEnv("AUTH_SESSION_VERSION_CHECK")) {
+    throw new Error("AUTH_SESSION_VERSION_CHECK=1 is required in production.");
+  }
+
+  const probeSecret = process.env.HEALTH_PROBE_SECRET?.trim() ?? "";
+  if (probeSecret.length < 32) {
+    throw new Error(
+      "HEALTH_PROBE_SECRET must be set (≥32 chars) in production.",
+    );
+  }
 
   const csp = resolveCspMode();
   if (csp === "off") {
@@ -52,6 +68,8 @@ export function assertProductionSecurityEnv(): void {
       "INTERNAL_API_SECRET must be set (≥32 chars) in production.",
     );
   }
+  assertStrongProductionSecret("INTERNAL_API_SECRET", internal);
+  assertStrongProductionSecret("HEALTH_PROBE_SECRET", probeSecret);
 
   if (resolveJwtAlgorithm() !== "RS256") {
     throw new Error("JWT_ALGORITHM=RS256 is required in production.");
@@ -83,8 +101,23 @@ export function assertProductionSecurityEnv(): void {
 
   if (listEnginesFromEnv().length === 0) {
     throw new Error(
-      "At least one platform AI engine is required in production (OPENAI_API_KEY, GEMINI_API_KEY, or PRONUX_MARKET_AI_OLLAMA_ORIGIN).",
+      "At least one platform AI engine is required in production (FABLE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, or PRONUX_MARKET_AI_OLLAMA_ORIGIN).",
     );
+  }
+
+  assertHttpsProductionUrl("API_URL", readTrimmedEnv("API_URL"));
+  assertHttpsProductionUrl(
+    "NEXT_PUBLIC_SITE_URL",
+    readTrimmedEnv("NEXT_PUBLIC_SITE_URL"),
+  );
+  assertHttpsProductionUrl("WEBAUTHN_ORIGIN", webauthnOrigin);
+
+  if (!readTrimmedEnv("DATABASE_URL")) {
+    throw new Error("DATABASE_URL is required in production.");
+  }
+
+  if (!isTruthyEnv("INTERNAL_API_REQUEST_SIGNING")) {
+    throw new Error("INTERNAL_API_REQUEST_SIGNING=1 is required in production.");
   }
 }
 export function isProductionSecurityEnvValid(): boolean {

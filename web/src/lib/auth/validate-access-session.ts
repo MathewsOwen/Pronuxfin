@@ -29,7 +29,7 @@ export async function confirmSessionViaUpstream(
     const res = await fetch(`${apiUrl}/auth/me`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        ...internalApiHeaders(),
+        ...internalApiHeaders({ method: "GET", path: "/auth/me" }),
       },
       cache: "no-store",
     });

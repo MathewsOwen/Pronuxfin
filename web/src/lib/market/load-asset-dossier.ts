@@ -76,13 +76,13 @@ type MarketDossierSnapshot = {
   intlStockPeers: string[] | null;
 };
 
-const DOSSIER_TTL_MS = 5 * 60_000;
+const DOSSIER_TTL_MS = 3 * 60_000;
 
 export async function loadAssetDossier(symbolInput: string): Promise<AssetDossier | null> {
   const symbol = normalizeSymbol(symbolInput);
   if (!symbol) return null;
 
-  return rememberWithTtl(`asset-dossier:${symbol}:v9`, DOSSIER_TTL_MS, async () => {
+  return rememberWithTtl(`asset-dossier:${symbol}:v10`, DOSSIER_TTL_MS, async () => {
     const region = detectAssetRegion(symbol);
     const [market, articles] = await Promise.all([
       region === "br" ? fetchBrAssetDossier(symbol) : fetchIntlAssetDossier(symbol),
@@ -103,7 +103,7 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       reference?.keywords,
       reference?.aliases,
     );
-    const relatedNews = pickRelatedNews(articles, keywords).slice(0, 12);
+    const relatedNews = pickRelatedNews(articles, keywords).slice(0, 16);
     const historicalInsights = computeAssetDossierHistoricalInsights(market.history);
     const periodStats = computeAssetDossierPeriodStats(
       market.history,
@@ -198,7 +198,7 @@ async function fetchBrAssetDossier(symbol: string) {
   const base = token
     ? `https://brapi.dev/api/quote/${symbol}?token=${encodeURIComponent(token)}`
     : `https://brapi.dev/api/quote/${symbol}`;
-  const url = `${base}&range=10y&interval=1d&dividends=true&modules=summaryProfile,defaultKeyStatistics,financialData`;
+  const url = `${base}&range=10y&interval=1d&dividends=true&modules=summaryProfile,defaultKeyStatistics,financialData,balanceSheetHistory,incomeStatementHistory,financialStats`;
 
   try {
     if (!canUseMarketProvider("brapi")) {

@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 
-import { readRequestJson } from "@/lib/http/read-json-body";
+import { readRequestJson, type ReadJsonBodyOptions } from "@/lib/http/read-json-body";
+
+export type ParseZodBodyOptions = ReadJsonBodyOptions;
 
 export async function parseZodBody<T extends z.ZodTypeAny>(
   req: Request,
   schema: T,
+  options?: ParseZodBodyOptions,
 ): Promise<
   | { ok: true; data: z.infer<T> }
   | { ok: false; response: NextResponse<{ ok: false; message: string }> }
 > {
-  const raw = await readRequestJson(req);
+  const raw = await readRequestJson(req, options);
   if (!raw.ok) {
     return {
       ok: false,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireSessionUser } from "@/lib/auth/require-session-user";
 import { prisma } from "@/lib/prisma";
+import { rateLimitUserMutation } from "@/lib/security/user-mutation-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,6 +12,9 @@ const MAX_EVENTS = 30;
 export async function GET() {
   const session = await requireSessionUser();
   if (!session.ok) return session.response;
+
+  const limited = await rateLimitUserMutation(session.userId, "security-events", 30);
+  if (limited) return limited;
 
   try {
     const rows = await prisma.securityEvent.findMany({

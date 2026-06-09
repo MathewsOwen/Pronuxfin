@@ -29,6 +29,7 @@
     "release:check": "node scripts/release-readiness.mjs",
     "security:generate-secrets": "node scripts/generate-production-secrets.mjs",
     "production:setup": "node scripts/setup-pronuxfin-production.mjs",
+    "production:probe": "node scripts/probe-production-readiness.mjs",
     "production:verify": "node scripts/verify-production-config.mjs"
   },
   "devDependencies": {

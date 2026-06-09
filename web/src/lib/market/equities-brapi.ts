@@ -1,5 +1,5 @@
 import { fetchMarket } from "@/lib/http/fetch-with-timeout";
-import { sortQuotesForDesk } from "@/lib/market/indices";
+import { QUOTE_TICKERS, sortQuotesForDesk } from "@/lib/market/indices";
 import { listLiveDeskBrTickers } from "@/lib/market/live-desk-universe";
 import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import type { QuoteSnapshot } from "@/lib/market/types";
@@ -20,29 +20,29 @@ export function simulatedEquities(): QuoteSnapshot[] {
   return [];
 }
 
+function readOptionalNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 function mapBrapiRow(row: Record<string, unknown>): QuoteSnapshot {
+  const logo =
+    typeof row.logourl === "string"
+      ? row.logourl
+      : typeof row.logoUrl === "string"
+        ? row.logoUrl
+        : undefined;
   return {
     symbol: String(row.symbol ?? ""),
     shortName: typeof row.shortName === "string" ? row.shortName : undefined,
     currency: typeof row.currency === "string" ? row.currency : "BRL",
-    regularMarketPrice:
-      typeof row.regularMarketPrice === "number"
-        ? row.regularMarketPrice
-        : row.regularMarketPrice != null
-          ? Number(row.regularMarketPrice)
-          : null,
-    regularMarketChange:
-      typeof row.regularMarketChange === "number"
-        ? row.regularMarketChange
-        : row.regularMarketChange != null
-          ? Number(row.regularMarketChange)
-          : null,
-    regularMarketChangePercent:
-      typeof row.regularMarketChangePercent === "number"
-        ? row.regularMarketChangePercent
-        : row.regularMarketChangePercent != null
-          ? Number(row.regularMarketChangePercent)
-          : null,
+    regularMarketPrice: readOptionalNumber(row.regularMarketPrice),
+    regularMarketChange: readOptionalNumber(row.regularMarketChange),
+    regularMarketChangePercent: readOptionalNumber(row.regularMarketChangePercent),
+    regularMarketVolume: readOptionalNumber(row.regularMarketVolume),
+    imageUrl: logo,
     marketTime:
       typeof row.regularMarketTime === "string"
         ? row.regularMarketTime
@@ -57,8 +57,9 @@ async function fetchBrapiChunk(
 ): Promise<QuoteSnapshot[]> {
   if (symbols.length === 0) return [];
   const qs = symbols.join(",");
+  const modules = token ? "&modules=summaryProfile,financialData" : "";
   const url = token
-    ? `https://brapi.dev/api/quote/${qs}?token=${encodeURIComponent(token)}`
+    ? `https://brapi.dev/api/quote/${qs}?token=${encodeURIComponent(token)}${modules}`
     : `https://brapi.dev/api/quote/${qs}`;
 
   const res = await fetchMarket(url, {
@@ -111,8 +112,8 @@ export async function fetchBrapiQuotesForSymbols(
         }
       }
     } else {
-      const parallelWaves = 6;
-      const interWaveMs = 200;
+      const parallelWaves = 12;
+      const interWaveMs = 80;
       for (let i = 0; i < chunks.length; i += parallelWaves) {
         const wave = chunks.slice(i, i + parallelWaves);
         const settled = await Promise.allSettled(
@@ -157,14 +158,48 @@ export async function fetchBrapiQuotesForSymbols(
   };
 }
 
+async function fetchBrapiInWaves(
+  symbols: readonly string[],
+  sortOrder: readonly string[],
+): Promise<BrapiBookResult> {
+  const token = process.env.BRAPI_TOKEN?.trim() || undefined;
+  if (token) {
+    return fetchBrapiQuotesForSymbols(symbols, { sortOrder });
+  }
+
+  const priority = [...QUOTE_TICKERS];
+  const extended = symbols.filter((s) => !priority.includes(s as (typeof QUOTE_TICKERS)[number]));
+  const priorityBook = await fetchBrapiQuotesForSymbols(priority, { sortOrder: priority });
+  if (extended.length === 0) return priorityBook;
+
+  const extendedBook = await fetchBrapiQuotesForSymbols(extended, { sortOrder });
+  const merged = new Map<string, QuoteSnapshot>();
+  for (const row of [...priorityBook.rows, ...extendedBook.rows]) {
+    merged.set(row.symbol, row);
+  }
+  const rows = sortQuotesByCanonicalOrder([...merged.values()], sortOrder);
+  const partial =
+    priorityBook.partial ||
+    extendedBook.partial ||
+    rows.length < symbols.length;
+  const warning = partial
+    ? priorityBook.warning ?? extendedBook.warning ?? "equities_partial"
+    : undefined;
+  return {
+    rows,
+    simulated: false,
+    partial,
+    ...(warning ? { warning } : {}),
+  };
+}
+
 /**
  * Livro institucional padrão (proxies + blue chips) — `/api/quotes` e ticker strip.
+ * Sem token BRAPI: blue chips primeiro (ticker visível rápido), depois universo estendido.
  */
 export async function fetchEquitiesFromBrapi(): Promise<BrapiBookResult> {
   const tickers = listLiveDeskBrTickers();
-  const book = await fetchBrapiQuotesForSymbols(tickers, {
-    sortOrder: tickers,
-  });
+  const book = await fetchBrapiInWaves(tickers, tickers);
   return {
     ...book,
     rows: sortQuotesForDesk(book.rows),

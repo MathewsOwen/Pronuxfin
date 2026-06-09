@@ -1,23 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { isInternalApiProbe } from "@/lib/security/secure-compare";
 import { evaluateMarketCapabilities } from "@/lib/market/market-capabilities";
 import { isProductionRuntime } from "@/lib/env/server-env";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function isInternalProbe(req: Request): boolean {
-  const secret = process.env.INTERNAL_API_SECRET?.trim();
-  if (!secret) return false;
-  const provided = req.headers.get("x-internal-auth")?.trim();
-  return provided === secret;
-}
-
 export async function GET(req: Request) {
   const capabilities = evaluateMarketCapabilities();
   const ok = capabilities.readyForLiveDesk;
 
-  if (isProductionRuntime() && !isInternalProbe(req)) {
+  if (isProductionRuntime() && !isInternalApiProbe(req)) {
     const body = {
       ok,
       service: "pronuxfin-web",

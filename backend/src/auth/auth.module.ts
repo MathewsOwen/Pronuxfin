@@ -10,6 +10,7 @@ import { buildJwtModuleConfig } from './jwt-crypto.util';
 import { JwtStrategy } from './jwt.strategy';
 import { RefreshTokenService } from './refresh-token.service';
 import { InternalApiGuard } from './internal-api.guard';
+import { LoginLockoutService } from './login-lockout.service';
 import { SecurityEventService } from './security-event.service';
 import { WebAuthnService } from './webauthn.service';
 
@@ -44,8 +45,9 @@ import { WebAuthnService } from './webauthn.service';
     RefreshTokenService,
     SecurityEventService,
     WebAuthnService,
+    LoginLockoutService,
     InternalApiGuard,
   ],
-  exports: [AuthService, AuthMailerService],
+  exports: [AuthService, AuthMailerService, InternalApiGuard],
 })
 export class AuthModule {}

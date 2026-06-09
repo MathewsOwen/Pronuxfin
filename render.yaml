@@ -1,0 +1,55 @@
+# Render Blueprint — API Nest (backend/)
+# Dashboard: New → Blueprint → connect repo → preencha env vars marcadas sync: false
+# Docs: docs/deploy-passo-a-passo.md (Partes 2–3)
+
+services:
+  - type: web
+    name: pronuxfin-api
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: backend
+    buildCommand: bash render-build.sh
+    startCommand: bash render-start.sh
+    healthCheckPath: /health/live
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_ALGORITHM
+        value: RS256
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: INTERNAL_API_SECRET
+        sync: false
+      - key: INTERNAL_API_REQUEST_SIGNING
+        value: "1"
+      - key: REFRESH_STRICT_BIND
+        value: "1"
+      - key: MAX_REFRESH_FAMILIES_PER_USER
+        value: "8"
+      - key: PASSWORD_BREACH_CHECK
+        value: "1"
+      - key: FRONTEND_URL
+        value: https://www.pronuxfin.com.br
+      - key: FRONTEND_URLS
+        value: https://pronuxfin.com.br,https://pronuxfin.vercel.app
+      - key: TRUST_PROXY
+        value: "1"
+      - key: WEBAUTHN_RP_ID
+        value: www.pronuxfin.com.br
+      - key: WEBAUTHN_ORIGIN
+        value: https://www.pronuxfin.com.br
+      - key: WEBAUTHN_RP_NAME
+        value: PRONUXFIN
+      - key: PLATFORM_ADMIN_EMAILS
+        sync: false
+      - key: PLATFORM_ADMIN_IP_ALLOWLIST
+        sync: false
+      - key: SMTP_URL
+        sync: false
+      - key: SMTP_FROM
+        value: "PRONUXFIN <no-reply@pronuxfin.com.br>"

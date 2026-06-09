@@ -2,12 +2,12 @@ import type { AiChannelId } from "@/lib/assistant/ai-channels";
 import type { MarketAiEngineId } from "@/lib/market/market-ai-providers";
 
 const CHANNEL_PREFERENCE: Record<AiChannelId, MarketAiEngineId[]> = {
-  research: ["openai", "gemini", "ollama"],
-  docs: ["gemini", "openai", "ollama"],
-  equities: ["openai", "gemini", "ollama"],
-  spreadsheets: ["openai", "gemini", "ollama"],
-  quant: ["openai", "gemini", "ollama"],
-  tutor: ["gemini", "openai", "ollama"],
+  research: ["fable", "openai", "gemini", "ollama"],
+  docs: ["fable", "gemini", "openai", "ollama"],
+  equities: ["fable", "openai", "gemini", "ollama"],
+  spreadsheets: ["fable", "openai", "gemini", "ollama"],
+  quant: ["fable", "openai", "gemini", "ollama"],
+  tutor: ["fable", "gemini", "openai", "ollama"],
 };
 
 function keywordAdjustedOrder(
@@ -18,13 +18,13 @@ function keywordAdjustedOrder(
     /\b(ollama|local|self[\s-]?host|privacidade|on-?prem|on[\s-]prem)\b/.test(
       userLower,
     );
-  if (localHints) return ["ollama", "openai", "gemini"];
+  if (localHints) return ["ollama", "fable", "openai", "gemini"];
 
   const longDocHints =
     /\b(relat[oó]rio|10[\s-]?k|20[\s-]?f|annual report|pdf|notas explicativas|footnotes)\b/.test(
       userLower,
     );
-  if (longDocHints) return ["gemini", "openai", "ollama"];
+  if (longDocHints) return ["fable", "gemini", "openai", "ollama"];
 
   return CHANNEL_PREFERENCE[channel];
 }

@@ -30,7 +30,6 @@ import {
 } from '../common/decorators/current-user.decorator';
 import { PLATFORM_ADMIN_ROLE } from './platform-admin.util';
 import type { TokenMeta } from './refresh-token.service';
-import { InternalApiGuard } from './internal-api.guard';
 
 function requestMeta(req: Request): TokenMeta {
   const ua = req.headers['user-agent'];
@@ -41,7 +40,7 @@ function requestMeta(req: Request): TokenMeta {
 }
 
 @Controller('auth')
-@UseGuards(InternalApiGuard, ThrottlerGuard)
+@UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(
     private readonly auth: AuthService,

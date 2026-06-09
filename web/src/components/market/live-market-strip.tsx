@@ -151,9 +151,12 @@ function TickerItem({ quote, uiLocale }: { quote: QuoteSnapshot; uiLocale: strin
         })()
       : "—";
 
-  return (
-    <div className="flex shrink-0 items-baseline gap-3 border-r border-white/[0.06] pr-12 font-mono text-[13px] tabular-nums last:border-0 last:pr-0">
-      <span className="font-semibold tracking-tight text-foreground">{quote.symbol}</span>
+  const isEquity = quote.segment !== "crypto";
+  const inner = (
+    <>
+      <span className="font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
+        {quote.symbol}
+      </span>
       <span className="text-muted-foreground">{price}</span>
       <span
         className={cn(
@@ -163,6 +166,21 @@ function TickerItem({ quote, uiLocale }: { quote: QuoteSnapshot; uiLocale: strin
       >
         {pct == null ? "—" : `${up ? "+" : ""}${pct.toFixed(2)}%`}
       </span>
+    </>
+  );
+
+  return (
+    <div className="flex shrink-0 items-baseline gap-3 border-r border-white/[0.06] pr-12 font-mono text-[13px] tabular-nums last:border-0 last:pr-0">
+      {isEquity ? (
+        <Link
+          href={`/ativo/${quote.symbol}`}
+          className="group flex items-baseline gap-3 transition-opacity hover:opacity-90"
+        >
+          {inner}
+        </Link>
+      ) : (
+        inner
+      )}
     </div>
   );
 }

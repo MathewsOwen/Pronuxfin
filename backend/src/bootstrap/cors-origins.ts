@@ -17,6 +17,9 @@ export function resolveCorsOrigins(): string[] {
   }
 
   if (origins.size === 0) {
+    if (process.env.NODE_ENV === 'production') {
+      return [];
+    }
     origins.add('http://localhost:3000');
     origins.add('http://127.0.0.1:3000');
   }

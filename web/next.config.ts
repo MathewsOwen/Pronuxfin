@@ -28,6 +28,13 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    const apiHeaders = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Cross-Origin-Resource-Policy", value: "same-site" },
+      { key: "Cache-Control", value: "no-store" },
+    ];
     const base = [
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -54,7 +61,10 @@ const nextConfig: NextConfig = {
         value: "same-origin",
       });
     }
-    return [{ source: "/:path*", headers: base }];
+    return [
+      { source: "/api/:path*", headers: apiHeaders },
+      { source: "/:path*", headers: base },
+    ];
   },
 };
 

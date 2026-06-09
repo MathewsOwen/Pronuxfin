@@ -6,6 +6,12 @@ import { refreshMetaMismatch } from './refresh-bind.util';
 import { SecurityEventService } from './security-event.service';
 
 const DEFAULT_REFRESH_TTL_SEC = 60 * 60 * 24 * 30; // 30 days
+const DEFAULT_MAX_FAMILIES = 8;
+
+function maxFamiliesPerUser(): number {
+  const raw = Number(process.env.MAX_REFRESH_FAMILIES_PER_USER);
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_MAX_FAMILIES;
+}
 
 export type TokenMeta = { userAgent?: string | null; ip?: string | null };
 
@@ -66,6 +72,10 @@ export class RefreshTokenService {
     userId: string,
     opts: { familyId?: string; meta?: TokenMeta } = {},
   ): Promise<IssuedRefreshToken> {
+    if (!opts.familyId) {
+      await this.enforceActiveFamilyCap(userId);
+    }
+
     const token = this.newToken();
     const familyId = opts.familyId ?? randomUUID();
     const expiresAt = new Date(Date.now() + this.ttlSec() * 1000);
@@ -182,5 +192,34 @@ export class RefreshTokenService {
       where: { userId, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+  }
+
+  /** Caps concurrent device sessions — revokes oldest families when over limit. */
+  private async enforceActiveFamilyCap(userId: string): Promise<void> {
+    const max = maxFamiliesPerUser();
+    const active = await this.prisma.refreshToken.findMany({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: { familyId: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    const families: { familyId: string; createdAt: Date }[] = [];
+    const seen = new Set<string>();
+    for (const row of active) {
+      if (seen.has(row.familyId)) continue;
+      seen.add(row.familyId);
+      families.push(row);
+    }
+
+    if (families.length < max) return;
+
+    const excess = families.length - max + 1;
+    for (let i = 0; i < excess; i += 1) {
+      await this.revokeFamily(families[i]!.familyId);
+    }
   }
 }

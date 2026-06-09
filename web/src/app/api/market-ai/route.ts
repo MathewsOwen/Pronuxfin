@@ -28,7 +28,7 @@ import {
 import { loadDecryptedAiKeys } from "@/lib/user-ai-keys/load";
 import { assertMutationAllowed } from "@/lib/security/mutation-guard";
 import { consumeRateLimit } from "@/lib/security/distributed-rate-limit";
-import { readRequestJson } from "@/lib/http/read-json-body";
+import { readRequestJson, MAX_MARKET_AI_BODY_BYTES } from "@/lib/http/read-json-body";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,7 +72,7 @@ const HTTP_MSG: Record<
     json400: "JSON inválido no corpo.",
     rate429: "Muitos pedidos à IA de mercado. Aguarde um minuto e tente de novo.",
     noEngine503:
-      "Nenhum motor de IA está configurado. Defina OPENAI_API_KEY, GEMINI_API_KEY ou Ollama no servidor, ou guarde chaves BYOK no perfil.",
+      "Nenhum motor de IA está configurado. Defina FABLE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY ou Ollama no servidor, ou guarde chaves BYOK no perfil.",
     model503:
       "Os motores de IA configurados não responderam. Tente outro motor ou verifique chaves e quotas.",
   },
@@ -84,7 +84,7 @@ const HTTP_MSG: Record<
     json400: "Invalid JSON payload.",
     rate429: "Too many market AI requests. Wait a minute and try again.",
     noEngine503:
-      "No AI engine is configured. Set OPENAI_API_KEY, GEMINI_API_KEY, or Ollama on the server, or save BYOK keys in your profile.",
+      "No AI engine is configured. Set FABLE_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, or Ollama on the server, or save BYOK keys in your profile.",
     model503:
       "Configured AI engines did not respond. Try another engine or check keys and quotas.",
   },
@@ -165,7 +165,9 @@ export async function POST(req: Request) {
 
   const al = req.headers.get("accept-language");
 
-  const parsedJson = await readRequestJson(req);
+  const parsedJson = await readRequestJson(req, {
+    maxBytes: MAX_MARKET_AI_BODY_BYTES,
+  });
   if (!parsedJson.ok) {
     const loc = normalizeAiLocale(undefined, al);
     return NextResponse.json(
@@ -296,7 +298,7 @@ export async function POST(req: Request) {
     5,
     Math.max(2, Number.parseInt(process.env.MARKET_AI_ENSEMBLE_MAX_ENGINES ?? "3", 10) || 3),
   );
-  const enginesStableOrder = (["openai", "gemini", "ollama"] as const).filter(
+  const enginesStableOrder = (["fable", "openai", "gemini", "ollama"] as const).filter(
     (id): id is MarketAiEngineId => configured.includes(id),
   );
 

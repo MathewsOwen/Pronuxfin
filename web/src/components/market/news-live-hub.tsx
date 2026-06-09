@@ -178,7 +178,7 @@ export function NewsLiveHub({
     }
   }, [t]);
 
-  useSequentialInterval(pull, 60_000);
+  useSequentialInterval(pull, 30_000);
 
   const articles = useMemo(
     () => payload?.articles ?? EMPTY_ARTICLES,

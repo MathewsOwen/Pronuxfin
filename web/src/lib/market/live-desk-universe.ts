@@ -5,11 +5,11 @@ import {
   type SectorId,
 } from "@/lib/market/sector-universe";
 
-const LIVE_DESK_BR_DEF = 300;
+const LIVE_DESK_BR_DEF = 450;
 const LIVE_DESK_BR_MIN = 58;
 const LIVE_DESK_BR_MAX = 600;
 
-const LIVE_DESK_INTL_DEF = 200;
+const LIVE_DESK_INTL_DEF = 280;
 const LIVE_DESK_INTL_MIN = 0;
 const LIVE_DESK_INTL_MAX = 400;
 

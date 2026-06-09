@@ -8,11 +8,13 @@ import type {
 
 const ENGINE_LABEL: Record<AiLocale, Record<MarketAiEngineId, string>> = {
   "pt-BR": {
+    fable: "FABLE 5",
     openai: "OpenAI",
     gemini: "Google Gemini",
     ollama: "Ollama (local)",
   },
   en: {
+    fable: "FABLE 5",
     openai: "OpenAI",
     gemini: "Google Gemini",
     ollama: "Ollama (local)",

@@ -15,6 +15,7 @@ import {
 } from "@/lib/security/csp";
 import { setCsrfCookie } from "@/lib/auth/csrf-cookie";
 import { CSRF_COOKIE_NAME } from "@/lib/security/csrf-constants";
+import { withApiSecurityHeaders } from "@/lib/security/api-security-headers";
 import { routing } from "@/i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
@@ -71,11 +72,24 @@ function stripLocalePrefix(pathname: string): string {
   return pathname;
 }
 
+const BLOCKED_API_METHODS = new Set(["TRACE", "TRACK", "CONNECT"]);
+
 export async function proxy(request: NextRequest) {
   const existing = request.headers.get("x-request-id")?.trim();
   const rid = existing || crypto.randomUUID();
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", rid);
+
+  const pathname = request.nextUrl.pathname;
+
+  if (pathname.startsWith("/api") && BLOCKED_API_METHODS.has(request.method.toUpperCase())) {
+    const res = NextResponse.json(
+      { error: "method_not_allowed" },
+      { status: 405 },
+    );
+    res.headers.set("Allow", "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS");
+    return withApiSecurityHeaders(res);
+  }
 
   // Playwright E2E runs `next start` over plain HTTP on 127.0.0.1 (no TLS terminator).
   if (
@@ -88,16 +102,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(httpsUrl, 308);
   }
 
-  const pathname = request.nextUrl.pathname;
   if (!pathname.startsWith("/api")) {
     requestHeaders.set("x-middleware-pathname", pathname);
   }
 
   if (pathname.startsWith("/api")) {
-    return NextResponse.next({
+    const res = NextResponse.next({
       request: { headers: requestHeaders },
       headers: { "x-request-id": rid },
     });
+    return withApiSecurityHeaders(res);
   }
 
   const nonce = newPageNonce();

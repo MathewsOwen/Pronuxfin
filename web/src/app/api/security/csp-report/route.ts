@@ -9,7 +9,9 @@ const MAX_BYTES = 100_000;
  * Saida vai para stdout (Vercel / Node) onde o relatório aparece concatenado aos logs estruturados.
  */
 export async function POST(req: Request): Promise<Response> {
-  const limited = await rateLimitResponse("csp-report", 30, 60_000);
+  const limited = await rateLimitResponse("csp-report", 30, 60_000, {
+    failClosed: false,
+  });
   if (limited) return limited;
 
   const len = Number(req.headers.get("content-length") ?? "0");

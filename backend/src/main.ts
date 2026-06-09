@@ -21,6 +21,14 @@ async function bootstrap() {
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
+      hsts:
+        process.env.NODE_ENV === 'production'
+          ? {
+              maxAge: 63_072_000,
+              includeSubDomains: true,
+              preload: true,
+            }
+          : false,
     }),
   );
   app.useGlobalFilters(new ThrottlerExceptionPtFilter());
@@ -31,6 +39,10 @@ async function bootstrap() {
     credentials: true,
   });
   const port = Number(process.env.PORT ?? 4000);
+  const http = app.getHttpAdapter().getInstance() as {
+    disable?: (name: string) => void;
+  };
+  http.disable?.('x-powered-by');
   // Render/Docker fazem health-check na porta $PORT; precisa escutar em todas as interfaces.
   await app.listen(port, '0.0.0.0');
 }

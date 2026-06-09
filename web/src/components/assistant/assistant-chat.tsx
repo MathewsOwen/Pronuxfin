@@ -29,7 +29,7 @@ type MarketAiResp =
   | {
       ok: true;
       reply: string;
-      provider?: "pronux-ollama" | "pronux-openai" | "pronux-gemini";
+      provider?: "pronux-fable" | "pronux-ollama" | "pronux-openai" | "pronux-gemini";
       engine?: MarketAiEngineId;
       ensemble?: boolean;
     }
@@ -111,6 +111,8 @@ export function AssistantChat({
 
   function engineOptionLabel(id: MarketAiEngineId): string {
     switch (id) {
+      case "fable":
+        return t("engineFable");
       case "ollama":
         return t("engineOllama");
       case "openai":
@@ -203,7 +205,8 @@ export function AssistantChat({
       } else {
         let text = data.reply;
         if (!data.ensemble) {
-          if (data.provider === "pronux-ollama") text += t("chatOllamaFooter");
+          if (data.provider === "pronux-fable") text += t("chatFableFooter");
+          else if (data.provider === "pronux-ollama") text += t("chatOllamaFooter");
           else if (data.provider === "pronux-openai") text += t("chatOpenAiFooter");
           else if (data.provider === "pronux-gemini") text += t("chatGeminiFooter");
         }

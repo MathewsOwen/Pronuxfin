@@ -1,7 +1,8 @@
+import { resolveFableApiKey } from "@/lib/market/market-ai-fable";
 import { resolveOllamaOrigin } from "@/lib/market/market-ai-llm";
 import { userHasStoredKeyFlags } from "@/lib/user-ai-keys/load";
 
-export const MARKET_AI_ENGINES = ["ollama", "openai", "gemini"] as const;
+export const MARKET_AI_ENGINES = ["fable", "ollama", "openai", "gemini"] as const;
 
 export type MarketAiEngineId = (typeof MARKET_AI_ENGINES)[number];
 
@@ -10,12 +11,13 @@ export const MARKET_AI_ENGINE_ZOD = MARKET_AI_ENGINES as unknown as [
   ...MarketAiEngineId[],
 ];
 
-/** Ordem de listagem / fallback genérico: nuvem primeiro (mais previsível em produção). */
-const ENGINE_ORDER: MarketAiEngineId[] = ["openai", "gemini", "ollama"];
+/** Ordem de listagem / fallback genérico: FABLE 5 e nuvem primeiro (mais previsível em produção). */
+const ENGINE_ORDER: MarketAiEngineId[] = ["fable", "openai", "gemini", "ollama"];
 
 /** Motores disponíveis apenas via variáveis de ambiente (chave de plataforma). */
 export function listEnginesFromEnv(): MarketAiEngineId[] {
   const out: MarketAiEngineId[] = [];
+  if (resolveFableApiKey()) out.push("fable");
   if (resolveOllamaOrigin()) out.push("ollama");
   if (process.env.OPENAI_API_KEY?.trim()) out.push("openai");
   if (
@@ -42,6 +44,7 @@ export async function listEnginesForUser(
 }
 
 export type MarketInferProviderId =
+  | "pronux-fable"
   | "pronux-ollama"
   | "pronux-openai"
   | "pronux-gemini";

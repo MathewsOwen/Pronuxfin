@@ -50,7 +50,11 @@ Referências rápidas no repo:
 
 ## Parte 3 — API Nest (backend) em produção
 
+**Atalho no repo:** ficheiro `render.yaml` na raiz → Render Dashboard → **New → Blueprint** → liga o GitHub e preenche as variáveis `sync: false`.
+
 **O que és:** o processo Node a correr com `NODE_ENV=production`, a escutar HTTPS **atrás de um proxy** (recomendado) ou exposto com TLS.
+
+**Antes do DNS `api.pronuxfin.com.br`:** na Vercel define `API_URL=https://<teu-servico>.onrender.com` (URL HTTPS do Render). Depois do CNAME, troca para `https://api.pronuxfin.com.br` e redeploy.
 
 ### 3.1 Variáveis mínimas da API
 

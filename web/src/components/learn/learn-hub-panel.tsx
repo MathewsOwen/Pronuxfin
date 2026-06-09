@@ -1,4 +1,5 @@
 import { BookOpen, GraduationCap } from "lucide-react";
+import { LearnVideoSection } from "@/components/learn/learn-video-section";
 import { getMessages, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -80,6 +81,8 @@ export async function LearnHubPanel() {
           })}
         </div>
       </section>
+
+      <LearnVideoSection />
 
       <section className="mt-16 rounded-3xl border border-white/10 bg-black/25 p-8 sm:p-10">
         <div className="flex flex-wrap items-start gap-4">

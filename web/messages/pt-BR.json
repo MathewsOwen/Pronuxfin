@@ -882,6 +882,7 @@
     "chatNoEngineConfigured": "Nenhum motor de IA está disponível. Configure OPENAI_API_KEY, GEMINI_API_KEY ou Ollama no servidor, ou guarde chaves BYOK no perfil.",
     "chatErrorUnknown": "Erro desconhecido.",
     "chatErrorSession401": " Abra uma sessão válida pelo menu do painel (o token pode ter expirado).",
+    "chatFableFooter": "\n\n— Motor PRONUX: FABLE 5 (análise financeira avançada).",
     "chatOllamaFooter": "\n\n— Motor PRONUX: Ollama (/api/chat).",
     "chatOpenAiFooter": "\n\n— Motor em nuvem: OpenAI API.",
     "chatGeminiFooter": "\n\n— Motor em nuvem: Google Gemini API.",
@@ -889,6 +890,7 @@
     "engineAuto": "Automático (escolhe o melhor motor disponível por canal e pergunta)",
     "ensembleLabel": "Painel multi-IA",
     "ensembleHint": "Consulta vários motores em paralelo (mais lento e consome mais créditos). Requer pelo menos dois motores configurados.",
+    "engineFable": "FABLE 5 (PRONUX)",
     "engineOllama": "Ollama (local / self-host)",
     "engineOpenai": "OpenAI",
     "engineGemini": "Google Gemini",
@@ -1368,6 +1370,40 @@
       "breadcrumbHome": "Início",
       "breadcrumbLearn": "Aprenda",
       "backToHub": "Voltar para Aprenda"
+    },
+    "videos": {
+      "eyebrow": "Aulas em vídeo",
+      "title": "Comece do zero com vídeos educativos",
+      "lead": "Seleção curada de canais oficiais e conteúdo de licença aberta — sem reupload, com atribuição ao autor original.",
+      "licenseBadge": "Fontes licenciadas e oficiais",
+      "level_beginner": "Iniciante",
+      "level_intermediate": "Intermediário",
+      "sourceAttribution": "Fonte: {channel} · {license}",
+      "disclaimer": "Vídeos incorporados de terceiros para fins educativos. PRONUXFIN não é responsável pelo conteúdo dos canais originais.",
+      "intro-acoes-khan": {
+        "title": "Introdução a ações e títulos",
+        "description": "Conceitos fundamentais de ações, títulos e como funcionam os mercados de capitais."
+      },
+      "comprar-acao-khan": {
+        "title": "O que significa comprar uma ação",
+        "description": "Entenda o que você adquire ao investir em uma empresa listada na bolsa."
+      },
+      "bolsa-ted-ed": {
+        "title": "Como funciona a bolsa de valores",
+        "description": "Animação didática sobre o funcionamento do mercado de ações e a formação de preços."
+      },
+      "renda-fixa-b3": {
+        "title": "Renda fixa: o básico",
+        "description": "Introdução oficial da B3 aos produtos de renda fixa e como eles se encaixam na carteira."
+      },
+      "diversificacao-khan": {
+        "title": "Diversificação de carteira",
+        "description": "Por que diversificar reduz risco e como montar uma alocação equilibrada."
+      },
+      "juros-compostos-khan": {
+        "title": "Juros compostos explicados",
+        "description": "A força dos juros compostos no longo prazo — base de qualquer planejamento financeiro."
+      }
     },
     "glossaryHub": {
       "eyebrow": "Glossário",

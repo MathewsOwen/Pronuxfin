@@ -7,8 +7,24 @@
  */
 
 import { generateKeyPairSync, randomBytes } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+
+function readEnvValue(filePath, key) {
+  if (!existsSync(filePath)) return null;
+  const text = readFileSync(filePath, "utf8");
+  const re = new RegExp(`^${key}=(.*)$`, "m");
+  const match = text.match(re);
+  if (!match) return null;
+  let value = match[1].trim();
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    value = value.slice(1, -1);
+  }
+  return value.length > 0 ? value : null;
+}
 
 const SITE = "https://www.pronuxfin.com.br";
 const RP_ID = "www.pronuxfin.com.br";
@@ -27,6 +43,20 @@ const healthProbeSecret = randomBytes(32).toString("base64url");
 const pubOneLine = publicKey.trim().replace(/\n/g, "\\n");
 const privOneLine = privateKey.trim().replace(/\n/g, "\\n");
 
+const root = resolve(import.meta.dirname, "..");
+const databaseUrl =
+  process.env.DATABASE_URL?.trim() ||
+  readEnvValue(resolve(root, "backend", ".env"), "DATABASE_URL") ||
+  readEnvValue(resolve(root, "web", ".env"), "DATABASE_URL");
+const databaseLine = databaseUrl
+  ? `DATABASE_URL="${databaseUrl.replace(/"/g, '\\"')}"`
+  : "DATABASE_URL=<<< MANUAL: postgresql://user:pass@host:5432/postgres >>>";
+
+const renderApiUrl = process.env.RENDER_API_URL?.trim();
+const apiUrlLine = renderApiUrl
+  ? `API_URL=${renderApiUrl}`
+  : `API_URL=${API_URL}`;
+
 const lines = [
   "# =============================================================================",
   "# PRONUXFIN — produção (gerado automaticamente)",
@@ -37,11 +67,14 @@ const lines = [
   "# --- Vercel (web) — Environment: Production ---",
   "",
   `NEXT_PUBLIC_SITE_URL=${SITE}`,
-  `API_URL=${API_URL}`,
+  apiUrlLine,
+  renderApiUrl ? "" : "# Antes do DNS api.*: API_URL=https://<servico>.onrender.com",
   "",
   "JWT_ALGORITHM=RS256",
   `JWT_PUBLIC_KEY="${pubOneLine}"`,
   `INTERNAL_API_SECRET=${internalSecret}`,
+  "INTERNAL_API_REQUEST_SIGNING=1",
+  "PASSWORD_BREACH_CHECK=1",
   "",
   "CSRF_ENFORCE=1",
   "AUTH_SESSION_VERSION_CHECK=1",
@@ -55,7 +88,7 @@ const lines = [
   `WEBAUTHN_ORIGIN=${SITE}`,
   "SECURITY_CONTACT_EMAIL=security@pronuxfin.com.br",
   "",
-  "DATABASE_URL=<<< MANUAL: postgresql://user:pass@host:5432/pronuxfin >>>",
+  databaseLine,
   "",
   "OPENAI_API_KEY=<<< MANUAL: sk-... >>>",
   "# GEMINI_API_KEY=<<< alternativa ao OpenAI >>>",
@@ -73,7 +106,10 @@ const lines = [
   `JWT_PRIVATE_KEY="${privOneLine}"`,
   `JWT_PUBLIC_KEY="${pubOneLine}"`,
   `INTERNAL_API_SECRET=${internalSecret}`,
+  "INTERNAL_API_REQUEST_SIGNING=1",
   "REFRESH_STRICT_BIND=1",
+  "MAX_REFRESH_FAMILIES_PER_USER=8",
+  "PASSWORD_BREACH_CHECK=1",
   "",
   `FRONTEND_URL=${SITE}`,
   "FRONTEND_URLS=https://pronuxfin.com.br,https://pronuxfin.vercel.app",
@@ -83,13 +119,14 @@ const lines = [
   `WEBAUTHN_ORIGIN=${SITE}`,
   "WEBAUTHN_RP_NAME=PRONUXFIN",
   "",
-  "DATABASE_URL=<<< MANUAL: mesma base PostgreSQL >>>",
+  databaseLine,
   "",
   "SMTP_URL=<<< MANUAL: smtps://user:pass@smtp.provedor.com:465 >>>",
   'SMTP_FROM="PRONUXFIN <no-reply@pronuxfin.com.br>"',
   "# AUTH_RESET_DEV_LOG_ONLY=false",
   "",
   "PLATFORM_ADMIN_EMAILS=<<< MANUAL: seu@email.com >>>",
+  "# PLATFORM_ADMIN_IP_ALLOWLIST=<<< opcional: IP fixo do admin >>>",
   "",
 ];
 
@@ -102,7 +139,8 @@ console.log("\nPróximos passos:");
 console.log("  1. Preencha DATABASE_URL, OPENAI_API_KEY (ou GEMINI), BRAPI_TOKEN, FMP, SMTP");
 console.log("  2. Cole as variáveis WEB na Vercel (Settings → Environment Variables → Production)");
 console.log("  3. Cole as variáveis BACKEND no host da API Nest");
-console.log("  4. npm run migrate:deploy   (migrações Prisma)");
+console.log("  4. npm run migrate:deploy   (se ainda não aplicou migrações)");
+console.log("  4b. npm run production:probe   (smoke remoto www + API)");
 console.log("  5. npm run production:verify -- .env.production.generated");
 console.log("  6. Redeploy Vercel + backend");
 console.log("\nDomínio: www.pronuxfin.com.br | API sugerida: api.pronuxfin.com.br");
