@@ -10,6 +10,8 @@ import { generateKeyPairSync, randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { supabaseDirectToPoolerUrl } from "./supabase-pooler-url.mjs";
+
 function readEnvValue(filePath, key) {
   if (!existsSync(filePath)) return null;
   const text = readFileSync(filePath, "utf8");
@@ -28,7 +30,8 @@ function readEnvValue(filePath, key) {
 
 const SITE = "https://www.pronuxfin.com.br";
 const RP_ID = "www.pronuxfin.com.br";
-const API_URL = "https://api.pronuxfin.com.br";
+const API_URL_AFTER_DNS = "https://api.pronuxfin.com.br";
+const RENDER_API_DEFAULT = "https://pronuxfin.onrender.com";
 
 const { publicKey, privateKey } = generateKeyPairSync("rsa", {
   modulusLength: 4096,
@@ -48,14 +51,17 @@ const databaseUrl =
   process.env.DATABASE_URL?.trim() ||
   readEnvValue(resolve(root, "backend", ".env"), "DATABASE_URL") ||
   readEnvValue(resolve(root, "web", ".env"), "DATABASE_URL");
-const databaseLine = databaseUrl
+const databaseLineDirect = databaseUrl
   ? `DATABASE_URL="${databaseUrl.replace(/"/g, '\\"')}"`
   : "DATABASE_URL=<<< MANUAL: postgresql://user:pass@host:5432/postgres >>>";
 
-const renderApiUrl = process.env.RENDER_API_URL?.trim();
-const apiUrlLine = renderApiUrl
-  ? `API_URL=${renderApiUrl}`
-  : `API_URL=${API_URL}`;
+const poolerUrl = databaseUrl ? supabaseDirectToPoolerUrl(databaseUrl) : null;
+const databaseLineWeb = poolerUrl
+  ? `DATABASE_URL="${poolerUrl.replace(/"/g, '\\"')}"`
+  : databaseLineDirect;
+
+const renderApiUrl = process.env.RENDER_API_URL?.trim() || RENDER_API_DEFAULT;
+const apiUrlLine = `API_URL=${renderApiUrl}`;
 
 const lines = [
   "# =============================================================================",
@@ -68,7 +74,7 @@ const lines = [
   "",
   `NEXT_PUBLIC_SITE_URL=${SITE}`,
   apiUrlLine,
-  renderApiUrl ? "" : "# Antes do DNS api.*: API_URL=https://<servico>.onrender.com",
+  `# Depois do DNS api.* (Parte 5): API_URL=${API_URL_AFTER_DNS}`,
   "",
   "JWT_ALGORITHM=RS256",
   `JWT_PUBLIC_KEY="${pubOneLine}"`,
@@ -88,12 +94,16 @@ const lines = [
   `WEBAUTHN_ORIGIN=${SITE}`,
   "SECURITY_CONTACT_EMAIL=security@pronuxfin.com.br",
   "",
-  databaseLine,
+  databaseLineWeb,
+  poolerUrl ? "# Vercel: pooler :6543 (serverless). Backend abaixo usa :5432 direct." : "",
   "",
   "OPENAI_API_KEY=<<< MANUAL: sk-... >>>",
   "# GEMINI_API_KEY=<<< alternativa ao OpenAI >>>",
   "",
   "BRAPI_TOKEN=<<< MANUAL: token brapi.dev >>>",
+  "BRAPI_MAX_SYMBOLS_PER_REQUEST=1",
+  "BRAPI_PARALLEL_REQUESTS=3",
+  "PRONUX_LIVE_DESK_BR_MAX=36",
   "FMP_API_KEY=<<< MANUAL: financialmodelingprep.com >>>",
   "",
   "# Opcional — observabilidade",
@@ -119,7 +129,7 @@ const lines = [
   `WEBAUTHN_ORIGIN=${SITE}`,
   "WEBAUTHN_RP_NAME=PRONUXFIN",
   "",
-  databaseLine,
+  databaseLineDirect,
   "",
   "SMTP_URL=<<< MANUAL: smtps://user:pass@smtp.provedor.com:465 >>>",
   'SMTP_FROM="PRONUXFIN <no-reply@pronuxfin.com.br>"',
@@ -143,5 +153,7 @@ console.log("  4. npm run migrate:deploy   (se ainda não aplicou migrações)")
 console.log("  4b. npm run production:probe   (smoke remoto www + API)");
 console.log("  5. npm run production:verify -- .env.production.generated");
 console.log("  6. Redeploy Vercel + backend");
-console.log("\nDomínio: www.pronuxfin.com.br | API sugerida: api.pronuxfin.com.br");
+console.log(`\nDomínio: www.pronuxfin.com.br | API agora: ${renderApiUrl}`);
+console.log(`Depois do DNS: ${API_URL_AFTER_DNS}`);
+console.log("Se já tem .env.production.generated com chaves, use: npm run production:patch-env");
 console.log("Nunca commite este ficheiro no Git.\n");

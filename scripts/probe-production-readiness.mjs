@@ -13,7 +13,8 @@ const apiArg = process.argv.find((a) => a.startsWith("--api="))?.slice("--api=".
 const API = (
   apiArg ??
   process.env.PRODUCTION_PROBE_API ??
-  "https://api.pronuxfin.com.br"
+  process.env.RENDER_API_URL ??
+  "https://pronuxfin.onrender.com"
 ).replace(/\/+$/, "");
 
 async function probe(label, url, expectOk = true) {

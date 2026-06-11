@@ -80,6 +80,31 @@ function warn(msg) {
 if (isManualPlaceholder(get(env, "API_URL"))) fail("API_URL ausente ou placeholder");
 if (isManualPlaceholder(get(env, "DATABASE_URL"))) fail("DATABASE_URL ausente ou placeholder");
 
+const apiUrl = get(env, "API_URL");
+if (apiUrl.includes("api.pronuxfin.com.br")) {
+  warn(
+    "API_URL aponta para api.pronuxfin.com.br — só use depois do DNS (Parte 5); até lá use https://pronuxfin.onrender.com",
+  );
+}
+
+// Só o primeiro DATABASE_URL do ficheiro = bloco Vercel (parseEnvFile sobrescreve; re-leia ordem)
+if (envPath && existsSync(envPath)) {
+  const raw = readFileSync(envPath, "utf8");
+  const webEnd = raw.indexOf("# --- Backend");
+  const webRaw = webEnd > 0 ? raw.slice(0, webEnd) : raw;
+  const webDb = webRaw.match(/^DATABASE_URL=(?:"([^"]+)"|(\S+))/m);
+  const webDbUrl = (webDb?.[1] ?? webDb?.[2] ?? "").trim();
+  if (
+    webDbUrl &&
+    (webDbUrl.includes("supabase.co:5432") ||
+      (webDbUrl.includes(":5432/") && !webDbUrl.includes("pgbouncer")))
+  ) {
+    warn(
+      "DATABASE_URL (bloco Vercel) parece :5432 direct — use pooler :6543?pgbouncer=true",
+    );
+  }
+}
+
 const siteUrl = get(env, "NEXT_PUBLIC_SITE_URL");
 const vercelUrl = get(env, "VERCEL_URL") || get(env, "VERCEL_PROJECT_PRODUCTION_URL");
 if (!siteUrl && !vercelUrl) {

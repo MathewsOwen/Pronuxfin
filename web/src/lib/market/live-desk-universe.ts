@@ -5,7 +5,11 @@ import {
   type SectorId,
 } from "@/lib/market/sector-universe";
 
-const LIVE_DESK_BR_DEF = 450;
+/** Com BRAPI token (plano starter), 36 tickers cabem no timeout serverless. */
+function liveDeskBrDefault(): number {
+  if (typeof process !== "undefined" && process.env.BRAPI_TOKEN?.trim()) return 36;
+  return 450;
+}
 const LIVE_DESK_BR_MIN = 58;
 const LIVE_DESK_BR_MAX = 600;
 
@@ -39,7 +43,7 @@ function dedupeOrdered(symbols: readonly string[]): string[] {
 export function getLiveDeskBrMax(): number {
   return Math.min(
     LIVE_DESK_BR_MAX,
-    Math.max(LIVE_DESK_BR_MIN, readServerInt("PRONUX_LIVE_DESK_BR_MAX", LIVE_DESK_BR_DEF)),
+    Math.max(LIVE_DESK_BR_MIN, readServerInt("PRONUX_LIVE_DESK_BR_MAX", liveDeskBrDefault())),
   );
 }
 
