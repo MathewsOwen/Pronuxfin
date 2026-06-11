@@ -6,7 +6,15 @@ import type { QuoteSnapshot } from "@/lib/market/types";
 
 /** Sem token, a BRAPI limita quantidade de símbolos por GET — empacotamos várias chamadas. */
 const BRAPI_FREE_MAX_SYMBOLS = 3;
-const BRAPI_TOKEN_MAX_SYMBOLS = 24;
+const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 3;
+
+function readBrapiMaxSymbolsPerRequest(): number {
+  const raw = Number(process.env.BRAPI_MAX_SYMBOLS_PER_REQUEST);
+  if (Number.isFinite(raw) && raw >= 1) {
+    return Math.min(24, Math.floor(raw));
+  }
+  return BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT;
+}
 
 function chunk<T>(arr: readonly T[], size: number): T[][] {
   const out: T[][] = [];
@@ -57,9 +65,9 @@ async function fetchBrapiChunk(
 ): Promise<QuoteSnapshot[]> {
   if (symbols.length === 0) return [];
   const qs = symbols.join(",");
-  const modules = token ? "&modules=summaryProfile,financialData" : "";
+  // Cotações em lote: sem modules (dossiê pede modules numa rota dedicada).
   const url = token
-    ? `https://brapi.dev/api/quote/${qs}?token=${encodeURIComponent(token)}${modules}`
+    ? `https://brapi.dev/api/quote/${qs}?token=${encodeURIComponent(token)}`
     : `https://brapi.dev/api/quote/${qs}`;
 
   const res = await fetchMarket(url, {
@@ -97,36 +105,25 @@ export async function fetchBrapiQuotesForSymbols(
   const symbolsUpper = [...new Set(symbolsInput.map((s) => s.trim().toUpperCase()))].filter(Boolean);
   const canonical = opts?.sortOrder ?? symbolsUpper;
   const token = process.env.BRAPI_TOKEN?.trim() || undefined;
-  const chunkSize = token ? BRAPI_TOKEN_MAX_SYMBOLS : BRAPI_FREE_MAX_SYMBOLS;
+  const chunkSize = token ? readBrapiMaxSymbolsPerRequest() : BRAPI_FREE_MAX_SYMBOLS;
   const chunks = chunk([...symbolsUpper], chunkSize);
   const merged = new Map<string, QuoteSnapshot>();
 
   try {
-    if (token) {
+    const parallelWaves = 12;
+    const interWaveMs = 80;
+    for (let i = 0; i < chunks.length; i += parallelWaves) {
+      const wave = chunks.slice(i, i + parallelWaves);
       const settled = await Promise.allSettled(
-        chunks.map((syms) => fetchBrapiChunk(syms, token)),
+        wave.map((syms) => fetchBrapiChunk(syms, token)),
       );
       for (const s of settled) {
         if (s.status === "fulfilled") {
           for (const r of s.value) merged.set(r.symbol, r);
         }
       }
-    } else {
-      const parallelWaves = 12;
-      const interWaveMs = 80;
-      for (let i = 0; i < chunks.length; i += parallelWaves) {
-        const wave = chunks.slice(i, i + parallelWaves);
-        const settled = await Promise.allSettled(
-          wave.map((syms) => fetchBrapiChunk(syms, undefined)),
-        );
-        for (const s of settled) {
-          if (s.status === "fulfilled") {
-            for (const r of s.value) merged.set(r.symbol, r);
-          }
-        }
-        if (i + parallelWaves < chunks.length && chunks.length > 1) {
-          await new Promise((r) => setTimeout(r, interWaveMs));
-        }
+      if (i + parallelWaves < chunks.length && chunks.length > 1) {
+        await new Promise((r) => setTimeout(r, interWaveMs));
       }
     }
   } catch {

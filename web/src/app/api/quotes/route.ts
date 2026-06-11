@@ -5,6 +5,8 @@ import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 /** Sem cache de rota / CDN: cada GET consulta brapi + CoinGecko na hora. */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+/** Mesa ao vivo com centenas de tickers BR (várias ondas BRAPI). */
+export const maxDuration = 60;
 
 const QUOTES_WINDOW_MS = 60_000;
 const QUOTES_MAX_PER_WINDOW = 72;
