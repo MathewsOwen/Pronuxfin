@@ -30,6 +30,8 @@
     "security:generate-secrets": "node scripts/generate-production-secrets.mjs",
     "production:setup": "node scripts/setup-pronuxfin-production.mjs",
     "production:patch-env": "node scripts/patch-production-env-file.mjs",
+    "production:print-vercel": "node scripts/print-vercel-env-block.mjs",
+    "production:test-db": "node scripts/test-database-url.mjs .env.production.generated",
     "production:probe": "node scripts/probe-production-readiness.mjs",
     "production:verify": "node scripts/verify-production-config.mjs"
   },
