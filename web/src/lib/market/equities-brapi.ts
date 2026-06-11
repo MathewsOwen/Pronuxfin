@@ -6,7 +6,7 @@ import type { QuoteSnapshot } from "@/lib/market/types";
 
 /** Sem token, a BRAPI limita quantidade de símbolos por GET — empacotamos várias chamadas. */
 const BRAPI_FREE_MAX_SYMBOLS = 3;
-const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 3;
+const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 1;
 
 function readBrapiMaxSymbolsPerRequest(): number {
   const raw = Number(process.env.BRAPI_MAX_SYMBOLS_PER_REQUEST);
@@ -14,6 +14,14 @@ function readBrapiMaxSymbolsPerRequest(): number {
     return Math.min(24, Math.floor(raw));
   }
   return BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT;
+}
+
+function readBrapiParallelRequests(): number {
+  const raw = Number(process.env.BRAPI_PARALLEL_REQUESTS);
+  if (Number.isFinite(raw) && raw >= 1) {
+    return Math.min(12, Math.floor(raw));
+  }
+  return process.env.BRAPI_TOKEN?.trim() ? 3 : 12;
 }
 
 function chunk<T>(arr: readonly T[], size: number): T[][] {
@@ -110,8 +118,8 @@ export async function fetchBrapiQuotesForSymbols(
   const merged = new Map<string, QuoteSnapshot>();
 
   try {
-    const parallelWaves = 12;
-    const interWaveMs = 80;
+    const parallelWaves = readBrapiParallelRequests();
+    const interWaveMs = token ? 150 : 80;
     for (let i = 0; i < chunks.length; i += parallelWaves) {
       const wave = chunks.slice(i, i + parallelWaves);
       const settled = await Promise.allSettled(
