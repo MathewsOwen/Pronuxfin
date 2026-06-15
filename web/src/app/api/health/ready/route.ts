@@ -34,6 +34,19 @@ export async function GET(req: Request) {
   const timestamp = new Date().toISOString();
   const detailed = probeAuthorized(req);
 
+  const failedChecks = (
+    [
+      ["api_url_configured", checks.api_url_configured],
+      ["site_url_configured", checks.site_url_configured],
+      ["jwt_secret_configured", checks.jwt_secret_configured],
+      ["backend_ready", checks.backend_ready],
+      ["database_configured", checks.database_configured],
+      ["database_ready", checks.database_ready],
+    ] as const
+  )
+    .filter(([, pass]) => !pass)
+    .map(([name]) => name);
+
   const body = detailed
     ? {
         ok,
@@ -48,6 +61,7 @@ export async function GET(req: Request) {
         service: SERVICE,
         check: "ready" as const,
         timestamp,
+        ...(failedChecks.length > 0 ? { failed_checks: failedChecks } : {}),
       };
 
   const res = NextResponse.json(body, { status: ok ? 200 : 503 });
