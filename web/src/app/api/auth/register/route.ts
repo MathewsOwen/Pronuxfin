@@ -28,6 +28,7 @@ export async function POST(req: Request) {
     req,
     "/auth/register",
     authRegisterBodySchema,
+    { omitFromUpstream: ["acceptTerms"] },
   );
   if (forwarded.error) {
     return attachRequestId(req, forwarded.error);

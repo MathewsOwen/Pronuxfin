@@ -22,9 +22,9 @@ type ForwardAuthPostResult =
       data: Record<string, unknown>;
     };
 
-function validationError(): NextResponse {
+function validationError(detail?: string): NextResponse {
   return NextResponse.json(
-    { message: "Invalid request body.", code: "VALIDATION_FAILED" },
+    { message: detail?.trim() || "Invalid request body.", code: "VALIDATION_FAILED" },
     { status: 400 },
   );
 }
@@ -33,6 +33,7 @@ export async function forwardAuthPost(
   req: Request,
   upstreamPath: string,
   schema?: z.ZodTypeAny,
+  opts?: { omitFromUpstream?: readonly string[] },
 ): Promise<ForwardAuthPostResult> {
   if (!apiBaseUrl()) {
     return {
@@ -55,7 +56,8 @@ export async function forwardAuthPost(
   if (schema) {
     const validated = schema.safeParse(parsedBody.value);
     if (!validated.success) {
-      return { error: validationError() };
+      const detail = validated.error.issues[0]?.message;
+      return { error: validationError(detail) };
     }
     payload = validated.data as Record<string, unknown>;
   } else {
@@ -63,6 +65,10 @@ export async function forwardAuthPost(
       typeof parsedBody.value === "object" && parsedBody.value !== null
         ? (parsedBody.value as Record<string, unknown>)
         : {};
+  }
+
+  for (const key of opts?.omitFromUpstream ?? []) {
+    delete payload[key];
   }
 
   const password =

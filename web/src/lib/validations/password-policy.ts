@@ -10,11 +10,15 @@ const COMMON = new Set([
   "pronuxfin",
 ]);
 
-export function passwordPolicyRefine(password: string, ctx: z.RefinementCtx): void {
+export function passwordPolicyRefine(
+  password: string,
+  ctx: z.RefinementCtx,
+  messages?: { tooShort?: string; tooWeak?: string; tooCommon?: string },
+): void {
   if (password.length < 12) {
     ctx.addIssue({
       code: "custom",
-      message: "Senha deve ter pelo menos 12 caracteres.",
+      message: messages?.tooShort ?? "Senha deve ter pelo menos 12 caracteres.",
     });
     return;
   }
@@ -22,7 +26,7 @@ export function passwordPolicyRefine(password: string, ctx: z.RefinementCtx): vo
   if (COMMON.has(password.toLowerCase())) {
     ctx.addIssue({
       code: "custom",
-      message: "Senha demasiado comum. Escolha outra.",
+      message: messages?.tooCommon ?? "Senha demasiado comum. Escolha outra.",
     });
     return;
   }
@@ -38,6 +42,7 @@ export function passwordPolicyRefine(password: string, ctx: z.RefinementCtx): vo
     ctx.addIssue({
       code: "custom",
       message:
+        messages?.tooWeak ??
         "Senha fraca: use pelo menos 3 tipos (minúscula, maiúscula, número, símbolo).",
     });
   }

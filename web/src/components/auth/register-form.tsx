@@ -39,8 +39,8 @@ export function RegisterForm() {
       createRegisterSchema({
         emailInvalid: tVal("emailInvalid"),
         passwordMin: tVal("passwordMin"),
-        passwordLetters: tVal("passwordLetters"),
-        passwordDigits: tVal("passwordDigits"),
+        passwordWeak: tVal("passwordWeak"),
+        passwordCommon: tVal("passwordCommon"),
         nameRequired: tVal("nameRequired"),
         nameMax: tVal("nameMax"),
         termsRequired: tVal("termsRequired"),
@@ -63,6 +63,7 @@ export function RegisterForm() {
       email: data.email,
       password: data.password,
       name: data.name.trim(),
+      acceptTerms: true as const,
     };
     let res: Response;
     try {

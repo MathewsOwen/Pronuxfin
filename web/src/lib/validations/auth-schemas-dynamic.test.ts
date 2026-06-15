@@ -4,13 +4,15 @@ import { createRegisterSchema } from "./auth-schemas-dynamic";
 
 const msg = {
   emailInvalid: "E-mail inválido",
-  passwordMin: "Mínimo 8 caracteres",
-  passwordLetters: "Inclua letras",
-  passwordDigits: "Inclua números",
+  passwordMin: "Mínimo 12 caracteres",
+  passwordWeak: "Senha fraca",
+  passwordCommon: "Senha comum",
   nameRequired: "Nome obrigatório",
   nameMax: "Nome muito longo",
   termsRequired: "Aceite os termos",
 };
+
+const strongPassword = "Senha123!Segura";
 
 describe("createRegisterSchema", () => {
   const schema = createRegisterSchema(msg);
@@ -19,7 +21,7 @@ describe("createRegisterSchema", () => {
     const result = schema.safeParse({
       name: "Ana Silva",
       email: "ana@example.com",
-      password: "Senha123",
+      password: strongPassword,
       acceptTerms: false,
     });
     expect(result.success).toBe(false);
@@ -34,7 +36,7 @@ describe("createRegisterSchema", () => {
     const result = schema.safeParse({
       name: "Ana Silva",
       email: "ana@example.com",
-      password: "Senha123",
+      password: strongPassword,
       acceptTerms: true,
     });
     expect(result.success).toBe(true);
