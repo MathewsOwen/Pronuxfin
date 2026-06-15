@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -47,6 +48,7 @@ import { WebAuthnService } from './webauthn.service';
     WebAuthnService,
     LoginLockoutService,
     InternalApiGuard,
+    { provide: APP_GUARD, useClass: InternalApiGuard },
   ],
   exports: [AuthService, AuthMailerService, InternalApiGuard],
 })
