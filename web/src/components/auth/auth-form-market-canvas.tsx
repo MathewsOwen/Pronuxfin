@@ -8,8 +8,10 @@ import { useEffect, useMemo, useState } from "react";
 import { AuthMarketLogoChip } from "@/components/auth/auth-market-logo-chip";
 import type { AuthMarketLogo } from "@/lib/market/auth-market-logo-types";
 import {
+  authMarketLogoLabel,
   layoutAuthMarketLogoOrbits,
   logosForMarquee,
+  orbitNodePosition,
 } from "@/lib/market/auth-market-logo-types";
 
 const CHART_POINTS =
@@ -28,8 +30,9 @@ const CANDLES = [
   { x: 240, o: 20, c: 26, h: 16, l: 30, up: false },
 ] as const;
 
-const HUB_X = 50;
 const HUB_Y = 46;
+const ORBIT_ROTATION_SEC = 96;
+const ORBIT_SIZE = "min(300px, 46vw)";
 
 function LogoTickerMarquee({
   logos,
@@ -122,65 +125,79 @@ function LogoConstellation({
 }) {
   const t = useTranslations("AuthMarketCanvas");
   const orbit = useMemo(() => layoutAuthMarketLogoOrbits(logos), [logos]);
+  const spin = {
+    duration: ORBIT_ROTATION_SEC,
+    repeat: Infinity,
+    ease: "linear" as const,
+  };
 
   return (
-    <div className="absolute inset-0">
-      <svg viewBox="0 0 100 100" className="absolute inset-0 size-full" aria-hidden>
-        {orbit.map((node) => (
-          <motion.line
-            key={`line-${node.symbol}`}
-            x1={HUB_X}
-            y1={HUB_Y}
-            x2={node.x}
-            y2={node.y}
-            stroke="color-mix(in oklch, var(--primary) 22%, transparent)"
-            strokeWidth={0.12}
-            strokeDasharray="0.8 1.2"
-            vectorEffect="non-scaling-stroke"
-            initial={animate ? { pathLength: 0, opacity: 0 } : false}
-            animate={{ pathLength: 1, opacity: 0.45 }}
-            transition={{ duration: 1.6, delay: node.delay }}
-          />
-        ))}
-      </svg>
-
+    <div className="absolute inset-0 pointer-events-none">
       <div
-        className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5"
-        style={{ left: `${HUB_X}%`, top: `${HUB_Y}%` }}
+        className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5"
+        style={{ left: "50%", top: `${HUB_Y}%` }}
       >
-        <div className="rounded-2xl border border-primary/35 bg-primary/12 p-3 shadow-[0_0_40px_color-mix(in_oklch,var(--primary)_20%,transparent)] backdrop-blur-md">
-          <Building2 className="size-6 text-primary" aria-hidden />
+        <div className="rounded-2xl border border-primary/35 bg-primary/12 p-2.5 shadow-[0_0_40px_color-mix(in_oklch,var(--primary)_20%,transparent)] backdrop-blur-md">
+          <Building2 className="size-5 text-primary" aria-hidden />
         </div>
         <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary/80">
           {t("hubLabel")}
         </span>
       </div>
 
-      {orbit.map((node) => (
-        <motion.div
-          key={node.symbol}
-          className="absolute -translate-x-1/2 -translate-y-1/2"
-          style={{ left: `${node.x}%`, top: `${node.y}%` }}
-          initial={animate ? { opacity: 0, scale: 0.8 } : false}
-          animate={{
-            opacity: 1,
-            scale: 1,
-            y: animate ? [0, node.ring % 2 === 0 ? -4 : 4, 0] : 0,
-          }}
-          transition={{
-            opacity: { duration: 0.45, delay: node.delay },
-            scale: { duration: 0.45, delay: node.delay },
-            y: { duration: 4.5 + node.delay, repeat: Infinity, ease: "easeInOut" },
-          }}
-          title={node.shortName ?? node.symbol}
-        >
-          <AuthMarketLogoChip
-            symbol={node.symbol}
-            imageUrl={node.imageUrl}
-            size={42}
-          />
-        </motion.div>
-      ))}
+      <motion.div
+        className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2"
+        style={{ top: `${HUB_Y}%`, width: ORBIT_SIZE, height: ORBIT_SIZE }}
+        animate={animate ? { rotate: 360 } : undefined}
+        transition={spin}
+      >
+        <svg viewBox="0 0 100 100" className="absolute inset-0 size-full" aria-hidden>
+          {orbit.map((node) => {
+            const { x, y } = orbitNodePosition(node);
+            return (
+              <line
+                key={`line-${node.symbol}`}
+                x1={50}
+                y1={50}
+                x2={x}
+                y2={y}
+                stroke="color-mix(in oklch, var(--primary) 22%, transparent)"
+                strokeWidth={0.15}
+                strokeDasharray="0.6 1"
+                vectorEffect="non-scaling-stroke"
+              />
+            );
+          })}
+        </svg>
+
+        {orbit.map((node) => {
+          const { x, y } = orbitNodePosition(node);
+          return (
+            <motion.div
+              key={node.symbol}
+              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+              style={{ left: `${x}%`, top: `${y}%` }}
+              initial={animate ? { opacity: 0, scale: 0.85 } : false}
+              animate={
+                animate ? { opacity: 1, scale: 1, rotate: -360 } : { opacity: 1, scale: 1 }
+              }
+              transition={{
+                opacity: { duration: 0.5, delay: node.delay },
+                scale: { duration: 0.5, delay: node.delay },
+                rotate: spin,
+              }}
+            >
+              <AuthMarketLogoChip
+                symbol={node.symbol}
+                imageUrl={node.imageUrl}
+                label={authMarketLogoLabel(node)}
+                size={36}
+                interactive
+              />
+            </motion.div>
+          );
+        })}
+      </motion.div>
     </div>
   );
 }
@@ -202,7 +219,7 @@ export function AuthFormMarketCanvas() {
           setLogos(json.logos);
         }
       } catch {
-        /* cenário decorativo — falha silenciosa */
+        /* decorativo */
       }
     })();
     return () => {
@@ -221,7 +238,6 @@ export function AuthFormMarketCanvas() {
     <div
       className="pointer-events-none absolute inset-0 overflow-hidden bg-[oklch(0.052_0.026_262)]"
       data-auth-market-stage
-      aria-hidden
     >
       <div className="absolute inset-y-0 left-0 w-36 bg-gradient-to-r from-[color-mix(in_oklch,var(--primary)_6%,transparent)] to-transparent lg:w-52" />
       <div className="terminal-grid-bg absolute inset-0 opacity-[0.04]" />
@@ -249,9 +265,9 @@ export function AuthFormMarketCanvas() {
         ? [0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="absolute left-1/2 top-[46%] size-[min(520px,90vw)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/10"
-              style={{ margin: i * 28 }}
-              animate={{ opacity: [0.1, 0.26, 0.1], scale: [1, 1.02, 1] }}
+              className="absolute left-1/2 top-[46%] size-[min(300px,46vw)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/10"
+              style={{ margin: i * 18 }}
+              animate={{ opacity: [0.08, 0.22, 0.08], scale: [1, 1.02, 1] }}
               transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.8 }}
             />
           ))
@@ -264,8 +280,7 @@ export function AuthFormMarketCanvas() {
         </p>
       </div>
 
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_50%_at_50%_46%,transparent_0%,oklch(0.04_0.022_262/0.72)_100%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_38%_34%_at_50%_44%,oklch(0.05_0.02_262/0.65)_0%,transparent_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_48%_44%_at_50%_46%,transparent_0%,oklch(0.04_0.022_262/0.75)_100%)]" />
       <div className="noise-overlay absolute inset-0 opacity-[0.028]" />
     </div>
   );

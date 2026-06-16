@@ -67,6 +67,22 @@ export const AUTH_MARKET_CRYPTO = [
   { id: "chainlink", symbol: "LINK" },
 ] as const;
 
+/** Nomes para hover no cenário de auth (exterior). */
+export const INTL_DISPLAY_NAMES: Record<string, string> = {
+  AAPL: "Apple",
+  MSFT: "Microsoft",
+  NVDA: "NVIDIA",
+  AMZN: "Amazon",
+  GOOGL: "Alphabet",
+  META: "Meta",
+  TSLA: "Tesla",
+  JPM: "JPMorgan",
+  GS: "Goldman Sachs",
+  V: "Visa",
+  MA: "Mastercard",
+  "BRK-B": "Berkshire Hathaway",
+};
+
 export function fmpStockLogoUrl(symbol: string): string {
   return `https://financialmodelingprep.com/image-stock/${encodeURIComponent(symbol)}.png`;
 }

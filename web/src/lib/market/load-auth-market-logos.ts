@@ -4,6 +4,7 @@ import {
   ALL_AUTH_MARKET_BR_SYMBOLS,
   AUTH_MARKET_CRYPTO,
   AUTH_MARKET_INTL,
+  INTL_DISPLAY_NAMES,
   brapiIconFallbackUrl,
   categorizeBrSymbol,
   fmpStockLogoUrl,
@@ -79,6 +80,7 @@ async function fetchBrLogos(): Promise<AuthMarketLogo[]> {
 function intlLogos(): AuthMarketLogo[] {
   return AUTH_MARKET_INTL.map((symbol) => ({
     symbol,
+    shortName: INTL_DISPLAY_NAMES[symbol] ?? symbol,
     imageUrl: fmpStockLogoUrl(symbol),
     category: "intl" as const,
   }));
