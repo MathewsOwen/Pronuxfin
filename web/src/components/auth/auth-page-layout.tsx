@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { AuthBrandBackdrop } from "@/components/auth/auth-brand-backdrop";
 import { AuthBrandShowcase } from "@/components/auth/auth-brand-showcase";
-import { AuthFormAmbient } from "@/components/auth/auth-form-ambient";
+import { AuthFormStageCanvas } from "@/components/auth/auth-form-stage-canvas";
 import { AuthFormStage } from "@/components/auth/auth-form-stage";
 import { AuthMobileBrand } from "@/components/auth/auth-mobile-brand";
 import { AuthValueTile } from "@/components/auth/auth-value-tile";
@@ -29,7 +29,7 @@ export async function AuthBrandPanel() {
           <LanguageSwitcher className="hidden xl:block" />
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col justify-center gap-8 py-8 xl:gap-10">
+        <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto py-6 xl:gap-9 xl:py-8">
           <div className="max-w-lg">
             <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/80">
               {t("eyebrow")}
@@ -77,8 +77,8 @@ export async function AuthPageLayout({
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in oklch,var(--primary)_14%,transparent),transparent_50%)] lg:hidden" />
       <AuthBrandPanel />
-      <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-8">
-        <AuthFormAmbient />
+      <div className="relative isolate flex min-h-screen flex-1 flex-col items-center justify-center overflow-hidden px-4 py-10 sm:px-8">
+        <AuthFormStageCanvas />
         <div className="relative z-10 mb-8 flex w-full max-w-[440px] items-center justify-between lg:hidden">
           <AuthMobileBrand />
           <LanguageSwitcher />
