@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { AuthBrandCanvas } from "@/components/auth/auth-brand-canvas";
+import { AuthBrandBackdrop } from "@/components/auth/auth-brand-backdrop";
 import { AuthBrandShowcase } from "@/components/auth/auth-brand-showcase";
 import { AuthFormAmbient } from "@/components/auth/auth-form-ambient";
 import { AuthFormStage } from "@/components/auth/auth-form-stage";
@@ -16,7 +16,7 @@ export async function AuthBrandPanel() {
 
   return (
     <div className="relative hidden min-h-screen overflow-hidden border-r border-white/10 bg-[oklch(0.07_0.035_262)] lg:flex lg:w-[44%] lg:flex-col xl:w-[46%]">
-      <AuthBrandCanvas />
+      <AuthBrandBackdrop />
       <div className="relative z-10 flex min-h-0 flex-1 flex-col p-8 xl:p-12">
         <div className="flex shrink-0 items-center justify-between gap-4">
           <Link
