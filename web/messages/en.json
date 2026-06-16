@@ -648,6 +648,7 @@
   },
   "AuthMarketCanvas": {
     "liveTag": "Live market",
+    "hubLabel": "PRONUXFIN",
     "categoryBanks": "Banks & FIs",
     "categoryCrypto": "Crypto",
     "categoryBrEquity": "Brazil equities",
