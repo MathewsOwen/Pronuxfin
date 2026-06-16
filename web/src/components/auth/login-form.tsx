@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useAuthUpstreamWarmup } from "@/hooks/use-auth-upstream-warmup";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -39,6 +40,7 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const [apiError, setApiError] = useState<string | null>(null);
   const [webauthnChallengeId, setWebauthnChallengeId] = useState<string | null>(null);
+  const warmup = useAuthUpstreamWarmup();
   const justRegistered = searchParams.get("registered") === "1";
 
   const loginSchema = useMemo(
@@ -136,6 +138,11 @@ export function LoginForm() {
               className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-foreground"
             >
               {t("registeredNotice")}
+            </p>
+          ) : null}
+          {warmup === "warming" ? (
+            <p className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-sm text-muted-foreground">
+              {t("warmingHint")}
             </p>
           ) : null}
           {apiError ? (

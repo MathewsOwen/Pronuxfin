@@ -647,6 +647,7 @@
     "registerLink": "Criar conta grátis",
     "errorGeneric": "Erro ao entrar",
     "errorTimeout": "O serviço está demorando para responder. Verifique sua conexão e tente novamente.",
+    "warmingHint": "A preparar ligação segura com o servidor… (primeira vez pode levar até 1 minuto)",
     "registeredNotice": "Conta criada. Caso o e-mail já existisse, enviamos um aviso a ele. Entre abaixo para acessar.",
     "signalAccess": "Acesso seguro",
     "signalValidation": "Validação em camadas",
@@ -670,6 +671,8 @@
     "loginLink": "Entrar",
     "errorGeneric": "Erro ao cadastrar",
     "errorTimeout": "O serviço está demorando para responder. Verifique sua conexão e tente novamente.",
+    "warmingHint": "A preparar ligação segura com o servidor… (primeira vez pode levar até 1 minuto)",
+    "warmingSubmitWait": "A preparar servidor…",
     "signalActivation": "Ativação imediata",
     "signalWorkspace": "Painel pronto para explorar",
     "signalValidation": "Cadastro validado no servidor",
@@ -702,7 +705,8 @@
     "AUTH_PASSWORD_RESET_UNAVAILABLE": "A recuperação de senha ainda não está configurada neste servidor.",
     "AUTH_PASSWORD_RESET_INVALID": "Este link de redefinição é inválido ou já foi utilizado.",
     "AUTH_PASSWORD_RESET_EXPIRED": "Este link expirou. Solicite uma nova redefinição.",
-    "VALIDATION_FAILED": "Alguns campos não foram aceitos pelo servidor. Confira e tente de novo."
+    "VALIDATION_FAILED": "Alguns campos não foram aceitos pelo servidor. Confira e tente de novo.",
+    "UPSTREAM_TIMEOUT": "A API está acordando (primeira ligação). Aguarde ~1 minuto e clique em Cadastrar de novo."
   },
   "InstitutionalRibbon": {
     "eyebrow": "Referência institucional",

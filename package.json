@@ -36,6 +36,7 @@
     "production:probe": "node scripts/probe-production-readiness.mjs",
     "production:probe-signing": "node scripts/probe-internal-api-signing.mjs",
     "deploy:status": "node scripts/deploy-status.mjs",
+    "deploy:finish": "node scripts/deploy-finish.mjs",
     "production:verify": "node scripts/verify-production-config.mjs"
   },
   "devDependencies": {

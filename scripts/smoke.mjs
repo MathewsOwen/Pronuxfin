@@ -6,7 +6,11 @@
  */
 
 const WEB_BASE = (process.env.WEB_BASE ?? "http://127.0.0.1:3000").replace(/\/+$/, "");
-const API_BASE = (process.env.API_BASE ?? "").replace(/\/+$/, "");
+const DEFAULT_PROD_API =
+  WEB_BASE.includes("pronuxfin.com.br") || WEB_BASE.includes("vercel.app")
+    ? "https://pronuxfin.onrender.com"
+    : "";
+const API_BASE = (process.env.API_BASE ?? DEFAULT_PROD_API).replace(/\/+$/, "");
 const PROBE_SECRET = process.env.HEALTH_PROBE_SECRET?.trim() ?? "";
 const STRICT = process.env.SMOKE_STRICT === "1" || process.env.CI === "true";
 const EXPECT_SMTP_RESET = process.env.EXPECT_PASSWORD_RESET === "1";

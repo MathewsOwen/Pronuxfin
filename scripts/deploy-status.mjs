@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Checklist interativo do deploy — imprime estado remoto + próximos passos.
+ * Resumo rápido do deploy — para verificação completa use: npm run deploy:finish
  * Usage: npm run deploy:status
  */
 
@@ -61,27 +61,20 @@ if (quotes.json?.results) {
   console.log(`○ Quotes — BR: ${n} ações, crypto: ${crypto}`);
 }
 
-console.log("\n--- Onde estamos no guia ---\n");
+console.log("\nVerificação completa: npm run deploy:finish\n");
 
 const part4Done = webReady.pass;
-const part6Done = true; // www resolves to Vercel
-const part7Done = false; // api.pronuxfin.com.br DNS
-
-console.log(`Parte 4 (Vercel env + ready):  ${part4Done ? "FEITA" : "PENDENTE ← você está aqui"}`);
-console.log(`Parte 5 (CORS / login):         ${part4Done ? "testar login" : "depois do ready"}`);
+console.log(`Parte 4 (Vercel env + ready):  ${part4Done ? "FEITA" : "PENDENTE"}`);
+console.log(`Parte 5 (CORS / login):         rode deploy:finish`);
 console.log(`Parte 6 (www no domínio):       FEITA (${SITE})`);
-console.log(`Parte 7 (DNS api.*):            PENDENTE (use ${API} na Vercel por agora)`);
-console.log(`Parte 8 (smoke final):          ${part4Done ? "rodar npm run production:probe" : "depois do ready"}`);
+console.log(`Parte 7 (DNS api.*):            OPCIONAL (${API})`);
+console.log(`Parte 8 (SMTP + smoke):         rode deploy:finish`);
 
 if (!part4Done) {
-  console.log("\n--- Ação agora (Vercel, ~10 min) ---\n");
+  console.log("\n--- Ação rápida ---\n");
   console.log("1. npm run production:print-vercel");
-  console.log("2. Vercel → Settings → Environment Variables → Production");
-  console.log("3. Confirme API_URL=" + API);
-  console.log("4. DATABASE_URL = pooler :6543 (npm run production:test-db valida local)");
-  console.log("5. JWT_PUBLIC_KEY + INTERNAL_API_SECRET iguais ao .env.production.generated");
-  console.log("6. Deployments → Redeploy (Production)");
-  console.log("7. curl " + SITE + "/api/health/ready → ok:true\n");
+  console.log("2. Vercel → Environment Variables → Production → Redeploy");
+  console.log("3. npm run deploy:finish\n");
 }
 
 process.exit(part4Done ? 0 : 1);

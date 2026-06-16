@@ -61,6 +61,7 @@ const brapiExtras = [
   "BRAPI_PARALLEL_REQUESTS=3",
   "PRONUX_LIVE_DESK_BR_MAX=36",
   "AUTH_UPSTREAM_TIMEOUT_MS=55000",
+  "NEXT_PUBLIC_API_WARMUP_URL=https://pronuxfin.onrender.com",
 ];
 for (const line of brapiExtras) {
   const key = line.split("=")[0];

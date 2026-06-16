@@ -13,6 +13,7 @@ export const AUTH_API_CODES = [
   "AUTH_PASSWORD_RESET_INVALID",
   "AUTH_PASSWORD_RESET_EXPIRED",
   "VALIDATION_FAILED",
+  "UPSTREAM_TIMEOUT",
 ] as const;
 
 export type AuthApiCode = (typeof AUTH_API_CODES)[number];

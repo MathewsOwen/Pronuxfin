@@ -647,6 +647,7 @@
     "registerLink": "Create free account",
     "errorGeneric": "Could not sign in",
     "errorTimeout": "The service is taking too long to respond. Check your connection and try again.",
+    "warmingHint": "Preparing a secure connection to the server… (first visit may take up to 1 minute)",
     "registeredNotice": "Account created. If the email already existed, we emailed a heads-up to it. Sign in below to continue.",
     "signalAccess": "Secure access",
     "signalValidation": "Layered validation",
@@ -670,6 +671,8 @@
     "loginLink": "Sign in",
     "errorGeneric": "Could not register",
     "errorTimeout": "The service is taking too long to respond. Check your connection and try again.",
+    "warmingHint": "Preparing a secure connection to the server… (first visit may take up to 1 minute)",
+    "warmingSubmitWait": "Preparing server…",
     "signalActivation": "Immediate activation",
     "signalWorkspace": "Dashboard ready to explore",
     "signalValidation": "Server-validated onboarding",
@@ -702,7 +705,8 @@
     "AUTH_PASSWORD_RESET_UNAVAILABLE": "Password recovery is not configured on this server yet.",
     "AUTH_PASSWORD_RESET_INVALID": "This reset link is invalid or was already used.",
     "AUTH_PASSWORD_RESET_EXPIRED": "This reset link has expired. Request a new one.",
-    "VALIDATION_FAILED": "The server rejected some fields. Review them and try again."
+    "VALIDATION_FAILED": "The server rejected some fields. Review them and try again.",
+    "UPSTREAM_TIMEOUT": "The API is waking up (first request). Wait about a minute and try again."
   },
   "InstitutionalRibbon": {
     "eyebrow": "Institutional framing",

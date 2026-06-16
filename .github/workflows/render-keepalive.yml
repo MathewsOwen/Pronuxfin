@@ -1,0 +1,19 @@
+# Mantém a API Nest no Render acordada (plano Free adormece após ~15 min).
+# No Starter este workflow é opcional — pode desactivar se preferir.
+name: Render keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping /health/live
+        run: |
+          curl -fsS --max-time 90 "https://pronuxfin.onrender.com/health/live"
+          echo ""
+          echo "Render API ping OK"
