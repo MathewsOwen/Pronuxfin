@@ -25,6 +25,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "icons.brapi.dev",
       },
+      {
+        protocol: "https",
+        hostname: "financialmodelingprep.com",
+      },
     ],
   },
   async headers() {
