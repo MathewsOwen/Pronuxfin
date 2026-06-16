@@ -26,6 +26,7 @@ import {
 } from "@/lib/validations/auth";
 import { LoginWebAuthnStep } from "@/components/auth/login-webauthn-step";
 import { apiMutation } from "@/lib/http/api-mutation-fetch";
+import { AUTH_CLIENT_TIMEOUT_MS } from "@/lib/http/auth-timeout";
 import { safeInternalRedirectPath } from "@/lib/http/safe-redirect-path";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +70,7 @@ export function LoginForm() {
           ...data,
           locale: locale === "en" ? "en" : "pt-BR",
         }),
-        signal: AbortSignal.timeout(16_000),
+        signal: AbortSignal.timeout(AUTH_CLIENT_TIMEOUT_MS),
       });
     } catch {
       setApiError(t("errorTimeout"));

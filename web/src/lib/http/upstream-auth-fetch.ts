@@ -1,5 +1,8 @@
 import { readTrimmedEnv } from "@/lib/env/server-env";
 import {
+  resolveAuthUpstreamTimeoutMs,
+} from "@/lib/http/auth-timeout";
+import {
   FetchTimeoutError,
   fetchWithTimeout,
 } from "@/lib/http/fetch-with-timeout";
@@ -8,8 +11,6 @@ import { internalApiHeaders } from "@/lib/http/internal-api-headers";
 export function apiBaseUrl(): string {
   return readTrimmedEnv("API_URL").replace(/\/+$/, "");
 }
-
-const DEFAULT_AUTH_TIMEOUT_MS = 12_000;
 
 /** Marker error so callers can map an upstream timeout to a clear 504. */
 export class AuthUpstreamTimeoutError extends Error {
@@ -20,8 +21,7 @@ export class AuthUpstreamTimeoutError extends Error {
 }
 
 function authUpstreamTimeoutMs(): number {
-  const raw = Number(process.env.AUTH_UPSTREAM_TIMEOUT_MS);
-  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_AUTH_TIMEOUT_MS;
+  return resolveAuthUpstreamTimeoutMs(apiBaseUrl() || readTrimmedEnv("API_URL"));
 }
 
 export async function fetchAuthUpstream(

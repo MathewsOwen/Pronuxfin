@@ -11,6 +11,10 @@ import {
 import { assertAuthEntryAllowed } from "@/lib/security/mutation-guard";
 import { authRegisterBodySchema } from "@/lib/validations/auth-server-schemas";
 
+/** Render free tier cold start pode levar ~50s; Pro Vercel permite 60s. */
+export const maxDuration = 60;
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
   const entryBlocked = assertAuthEntryAllowed(req);
   if (entryBlocked) return attachRequestId(req, entryBlocked);

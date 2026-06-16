@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/navigation";
 import { isAuthApiCode } from "@/lib/auth/api-error-codes";
 import { apiMutation } from "@/lib/http/api-mutation-fetch";
+import { AUTH_CLIENT_TIMEOUT_MS } from "@/lib/http/auth-timeout";
 import {
   createRegisterSchema,
   type RegisterValues,
@@ -71,7 +72,7 @@ export function RegisterForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(16_000),
+        signal: AbortSignal.timeout(AUTH_CLIENT_TIMEOUT_MS),
       });
     } catch {
       setApiError(t("errorTimeout"));

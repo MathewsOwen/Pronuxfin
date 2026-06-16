@@ -21,6 +21,7 @@ import { attachRequestId } from "@/lib/http/request-id";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 async function rotateRefreshToken(
   refresh: string,

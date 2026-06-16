@@ -10,6 +10,9 @@ import {
 import { assertAuthEntryAllowed } from "@/lib/security/mutation-guard";
 import { authResetPasswordBodySchema } from "@/lib/validations/auth-server-schemas";
 
+export const maxDuration = 60;
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
   const entryBlocked = assertAuthEntryAllowed(req);
   if (entryBlocked) return attachRequestId(req, entryBlocked);

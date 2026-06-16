@@ -31,8 +31,10 @@
     "production:setup": "node scripts/setup-pronuxfin-production.mjs",
     "production:patch-env": "node scripts/patch-production-env-file.mjs",
     "production:print-vercel": "node scripts/print-vercel-env-block.mjs",
+    "production:print-render": "node scripts/print-render-env-block.mjs",
     "production:test-db": "node scripts/test-database-url.mjs .env.production.generated",
     "production:probe": "node scripts/probe-production-readiness.mjs",
+    "production:probe-signing": "node scripts/probe-internal-api-signing.mjs",
     "deploy:status": "node scripts/deploy-status.mjs",
     "production:verify": "node scripts/verify-production-config.mjs"
   },
