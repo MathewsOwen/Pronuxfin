@@ -1,8 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { AuthBrandCanvas } from "@/components/auth/auth-brand-canvas";
+import { AuthBrandShowcase } from "@/components/auth/auth-brand-showcase";
 import { AuthFormAmbient } from "@/components/auth/auth-form-ambient";
 import { AuthFormStage } from "@/components/auth/auth-form-stage";
 import { AuthMobileBrand } from "@/components/auth/auth-mobile-brand";
+import { AuthValueTile } from "@/components/auth/auth-value-tile";
 import { PronuxFinLogo } from "@/components/brand/pronux-fin-logo";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { Link } from "@/i18n/navigation";
@@ -13,10 +15,10 @@ export async function AuthBrandPanel() {
   const tNav = await getTranslations("Nav");
 
   return (
-    <div className="relative hidden overflow-hidden border-r border-white/10 bg-[oklch(0.07_0.035_262)] lg:flex lg:w-[44%] lg:flex-col lg:justify-between xl:w-[46%]">
+    <div className="relative hidden min-h-screen overflow-hidden border-r border-white/10 bg-[oklch(0.07_0.035_262)] lg:flex lg:w-[44%] lg:flex-col xl:w-[46%]">
       <AuthBrandCanvas />
-      <div className="relative z-10 flex flex-1 flex-col justify-between p-10 xl:p-12">
-        <div className="flex items-center justify-between gap-4">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col p-8 xl:p-12">
+        <div className="flex shrink-0 items-center justify-between gap-4">
           <Link
             href="/"
             className="inline-flex w-fit text-foreground"
@@ -27,26 +29,34 @@ export async function AuthBrandPanel() {
           <LanguageSwitcher className="hidden xl:block" />
         </div>
 
-        <div className="my-auto max-w-lg pt-8">
-          <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/80">
-            {t("eyebrow")}
-          </p>
-          <h2 className="font-heading mt-4 text-4xl font-semibold leading-[1.08] tracking-tight xl:text-[2.75rem]">
-            {t("headlineLead")}{" "}
-            <span className="text-gradient-brand">{t("headlineAccent")}</span>
-          </h2>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
-            {t("subtitle")}
-          </p>
+        <div className="flex min-h-0 flex-1 flex-col justify-center gap-8 py-8 xl:gap-10">
+          <div className="max-w-lg">
+            <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-primary/80">
+              {t("eyebrow")}
+            </p>
+            <h2 className="font-heading mt-4 text-3xl font-semibold leading-[1.08] tracking-tight xl:text-[2.75rem]">
+              {t("headlineLead")}{" "}
+              <span className="text-gradient-brand">{t("headlineAccent")}</span>
+            </h2>
+            <p className="mt-5 max-w-md text-base leading-relaxed text-muted-foreground">
+              {t("subtitle")}
+            </p>
+          </div>
 
-          <ul className="mt-10 grid gap-3 sm:grid-cols-3">
+          <ul className="grid max-w-lg gap-3 lg:grid-cols-1 xl:grid-cols-3">
             <AuthValueTile title={t("tileMarketsTitle")} value={t("tileMarketsValue")} />
             <AuthValueTile title={t("tileIntelTitle")} value={t("tileIntelValue")} />
             <AuthValueTile title={t("tileControlTitle")} value={t("tileControlValue")} />
           </ul>
+
+          <div className="max-w-lg">
+            <AuthBrandShowcase />
+          </div>
         </div>
 
-        <p className="text-xs leading-relaxed text-muted-foreground/90">{t("trustLine")}</p>
+        <p className="shrink-0 text-xs leading-relaxed text-muted-foreground/90">
+          {t("trustLine")}
+        </p>
       </div>
     </div>
   );
@@ -69,7 +79,7 @@ export async function AuthPageLayout({
       <AuthBrandPanel />
       <div className="relative flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-8">
         <AuthFormAmbient />
-        <div className="mb-8 flex w-full max-w-[440px] items-center justify-between lg:hidden">
+        <div className="relative z-10 mb-8 flex w-full max-w-[440px] items-center justify-between lg:hidden">
           <AuthMobileBrand />
           <LanguageSwitcher />
         </div>
@@ -81,14 +91,5 @@ export async function AuthPageLayout({
         </div>
       </div>
     </div>
-  );
-}
-
-function AuthValueTile({ title, value }: { title: string; value: string }) {
-  return (
-    <li className="list-none rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3.5 shadow-[inset_0_1px_0_oklch(1_0_0/0.05)]">
-      <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-primary/75">{title}</p>
-      <p className="mt-1.5 text-sm font-medium leading-snug text-foreground">{value}</p>
-    </li>
   );
 }
