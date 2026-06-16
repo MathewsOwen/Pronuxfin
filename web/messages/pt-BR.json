@@ -648,13 +648,10 @@
   },
   "AuthMarketCanvas": {
     "liveTag": "Mercado ao vivo",
-    "hubLabel": "PRONUXFIN",
-    "nodeBrDesk": "Bolsa BR",
-    "nodeCrypto": "Cripto",
-    "nodeDossier": "Dossiê",
-    "nodeAi": "IA",
-    "nodeBanks": "Bancos & IFs",
-    "nodePortfolio": "Carteira",
+    "categoryBanks": "Bancos & IFs",
+    "categoryCrypto": "Cripto",
+    "categoryBrEquity": "Bolsa BR",
+    "categoryIntl": "Exterior",
     "decorativeNote": "Logos oficiais · BRAPI · CoinGecko · FMP"
   },
   "Login": {
