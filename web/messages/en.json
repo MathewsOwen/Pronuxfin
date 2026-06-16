@@ -646,6 +646,17 @@
     "marquee3": "Simulated portfolio",
     "marquee4": "Curated news"
   },
+  "AuthMarketCanvas": {
+    "liveTag": "Live market",
+    "hubLabel": "PRONUXFIN",
+    "nodeBrDesk": "Brazil desk",
+    "nodeCrypto": "Crypto",
+    "nodeDossier": "Dossier",
+    "nodeAi": "AI",
+    "nodeBanks": "Banks & FIs",
+    "nodePortfolio": "Portfolio",
+    "decorativeNote": "Illustrative visual · not a quote feed"
+  },
   "Login": {
     "eyebrow": "Welcome back",
     "title": "Sign in",

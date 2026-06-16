@@ -646,6 +646,17 @@
     "marquee3": "Carteira simulada",
     "marquee4": "Notícias curadas"
   },
+  "AuthMarketCanvas": {
+    "liveTag": "Mercado ao vivo",
+    "hubLabel": "PRONUXFIN",
+    "nodeBrDesk": "Bolsa BR",
+    "nodeCrypto": "Cripto",
+    "nodeDossier": "Dossiê",
+    "nodeAi": "IA",
+    "nodeBanks": "Bancos & IFs",
+    "nodePortfolio": "Carteira",
+    "decorativeNote": "Visual ilustrativo · não é cotação"
+  },
   "Login": {
     "eyebrow": "Bem-vindo de volta",
     "title": "Entrar",

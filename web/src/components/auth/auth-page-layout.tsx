@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { AuthBrandBackdrop } from "@/components/auth/auth-brand-backdrop";
 import { AuthBrandShowcase } from "@/components/auth/auth-brand-showcase";
-import { AuthFormStageCanvas } from "@/components/auth/auth-form-stage-canvas";
+import { AuthFormMarketCanvas } from "@/components/auth/auth-form-market-canvas";
 import { AuthFormStage } from "@/components/auth/auth-form-stage";
 import { AuthMobileBrand } from "@/components/auth/auth-mobile-brand";
 import { AuthValueTile } from "@/components/auth/auth-value-tile";
@@ -78,7 +78,7 @@ export async function AuthPageLayout({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in oklch,var(--primary)_14%,transparent),transparent_50%)] lg:hidden" />
       <AuthBrandPanel />
       <div className="relative isolate flex min-h-screen flex-1 flex-col items-center justify-center overflow-hidden px-4 py-10 sm:px-8">
-        <AuthFormStageCanvas />
+        <AuthFormMarketCanvas />
         <div className="relative z-10 mb-8 flex w-full max-w-[440px] items-center justify-between lg:hidden">
           <AuthMobileBrand />
           <LanguageSwitcher />
