@@ -12,11 +12,14 @@ export async function warmAuthUpstream(): Promise<{
 
   const timeoutMs = resolveAuthUpstreamTimeoutMs(base);
   try {
-    const res = await fetchWithTimeout(`${base}/health/live`, {
-      cache: "no-store",
-      headers: { Accept: "application/json" },
-      timeoutMs,
-    });
+    const res = await fetchWithTimeout(
+      `${base}/health/live`,
+      {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      },
+      { timeoutMs, label: "auth-warmup" },
+    );
     if (!res.ok) return { ok: false, uptimeSec: null };
     const body = (await res.json().catch(() => null)) as {
       uptime_sec?: number;
