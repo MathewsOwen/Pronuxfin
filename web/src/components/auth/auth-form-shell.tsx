@@ -30,6 +30,7 @@ export function AuthFormShell({
 }: Props) {
   return (
     <div
+      data-auth-form-shell
       className={cn(
         "group relative overflow-hidden rounded-2xl p-px",
         "shadow-[0_32px_100px_oklch(0_0_0/0.45)]",

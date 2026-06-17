@@ -79,14 +79,14 @@ export async function AuthPageLayout({
       <AuthBrandPanel />
       <div className="relative isolate flex min-h-screen flex-1 flex-col items-center justify-center overflow-hidden px-4 py-10 sm:px-8">
         <AuthFormMarketCanvas />
-        <div className="relative z-10 mb-8 flex w-full max-w-[440px] items-center justify-between lg:hidden">
+        <div className="pointer-events-none relative z-10 mb-8 flex w-full max-w-[440px] items-center justify-between lg:hidden">
           <AuthMobileBrand />
           <LanguageSwitcher />
         </div>
-        <p className="relative z-10 mb-5 w-full max-w-[440px] text-center text-xs text-muted-foreground lg:hidden">
+        <p className="pointer-events-none relative z-10 mb-5 w-full max-w-[440px] text-center text-xs text-muted-foreground lg:hidden">
           {t("trustLine")}
         </p>
-        <div className="relative z-10 w-full">
+        <div className="pointer-events-none relative z-10 w-full">
           <AuthFormStage>{children}</AuthFormStage>
         </div>
       </div>

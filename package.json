@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev:web": "npm run dev --prefix web",
+    "dev:web:clean": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-web.ps1",
     "dev:api": "npm run start:dev --prefix backend",
     "dev": "concurrently -n api,web -c blue,green \"npm run dev:api\" \"npm run dev:web\"",
     "db:up": "docker compose up -d",

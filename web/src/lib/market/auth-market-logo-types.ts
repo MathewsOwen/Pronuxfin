@@ -1,5 +1,5 @@
 import type { AuthMarketLogoCategory } from "@/lib/market/auth-market-logo-universe";
-import { INTL_DISPLAY_NAMES } from "@/lib/market/auth-market-logo-universe";
+import { BR_DISPLAY_NAMES, INTL_DISPLAY_NAMES } from "@/lib/market/auth-market-logo-universe";
 
 export type AuthMarketLogo = {
   symbol: string;
@@ -19,7 +19,12 @@ export type AuthMarketOrbitNode = AuthMarketLogo & {
 export function authMarketLogoLabel(logo: AuthMarketLogo): string {
   const name = logo.shortName?.trim();
   if (name && name !== logo.symbol) return name;
-  return INTL_DISPLAY_NAMES[logo.symbol] ?? name ?? logo.symbol;
+  return (
+    BR_DISPLAY_NAMES[logo.symbol] ??
+    INTL_DISPLAY_NAMES[logo.symbol] ??
+    name ??
+    logo.symbol
+  );
 }
 
 export function logosForMarquee(
@@ -37,16 +42,27 @@ type OrbitRing = {
   phase: number;
 };
 
-/** Anéis menores — bancos só no marquee. */
+const ORBIT_MAX_LOGOS_PER_RING = 5;
+
+/** Amostra logos uniformemente para não lotar o anel. */
+function sampleOrbitLogos(logos: AuthMarketLogo[], max: number): AuthMarketLogo[] {
+  if (logos.length <= max) return logos;
+  return Array.from({ length: max }, (_, i) => {
+    const index = Math.round((i * (logos.length - 1)) / (max - 1));
+    return logos[index]!;
+  });
+}
+
+/** Anéis espaçados — bancos só no marquee. */
 export function layoutAuthMarketLogoOrbits(logos: AuthMarketLogo[]): AuthMarketOrbitNode[] {
   const br = logos.filter((l) => l.category === "br-equity");
   const crypto = logos.filter((l) => l.category === "crypto");
   const intl = logos.filter((l) => l.category === "intl");
 
   const rings: OrbitRing[] = [
-    { logos: br, rx: 28, ry: 24, phase: 0 },
-    { logos: crypto, rx: 31, ry: 26, phase: 0.25 },
-    { logos: intl, rx: 31, ry: 26, phase: Math.PI + 0.25 },
+    { logos: sampleOrbitLogos(br, ORBIT_MAX_LOGOS_PER_RING), rx: 38, ry: 34, phase: 0 },
+    { logos: sampleOrbitLogos(crypto, 5), rx: 44, ry: 40, phase: 0.35 },
+    { logos: sampleOrbitLogos(intl, ORBIT_MAX_LOGOS_PER_RING), rx: 48, ry: 44, phase: Math.PI + 0.2 },
   ];
 
   return rings.flatMap((ring, ringIndex) => {

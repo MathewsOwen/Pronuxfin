@@ -15,11 +15,7 @@ const SiteSingularityBackdrop = dynamic(
 );
 
 function useLgViewport() {
-  const [lg, setLg] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(min-width: 1024px)").matches,
-  );
+  const [lg, setLg] = useState(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");

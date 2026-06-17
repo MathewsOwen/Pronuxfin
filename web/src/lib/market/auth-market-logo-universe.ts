@@ -67,6 +67,33 @@ export const AUTH_MARKET_CRYPTO = [
   { id: "chainlink", symbol: "LINK" },
 ] as const;
 
+/** Nomes legíveis para hover (BR — fallback quando BRAPI devolve só o ticker). */
+export const BR_DISPLAY_NAMES: Record<string, string> = {
+  ITUB4: "Itaú Unibanco",
+  BBDC4: "Bradesco",
+  BBAS3: "Banco do Brasil",
+  SANB11: "Santander Brasil",
+  BPAC11: "BTG Pactual",
+  ABCB4: "Banco ABC",
+  BRSR6: "Banrisul",
+  BPAN4: "Banpará",
+  CXSE3: "Caixa Seguridade",
+  PSSA3: "Porto Seguro",
+  PETR4: "Petrobras",
+  VALE3: "Vale",
+  WEGE3: "WEG",
+  ABEV3: "Ambev",
+  MGLU3: "Magazine Luiza",
+  RENT3: "Localiza",
+  ELET3: "Eletrobras",
+  EMBR3: "Embraer",
+  SUZB3: "Suzano",
+  RADL3: "Raia Drogasil",
+  XPBR31: "XP Inc.",
+  BOVA11: "iShares Ibovespa",
+  B3SA3: "B3",
+};
+
 /** Nomes para hover no cenário de auth (exterior). */
 export const INTL_DISPLAY_NAMES: Record<string, string> = {
   AAPL: "Apple",
