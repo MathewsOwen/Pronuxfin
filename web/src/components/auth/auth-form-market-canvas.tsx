@@ -30,7 +30,9 @@ const CANDLES = [
   { x: 240, o: 20, c: 26, h: 16, l: 30, up: false },
 ] as const;
 
-const HUB_Y = 46;
+/** Centro do anel — abaixo e à direita do formulário (marcação do utilizador). */
+const ORBIT_CENTER_X = 58;
+const ORBIT_CENTER_Y = 70;
 const ORBIT_ROTATION_SEC = 96;
 const ORBIT_SIZE = "min(300px, 46vw)";
 
@@ -135,7 +137,7 @@ function LogoConstellation({
     <div className="absolute inset-0 pointer-events-none">
       <div
         className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1.5"
-        style={{ left: "50%", top: `${HUB_Y}%` }}
+        style={{ left: `${ORBIT_CENTER_X}%`, top: `${ORBIT_CENTER_Y}%` }}
       >
         <div className="rounded-2xl border border-primary/35 bg-primary/12 p-2.5 shadow-[0_0_40px_color-mix(in_oklch,var(--primary)_20%,transparent)] backdrop-blur-md">
           <Building2 className="size-5 text-primary" aria-hidden />
@@ -146,8 +148,13 @@ function LogoConstellation({
       </div>
 
       <motion.div
-        className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2"
-        style={{ top: `${HUB_Y}%`, width: ORBIT_SIZE, height: ORBIT_SIZE }}
+        className="absolute -translate-x-1/2 -translate-y-1/2"
+        style={{
+          left: `${ORBIT_CENTER_X}%`,
+          top: `${ORBIT_CENTER_Y}%`,
+          width: ORBIT_SIZE,
+          height: ORBIT_SIZE,
+        }}
         animate={animate ? { rotate: 360 } : undefined}
         transition={spin}
       >
@@ -265,8 +272,12 @@ export function AuthFormMarketCanvas() {
         ? [0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="absolute left-1/2 top-[46%] size-[min(300px,46vw)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/10"
-              style={{ margin: i * 18 }}
+              className="absolute size-[min(300px,46vw)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/10"
+              style={{
+                left: `${ORBIT_CENTER_X}%`,
+                top: `${ORBIT_CENTER_Y}%`,
+                margin: i * 18,
+              }}
               animate={{ opacity: [0.08, 0.22, 0.08], scale: [1, 1.02, 1] }}
               transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.8 }}
             />
@@ -280,7 +291,7 @@ export function AuthFormMarketCanvas() {
         </p>
       </div>
 
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_48%_44%_at_50%_46%,transparent_0%,oklch(0.04_0.022_262/0.75)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_42%_36%_at_50%_40%,transparent_0%,oklch(0.04_0.022_262/0.72)_100%)]" />
       <div className="noise-overlay absolute inset-0 opacity-[0.028]" />
     </div>
   );
