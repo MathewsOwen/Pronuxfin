@@ -39,3 +39,30 @@ export function isSupabasePoolerUrl(url) {
   const raw = url?.trim() ?? "";
   return /pooler\.supabase\.com:6543/i.test(raw) || /[?&]pgbouncer=true/i.test(raw);
 }
+
+/**
+ * Converte pooler Supabase (6543) → direct (5432) para `prisma migrate deploy`.
+ * @param {string} poolerUrl
+ * @returns {string | null}
+ */
+export function supabasePoolerToDirectUrl(poolerUrl) {
+  const raw = poolerUrl?.trim();
+  if (!raw) return null;
+
+  try {
+    const u = new URL(raw.replace(/^postgresql:\/\//, "http://"));
+    const userMatch = u.username.match(/^postgres\.([a-z0-9]+)$/i);
+    if (!userMatch) return null;
+
+    const projectRef = userMatch[1];
+    const password = encodeURIComponent(decodeURIComponent(u.password));
+    const database = u.pathname.replace(/^\//, "") || "postgres";
+    const params = new URLSearchParams(u.search);
+    params.delete("pgbouncer");
+    if (!params.has("sslmode")) params.set("sslmode", "require");
+    const qs = params.toString();
+    return `postgresql://postgres:${password}@db.${projectRef}.supabase.co:5432/${database}?${qs}`;
+  } catch {
+    return null;
+  }
+}
