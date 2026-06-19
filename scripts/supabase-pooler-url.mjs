@@ -41,7 +41,34 @@ export function isSupabasePoolerUrl(url) {
 }
 
 /**
- * Converte pooler Supabase (6543) → direct (5432) para `prisma migrate deploy`.
+ * Converte pooler transaction (6543) → session pooler (5432) para `prisma migrate deploy`.
+ * A Vercel não alcança `db.*.supabase.co`; o session pooler no mesmo host funciona.
+ * @param {string} poolerUrl
+ * @returns {string | null}
+ */
+export function supabasePoolerToSessionMigrateUrl(poolerUrl) {
+  const raw = poolerUrl?.trim();
+  if (!raw) return null;
+
+  try {
+    const u = new URL(raw.replace(/^postgresql:\/\//, "http://"));
+    if (!/pooler\.supabase\.com$/i.test(u.hostname)) return null;
+    if (!/^postgres\.[a-z0-9]+$/i.test(u.username)) return null;
+
+    const password = u.password;
+    const database = u.pathname.replace(/^\//, "") || "postgres";
+    const params = new URLSearchParams(u.search);
+    params.delete("pgbouncer");
+    if (!params.has("sslmode")) params.set("sslmode", "require");
+    const qs = params.toString();
+    return `postgresql://${u.username}:${password}@${u.hostname}:5432/${database}?${qs}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Converte pooler (6543) → URI directa `db.*.supabase.co:5432` (local/CI com rede estável).
  * @param {string} poolerUrl
  * @returns {string | null}
  */

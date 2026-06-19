@@ -8,6 +8,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  isSupabasePoolerUrl,
+  supabasePoolerToSessionMigrateUrl,
+} from "./supabase-pooler-url.mjs";
+
 const root = resolve(fileURLToPath(new URL(".", import.meta.url)), "..");
 const envPath = resolve(root, ".env.production.generated");
 
@@ -74,7 +79,10 @@ run("backend migrate deploy", resolve(root, "backend"), {
 });
 
 const webDb = webEnv.DATABASE_URL?.trim();
-const webDirect = webEnv.DIRECT_URL?.trim() || backendDb;
+let webDirect = webEnv.DIRECT_URL?.trim() || backendDb;
+if (isSupabasePoolerUrl(webDb) && !webEnv.DIRECT_URL?.trim()) {
+  webDirect = supabasePoolerToSessionMigrateUrl(webDb) ?? backendDb;
+}
 if (!webDb) {
   console.error("FAIL: DATABASE_URL do bloco Vercel ausente.");
   process.exit(1);

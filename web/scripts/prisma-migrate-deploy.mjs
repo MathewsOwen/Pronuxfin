@@ -1,16 +1,25 @@
 #!/usr/bin/env node
 /**
- * Prisma migrate deploy for Vercel / CI-adjacent builds.
- * Supabase pooler (:6543) cannot run migrations — uses DIRECT_URL or derives :5432 from pooler.
+ * Prisma migrate deploy — optional on Vercel (use npm run migrate:production locally).
+ * Supabase: transaction pooler :6543 is runtime-only; migrate uses session pooler :5432 or DIRECT_URL.
  */
 import { spawnSync } from "node:child_process";
 import {
   isSupabasePoolerUrl,
   supabasePoolerToDirectUrl,
+  supabasePoolerToSessionMigrateUrl,
 } from "../../scripts/supabase-pooler-url.mjs";
 
 const databaseUrl = process.env.DATABASE_URL?.trim() ?? "";
 let directUrl = process.env.DIRECT_URL?.trim() ?? "";
+
+if (process.env.VERCEL === "1" && process.env.PRISMA_MIGRATE_ON_BUILD !== "1") {
+  console.log(
+    "Skipping prisma migrate on Vercel (runtime uses pooler; run npm run migrate:production when schema changes).",
+  );
+  console.log("Set PRISMA_MIGRATE_ON_BUILD=1 on Vercel to run migrate during build.");
+  process.exit(0);
+}
 
 if (!databaseUrl) {
   console.error("FAIL: DATABASE_URL is required for prisma migrate deploy.");
@@ -18,20 +27,23 @@ if (!databaseUrl) {
 }
 
 if (isSupabasePoolerUrl(databaseUrl) && !directUrl) {
-  directUrl = supabasePoolerToDirectUrl(databaseUrl) ?? "";
+  directUrl =
+    supabasePoolerToSessionMigrateUrl(databaseUrl) ??
+    supabasePoolerToDirectUrl(databaseUrl) ??
+    "";
   if (directUrl) {
     console.log(
-      "Note: DIRECT_URL not set — using :5432 derived from Supabase pooler DATABASE_URL.",
+      "Note: DIRECT_URL not set — using Supabase session pooler :5432 for migrate.",
     );
   }
 }
 
 if (isSupabasePoolerUrl(databaseUrl) && !directUrl) {
   console.error(
-    "FAIL: DATABASE_URL uses Supabase pooler and DIRECT_URL could not be derived.",
+    "FAIL: DATABASE_URL uses Supabase pooler and no migrate URL could be derived.",
   );
   console.error(
-    "Set DIRECT_URL to the :5432 URI (Supabase → Settings → Database → Connection string → URI).",
+    "Set DIRECT_URL to session pooler :5432 or run npm run migrate:production locally.",
   );
   process.exit(1);
 }
