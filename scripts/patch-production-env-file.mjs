@@ -10,7 +10,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { supabaseDirectToPoolerUrl } from "./supabase-pooler-url.mjs";
+import { supabaseDirectToPoolerUrl, isSupabasePoolerUrl } from "./supabase-pooler-url.mjs";
 
 const RENDER_API_DEFAULT = "https://pronuxfin.onrender.com";
 const outPath = resolve(import.meta.dirname, "..", ".env.production.generated");
@@ -42,6 +42,9 @@ if (/^API_URL=https:\/\/api\.pronuxfin\.com\.br/m.test(web)) {
 
 // Pooler no bloco web — primeira DATABASE_URL apenas
 const directMatch = web.match(/^DATABASE_URL="([^"]+)"/m);
+const backendDirectMatch = backendPart.match(/^DATABASE_URL="([^"]+)"/m);
+const backendDirect = backendDirectMatch?.[1] ?? "";
+
 if (directMatch) {
   const direct = directMatch[1];
   const pooler = supabaseDirectToPoolerUrl(direct);
@@ -50,8 +53,24 @@ if (directMatch) {
       /^DATABASE_URL="[^"]+"/m,
       `DATABASE_URL="${pooler.replace(/"/g, '\\"')}"`,
     );
+    const directLine = `DIRECT_URL="${direct.replace(/"/g, '\\"')}"`;
+    if (/^DIRECT_URL=/m.test(web)) {
+      web = web.replace(/^DIRECT_URL="[^"]+"/m, directLine);
+    } else {
+      web = web.replace(
+        /^DATABASE_URL="[^"]+"/m,
+        `DATABASE_URL="${pooler.replace(/"/g, '\\"')}"\n${directLine}`,
+      );
+    }
     console.log("✓ DATABASE_URL (Vercel) → pooler :6543");
-  } else if (!pooler) {
+    console.log("✓ DIRECT_URL (Vercel) → :5432 para migrate");
+  } else if (isSupabasePoolerUrl(direct) && backendDirect && !/^DIRECT_URL=/m.test(web)) {
+    web = web.replace(
+      /^DATABASE_URL="[^"]+"/m,
+      `DATABASE_URL="${direct.replace(/"/g, '\\"')}"\nDIRECT_URL="${backendDirect.replace(/"/g, '\\"')}"`,
+    );
+    console.log("✓ DIRECT_URL (Vercel) adicionado a partir do bloco backend");
+  } else if (!pooler && !isSupabasePoolerUrl(direct)) {
     console.log("⚠ Não foi possível converter DATABASE_URL para pooler — confira manualmente no Supabase");
   }
 }

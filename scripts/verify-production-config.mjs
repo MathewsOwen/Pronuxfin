@@ -103,6 +103,17 @@ if (envPath && existsSync(envPath)) {
       "DATABASE_URL (bloco Vercel) parece :5432 direct — use pooler :6543?pgbouncer=true",
     );
   }
+  if (
+    webDbUrl &&
+    (webDbUrl.includes("pooler.supabase.com") || webDbUrl.includes("pgbouncer=true"))
+  ) {
+    const directUrl = get(env, "DIRECT_URL");
+    if (!directUrl || isManualPlaceholder(directUrl)) {
+      fail(
+        "DIRECT_URL obrigatório na Vercel quando DATABASE_URL usa pooler Supabase (migrate no build)",
+      );
+    }
+  }
 }
 
 const siteUrl = get(env, "NEXT_PUBLIC_SITE_URL");

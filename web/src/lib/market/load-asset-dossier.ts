@@ -213,10 +213,6 @@ function normalizeSymbol(symbol: string) {
   return /^[A-Z0-9.-]{1,16}$/.test(value) ? value : "";
 }
 
-function detectAssetRegion(symbol: string): "br" | "intl" {
-  return /\d$/.test(symbol) ? "br" : "intl";
-}
-
 async function fetchBrAssetDossier(symbol: string) {
   const token = process.env.BRAPI_TOKEN?.trim();
   const base = token

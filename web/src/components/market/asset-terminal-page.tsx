@@ -39,10 +39,7 @@ import {
 import { DossierAnalyticaPanel } from "@/components/market/dossier-analytica-panel";
 import { DossierSeloPanel } from "@/components/market/dossier-selo-panel";
 import { DossierSeloBadge } from "@/components/market/dossier-selo-badge";
-import {
-  DossierCryptoPeersSection,
-  DossierCryptoProfileSection,
-} from "@/components/market/dossier-crypto-panel";
+import { DossierCryptoProfileSection } from "@/components/market/dossier-crypto-panel";
 import { DossierDividendsPanel } from "@/components/market/dossier-dividends-panel";
 import type { DossierAnalyticaPayload } from "@/lib/analytica/map-dossier-to-analytica";
 import type { DossierSeloResult } from "@/lib/analytica/selo-types";

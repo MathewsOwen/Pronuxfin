@@ -33,3 +33,9 @@ export function supabaseDirectToPoolerUrl(directUrl, opts = {}) {
     return null;
   }
 }
+
+/** True when the URL targets Supabase transaction pooler (unsuitable for Prisma migrate). */
+export function isSupabasePoolerUrl(url) {
+  const raw = url?.trim() ?? "";
+  return /pooler\.supabase\.com:6543/i.test(raw) || /[?&]pgbouncer=true/i.test(raw);
+}

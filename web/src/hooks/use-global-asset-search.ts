@@ -1,68 +1,71 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import type { GlobalAssetSearchResponse } from "@/lib/market/global-asset-search-types";
 
 export function useGlobalAssetSearch(query: string, enabled = true) {
   const debounced = useDebouncedValue(query.trim(), 280);
+  const activeQuery = enabled && debounced.length >= 2 ? debounced : "";
+
   const [payload, setPayload] = useState<GlobalAssetSearchResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [settledQuery, setSettledQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const pull = useCallback(async (q: string) => {
-    abortRef.current?.abort();
-    if (q.length < 2) {
-      setPayload(null);
-      setLoading(false);
-      setError(null);
+  useEffect(() => {
+    if (!activeQuery) {
+      abortRef.current?.abort();
       return;
     }
 
     const controller = new AbortController();
     abortRef.current = controller;
-    setLoading(true);
-    setError(null);
+    const q = activeQuery;
 
-    try {
-      const params = new URLSearchParams({ q, limit: "16" });
-      const res = await fetch(`/api/market/search?${params}`, {
-        cache: "no-store",
-        signal: controller.signal,
-      });
-      if (!res.ok) {
-        setPayload(null);
-        setError("search_failed");
-        return;
+    void (async () => {
+      try {
+        const params = new URLSearchParams({ q, limit: "16" });
+        const res = await fetch(`/api/market/search?${params}`, {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          if (!controller.signal.aborted) {
+            setPayload(null);
+            setError("search_failed");
+            setSettledQuery(q);
+          }
+          return;
+        }
+        const data = (await res.json()) as GlobalAssetSearchResponse;
+        if (!controller.signal.aborted) {
+          setPayload(data);
+          setError(null);
+          setSettledQuery(q);
+        }
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+        if (!controller.signal.aborted) {
+          setPayload(null);
+          setError("search_failed");
+          setSettledQuery(q);
+        }
       }
-      const data = (await res.json()) as GlobalAssetSearchResponse;
-      setPayload(data);
-    } catch (err) {
-      if ((err as Error).name === "AbortError") return;
-      setPayload(null);
-      setError("search_failed");
-    } finally {
-      if (!controller.signal.aborted) setLoading(false);
-    }
-  }, []);
+    })();
 
-  useEffect(() => {
-    if (!enabled) {
-      setPayload(null);
-      setLoading(false);
-      return;
-    }
-    void pull(debounced);
-    return () => abortRef.current?.abort();
-  }, [debounced, enabled, pull]);
+    return () => controller.abort();
+  }, [activeQuery]);
+
+  const inFlight = activeQuery.length >= 2 && settledQuery !== activeQuery;
+  const showResults = activeQuery.length >= 2 && settledQuery === activeQuery && !error;
 
   return {
-    results: payload?.results ?? [],
-    partial: payload?.partial ?? false,
-    loading,
-    error,
-    hasQuery: debounced.length >= 2,
+    results: showResults ? (payload?.results ?? []) : [],
+    partial: showResults ? (payload?.partial ?? false) : false,
+    loading: inFlight,
+    error: enabled ? error : null,
+    hasQuery: activeQuery.length >= 2,
   };
 }

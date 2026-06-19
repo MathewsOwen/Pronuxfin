@@ -59,6 +59,9 @@ const poolerUrl = databaseUrl ? supabaseDirectToPoolerUrl(databaseUrl) : null;
 const databaseLineWeb = poolerUrl
   ? `DATABASE_URL="${poolerUrl.replace(/"/g, '\\"')}"`
   : databaseLineDirect;
+const directUrlLine = poolerUrl
+  ? `DIRECT_URL="${databaseUrl.replace(/"/g, '\\"')}"`
+  : "";
 
 const renderApiUrl = process.env.RENDER_API_URL?.trim() || RENDER_API_DEFAULT;
 const apiUrlLine = `API_URL=${renderApiUrl}`;
@@ -95,7 +98,8 @@ const lines = [
   "SECURITY_CONTACT_EMAIL=security@pronuxfin.com.br",
   "",
   databaseLineWeb,
-  poolerUrl ? "# Vercel: pooler :6543 (serverless). Backend abaixo usa :5432 direct." : "",
+  poolerUrl ? directUrlLine : "",
+  poolerUrl ? "# Vercel: pooler :6543 (queries). DIRECT_URL :5432 (migrate no build)." : "",
   "",
   "OPENAI_API_KEY=<<< MANUAL: sk-... >>>",
   "# GEMINI_API_KEY=<<< alternativa ao OpenAI >>>",

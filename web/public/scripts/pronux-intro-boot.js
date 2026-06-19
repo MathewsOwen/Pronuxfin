@@ -14,6 +14,6 @@ try {
       }
     }, 12000);
   }
-} catch (e) {
+} catch {
   /* ignore */
 }

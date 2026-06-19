@@ -24,12 +24,10 @@ function TrustStars({ score }: { score: number }) {
 
 function BrokerRow({
   entry,
-  locale,
   rank,
   showLiquidityRank,
 }: {
   entry: BrokerDeskEntry;
-  locale: string;
   rank?: number;
   showLiquidityRank?: boolean;
 }) {
@@ -121,7 +119,6 @@ export function BrokerDeskSidebar({ className }: { className?: string }) {
             <BrokerRow
               key={entry.id}
               entry={entry}
-              locale={locale}
               rank={entry.liquidityRank}
               showLiquidityRank
             />
@@ -136,7 +133,7 @@ export function BrokerDeskSidebar({ className }: { className?: string }) {
         </div>
         <ul className="space-y-2">
           {trusted.map((entry) => (
-            <BrokerRow key={`trust-${entry.id}`} entry={entry} locale={locale} />
+            <BrokerRow key={`trust-${entry.id}`} entry={entry} />
           ))}
         </ul>
       </section>
@@ -151,7 +148,6 @@ export function BrokerDeskSidebar({ className }: { className?: string }) {
 /** Versão compacta para mobile — abaixo do hero da bolsa */
 export function BrokerDeskSidebarMobile() {
   const t = useTranslations("BolsaHub.brokers");
-  const locale = useLocale();
   const liquidity = getBrokerLiquidityLeaders(5);
 
   return (
@@ -166,7 +162,6 @@ export function BrokerDeskSidebarMobile() {
           <BrokerRow
             key={entry.id}
             entry={entry}
-            locale={locale}
             rank={entry.liquidityRank}
             showLiquidityRank
           />

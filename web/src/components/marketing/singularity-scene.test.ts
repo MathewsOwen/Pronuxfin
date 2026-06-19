@@ -3,7 +3,6 @@ import { getSingularityViewportProfile } from "@/components/marketing/intro-mobi
 import {
   DISK_R_MIN,
   estimateDiskCapacity,
-  placeDiskInstances,
   resolveDiskLayout,
 } from "@/components/marketing/singularity-scene";
 

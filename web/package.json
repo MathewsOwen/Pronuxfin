@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -H 127.0.0.1 -p 3000",
     "build": "node scripts/check-app-route-collisions.mjs && prisma generate --schema prisma/schema.prisma && next build && node scripts/vercel-sync-next-output.mjs",
-    "vercel-build": "prisma migrate deploy --schema prisma/schema.prisma && npm run build",
+    "vercel-build": "node scripts/prisma-migrate-deploy.mjs && npm run build",
     "start": "next start",
     "routes:check": "node scripts/check-app-route-collisions.mjs",
     "lint": "eslint",

@@ -72,7 +72,6 @@ export function DossierSeloBadge({ grade, label, size = "sm", className }: Props
 }
 
 export function DossierDataConfidenceBadge({
-  tier,
   score,
   label,
   className,
