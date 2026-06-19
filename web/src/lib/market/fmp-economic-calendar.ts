@@ -21,8 +21,8 @@ type FmpMacroRow = {
 
 const FMP_MACRO_TTL_MS = 15 * 60_000;
 
-function fmpEnabled() {
-  return isFmpProviderEnabled() && canUseMarketProvider("financial_modeling_prep");
+async function fmpEnabled() {
+  return isFmpProviderEnabled() && (await canUseMarketProvider("financial_modeling_prep"));
 }
 
 function padDate(d: Date) {
@@ -76,7 +76,7 @@ async function fetchFmpMacroCalendarRaw(
   fromIso: string,
   toIso: string,
 ): Promise<FmpMacroRow[] | null> {
-  if (!fmpEnabled()) return null;
+  if (!(await fmpEnabled())) return null;
 
   const apiKey =
     process.env.FMP_API_KEY?.trim() ||
@@ -98,7 +98,7 @@ async function fetchFmpMacroCalendarRaw(
     if (!res.ok) throw new Error(`fmp_macro_status_${res.status}`);
     const json = (await res.json()) as FmpMacroRow[];
     if (!Array.isArray(json)) return null;
-    noteMarketProviderUsage("financial_modeling_prep");
+    await noteMarketProviderUsage("financial_modeling_prep");
     return json;
   } catch {
     return null;

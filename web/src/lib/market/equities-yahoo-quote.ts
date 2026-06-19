@@ -3,6 +3,7 @@ import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import type { QuoteSnapshot } from "@/lib/market/types";
 
 const YAHOO_CHUNK = 56;
+const YAHOO_DOTTED_CONCURRENCY = 8;
 
 function chunk<T>(arr: readonly T[], size: number): T[][] {
   const out: T[][] = [];
@@ -10,6 +11,10 @@ function chunk<T>(arr: readonly T[], size: number): T[][] {
     out.push(arr.slice(i, i + size));
   }
   return out;
+}
+
+function needsIndividualYahooFetch(symbol: string): boolean {
+  return /[./]/.test(symbol);
 }
 
 function mapYahooRow(row: Record<string, unknown>): QuoteSnapshot | null {
@@ -65,6 +70,50 @@ function emptyIntlBook(
   };
 }
 
+async function fetchYahooQuoteBatch(
+  batch: readonly string[],
+  merged: Map<string, QuoteSnapshot>,
+): Promise<void> {
+  if (batch.length === 0) return;
+  const qs = encodeURIComponent(batch.join(","));
+  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${qs}`;
+  const res = await fetchMarket(url, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent":
+        "Mozilla/5.0 (compatible; PRONUXFIN/1.0; +https://pronux.fin) AppleWebKit/537.36",
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`intl_quotes_http_${res.status}`);
+  }
+
+  const json = (await res.json()) as {
+    quoteResponse?: { result?: Array<Record<string, unknown>>; error?: unknown };
+  };
+
+  for (const row of json.quoteResponse?.result ?? []) {
+    const snap = mapYahooRow(row);
+    if (snap) merged.set(snap.symbol, snap);
+  }
+}
+
+async function runWithConcurrency<T>(
+  items: readonly T[],
+  limit: number,
+  worker: (item: T) => Promise<void>,
+): Promise<PromiseSettledResult<void>[]> {
+  const results: PromiseSettledResult<void>[] = [];
+  for (let i = 0; i < items.length; i += limit) {
+    const slice = items.slice(i, i + limit);
+    const settled = await Promise.allSettled(slice.map((item) => worker(item)));
+    results.push(...settled);
+  }
+  return results;
+}
+
 /**
  * Snapshot via agregação Yahoo Finance (endpoint público não documentado oficialmente —
  * em produção comercial avalie provedor licenciado e troque apenas este módulo).
@@ -85,38 +134,22 @@ export async function fetchYahooQuotesForSymbols(
   }
 
   const merged = new Map<string, QuoteSnapshot>();
+  const batchable = uniq.filter((s) => !needsIndividualYahooFetch(s));
+  const dotted = uniq.filter((s) => needsIndividualYahooFetch(s));
 
   try {
-    const batches = chunk(uniq, YAHOO_CHUNK);
-    const settled = await Promise.allSettled(
-      batches.map(async (batch) => {
-        if (batch.length === 0) return;
-        const qs = encodeURIComponent(batch.join(","));
-        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${qs}`;
-        const res = await fetchMarket(url, {
-          headers: {
-            Accept: "application/json",
-            "User-Agent":
-              "Mozilla/5.0 (compatible; PRONUXFIN/1.0; +https://pronux.fin) AppleWebKit/537.36",
-          },
-          cache: "no-store",
-        });
-
-        if (!res.ok) {
-          throw new Error(`intl_quotes_http_${res.status}`);
-        }
-
-        const json = (await res.json()) as {
-          quoteResponse?: { result?: Array<Record<string, unknown>>; error?: unknown };
-        };
-
-        const raw = json.quoteResponse?.result ?? [];
-        for (const row of raw) {
-          const snap = mapYahooRow(row);
-          if (snap) merged.set(snap.symbol, snap);
-        }
-      }),
+    const batchJobs = chunk(batchable, YAHOO_CHUNK).map((batch) =>
+      fetchYahooQuoteBatch(batch, merged),
     );
+    const dottedSettled =
+      dotted.length > 0
+        ? await runWithConcurrency(dotted, YAHOO_DOTTED_CONCURRENCY, (symbol) =>
+            fetchYahooQuoteBatch([symbol], merged),
+          )
+        : [];
+
+    const batchSettled = await Promise.allSettled(batchJobs);
+    const settled = [...batchSettled, ...dottedSettled];
 
     const allFailed = settled.every((result) => result.status === "rejected");
     if (allFailed) {

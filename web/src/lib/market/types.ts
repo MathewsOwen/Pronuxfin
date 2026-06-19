@@ -50,7 +50,38 @@ export type QuotesPayload = {
   dataMode?: MarketDataMode;
 };
 
-export type EquityMarketRegion = "br" | "intl";
+export type EquityMarketRegion = import("@/lib/market/world-markets").DeskMarketId | "intl";
+
+export type AssetClass = "equity" | "crypto";
+
+export type CryptoDossierProfile = {
+  coinGeckoId: string;
+  categories: string[];
+  genesisDate: string | null;
+  hashingAlgorithm: string | null;
+  homepageUrl: string | null;
+  blockchainUrls: string[];
+  githubUrl: string | null;
+  twitterFollowers: number | null;
+  redditSubscribers: number | null;
+  githubStars: number | null;
+  githubForks: number | null;
+  commitCount4Weeks: number | null;
+  circulatingSupply: number | null;
+  totalSupply: number | null;
+  maxSupply: number | null;
+  fullyDilutedValuation: number | null;
+  athPrice: number | null;
+  athDate: string | null;
+  atlPrice: number | null;
+  atlDate: string | null;
+  priceChange7d: number | null;
+  priceChange30d: number | null;
+  priceChange1y: number | null;
+  marketCapRank: number | null;
+  cryptoSector: string | null;
+  sourceLabel: string;
+};
 
 /** Livro por setor (Brasil BRAPI ou internacional Yahoo no servidor). */
 export type SectorBookPayload = {
@@ -226,6 +257,9 @@ export type IntlAnnualStatementsSnapshot = {
 
 export type AssetDossier = {
   symbol: string;
+  assetClass: AssetClass;
+  /** Bolsa do dossiê (ações). Null em cripto. */
+  deskMarket: import("@/lib/market/world-markets").DeskMarketId | null;
   region: EquityMarketRegion;
   historyMode: "live" | "indicative";
   quote: QuoteSnapshot;
@@ -276,4 +310,6 @@ export type AssetDossier = {
   intlAnnualStatements: IntlAnnualStatementsSnapshot | null;
   /** Retornos e volumes por ano civil derivados do histórico carregado. */
   historicalInsights: AssetDossierHistoricalInsights;
+  /** Cripto: métricas on-chain, comunidade e ATH/ATL via CoinGecko. */
+  cryptoProfile?: CryptoDossierProfile | null;
 };

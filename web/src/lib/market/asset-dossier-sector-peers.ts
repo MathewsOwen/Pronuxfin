@@ -1,25 +1,35 @@
-import { SECTOR_ORDER, listSectorSymbols, type SectorId } from "@/lib/market/sector-universe";
-import type { EquityMarketRegion } from "@/lib/market/types";
+import { inferEquitySectorId } from "@/lib/market/asset-class";
+import { listSectorSymbols, type SectorId } from "@/lib/market/sector-universe";
+import type { DeskMarketId } from "@/lib/market/world-markets";
 
-function inferSectorId(symbol: string, region: EquityMarketRegion): SectorId | null {
-  for (const sector of SECTOR_ORDER) {
-    if (listSectorSymbols(region, sector).includes(symbol)) {
-      return sector;
-    }
+function inferSectorId(symbol: string, market: DeskMarketId): SectorId | null {
+  const upper = symbol.trim().toUpperCase();
+  for (const sector of [
+    "commodities",
+    "technology",
+    "oil_gas",
+    "defense_aerospace",
+    "financials",
+    "healthcare",
+    "consumer",
+    "utilities",
+    "industrials",
+  ] as const) {
+    if (listSectorSymbols(market, sector).includes(upper)) return sector;
   }
-  return null;
+  return inferEquitySectorId(symbol);
 }
 
 /** Pares do mesmo setor na mesa PRONUX — não são filiais nem grupo econômico. */
 export function listSectorPeersForSymbol(
   symbol: string,
-  region: EquityMarketRegion,
+  market: DeskMarketId,
   limit = 14,
 ): string[] {
-  const sectorId = inferSectorId(symbol, region);
+  const sectorId = inferSectorId(symbol, market);
   if (!sectorId) return [];
   const upper = symbol.trim().toUpperCase();
-  return listSectorSymbols(region, sectorId)
+  return listSectorSymbols(market, sectorId)
     .filter((s) => s !== upper)
     .slice(0, limit);
 }

@@ -2,9 +2,11 @@ import { Play, ShieldCheck } from "lucide-react";
 import { getMessages, getTranslations } from "next-intl/server";
 
 import {
+  LEARN_VIDEO_LEVELS,
   LEARN_VIDEO_META,
-  LEARN_VIDEO_SLUGS,
   learnVideoEmbedUrl,
+  learnVideosByLevel,
+  type LearnVideoLevel,
   type LearnVideoSlug,
 } from "@/lib/seo/learn-video-catalog";
 
@@ -15,8 +17,54 @@ type VideoCard = {
   channel: string;
   durationMinutes: number;
   license: string;
-  level: string;
+  level: LearnVideoLevel;
 };
+
+function VideoGrid({ cards, t }: { cards: VideoCard[]; t: (key: string, values?: Record<string, string>) => string }) {
+  return (
+    <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      {cards.map((card) => {
+        const meta = LEARN_VIDEO_META[card.slug];
+        return (
+          <article
+            key={card.slug}
+            className="glass-panel overflow-hidden rounded-3xl border border-white/12"
+          >
+            <div className="relative aspect-video w-full bg-black/40">
+              <iframe
+                src={learnVideoEmbedUrl(meta.youtubeId)}
+                title={card.title}
+                className="absolute inset-0 size-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
+            <div className="p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-primary">
+                  <Play className="size-3" aria-hidden />
+                  {t(`level_${card.level}`)}
+                </span>
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {card.durationMinutes} min · {card.channel}
+                </span>
+              </div>
+              <h3 className="font-heading mt-3 text-lg font-semibold">{card.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {card.description}
+              </p>
+              <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                {t("sourceAttribution", { channel: card.channel, license: card.license })}
+              </p>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
 
 export async function LearnVideoSection() {
   const t = await getTranslations("Learn.videos");
@@ -25,18 +73,19 @@ export async function LearnVideoSection() {
   const videosRaw =
     (learn.videos as Record<string, { title?: string; description?: string }>) ?? {};
 
-  const cards: VideoCard[] = LEARN_VIDEO_SLUGS.map((slug) => {
-    const meta = LEARN_VIDEO_META[slug];
-    return {
-      slug,
-      title: videosRaw[slug]?.title ?? slug,
-      description: videosRaw[slug]?.description ?? "",
-      channel: meta.channel,
-      durationMinutes: meta.durationMinutes,
-      license: meta.license,
-      level: meta.level,
-    };
-  });
+  const cardsForLevel = (level: LearnVideoLevel): VideoCard[] =>
+    learnVideosByLevel(level).map((slug) => {
+      const meta = LEARN_VIDEO_META[slug];
+      return {
+        slug,
+        title: videosRaw[slug]?.title ?? slug,
+        description: videosRaw[slug]?.description ?? "",
+        channel: meta.channel,
+        durationMinutes: meta.durationMinutes,
+        license: meta.license,
+        level: meta.level,
+      };
+    });
 
   return (
     <section className="mt-16" aria-labelledby="learn-videos-heading">
@@ -58,47 +107,13 @@ export async function LearnVideoSection() {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        {cards.map((card) => {
-          const meta = LEARN_VIDEO_META[card.slug];
-          return (
-            <article
-              key={card.slug}
-              className="glass-panel overflow-hidden rounded-3xl border border-white/12"
-            >
-              <div className="relative aspect-video w-full bg-black/40">
-                <iframe
-                  src={learnVideoEmbedUrl(meta.youtubeId)}
-                  title={card.title}
-                  className="absolute inset-0 size-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                />
-              </div>
-              <div className="p-5 sm:p-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-primary">
-                    <Play className="size-3" aria-hidden />
-                    {t(`level_${card.level}` as "level_beginner")}
-                  </span>
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    {card.durationMinutes} min · {card.channel}
-                  </span>
-                </div>
-                <h3 className="font-heading mt-3 text-lg font-semibold">{card.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {card.description}
-                </p>
-                <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {t("sourceAttribution", { channel: card.channel, license: card.license })}
-                </p>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+      {LEARN_VIDEO_LEVELS.map((level) => (
+        <div key={level} className="mt-10">
+          <h3 className="font-heading text-xl font-semibold">{t(`track_${level}`)}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{t(`track_${level}_lead`)}</p>
+          <VideoGrid cards={cardsForLevel(level)} t={t} />
+        </div>
+      ))}
 
       <p className="mt-6 text-xs leading-relaxed text-muted-foreground">{t("disclaimer")}</p>
     </section>

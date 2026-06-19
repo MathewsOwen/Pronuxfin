@@ -19,8 +19,8 @@ type FmpEarningRow = {
 
 const FMP_EARNINGS_TTL_MS = 15 * 60_000;
 
-function fmpEnabled() {
-  return isFmpProviderEnabled() && canUseMarketProvider("financial_modeling_prep");
+async function fmpEnabled() {
+  return isFmpProviderEnabled() && (await canUseMarketProvider("financial_modeling_prep"));
 }
 
 function padDate(d: Date) {
@@ -31,7 +31,7 @@ async function fetchFmpEarningsCalendarRaw(
   fromIso: string,
   toIso: string,
 ): Promise<FmpEarningRow[] | null> {
-  if (!fmpEnabled()) return null;
+  if (!(await fmpEnabled())) return null;
 
   const apiKey =
     process.env.FMP_API_KEY?.trim() ||
@@ -53,7 +53,7 @@ async function fetchFmpEarningsCalendarRaw(
     if (!res.ok) throw new Error(`fmp_earnings_status_${res.status}`);
     const json = (await res.json()) as FmpEarningRow[];
     if (!Array.isArray(json)) return null;
-    noteMarketProviderUsage("financial_modeling_prep");
+    await noteMarketProviderUsage("financial_modeling_prep");
     return json;
   } catch {
     return null;

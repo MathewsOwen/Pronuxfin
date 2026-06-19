@@ -36,10 +36,20 @@ import {
   DossierSessionTradingSection,
   type AssetDossierSectionLabels,
 } from "@/components/market/asset-dossier-sections";
+import { DossierAnalyticaPanel } from "@/components/market/dossier-analytica-panel";
+import { DossierSeloPanel } from "@/components/market/dossier-selo-panel";
+import { DossierSeloBadge } from "@/components/market/dossier-selo-badge";
+import {
+  DossierCryptoPeersSection,
+  DossierCryptoProfileSection,
+} from "@/components/market/dossier-crypto-panel";
 import { DossierDividendsPanel } from "@/components/market/dossier-dividends-panel";
+import type { DossierAnalyticaPayload } from "@/lib/analytica/map-dossier-to-analytica";
+import type { DossierSeloResult } from "@/lib/analytica/selo-types";
 import { DossierPriceChart } from "@/components/market/dossier-price-chart";
 import { dividendInsightsHasData } from "@/lib/market/asset-dossier-dividends";
 import { marketExtrasHasDisplayData } from "@/lib/market/asset-dossier-market-extras";
+import { DESK_MARKET_META } from "@/lib/market/world-markets";
 import { WatchlistToggleButton } from "@/components/market/watchlist-toggle-button";
 import {
   Card,
@@ -59,12 +69,16 @@ export async function AssetTerminalPage({
   watchlisted,
   portfolioPosition = null,
   portfolioSnapshot = null,
+  analytica = null,
+  selo,
 }: {
   dossier: AssetDossier;
   locale: string;
   watchlisted: boolean;
   portfolioPosition?: UserPortfolioPositionView | null;
   portfolioSnapshot?: PortfolioPositionSnapshot | null;
+  analytica?: DossierAnalyticaPayload | null;
+  selo: DossierSeloResult;
 }) {
   const t = await getTranslations("AssetTerminal");
   const ins = dossier.historicalInsights;
@@ -81,10 +95,12 @@ export async function AssetTerminalPage({
   const compareHref = buildCompareAssetHref(dossier);
   const portfolioHref = buildPortfolioAssetHref(dossier, portfolioPosition);
   const hasPortfolioPosition = portfolioPosition != null;
+  const isCrypto = dossier.assetClass === "crypto";
+  const marketMeta = dossier.deskMarket ? DESK_MARKET_META[dossier.deskMarket] : null;
   const sectionLabels = buildSectionLabels(t);
-  const showRatios = marketExtrasHasDisplayData(dossier.marketExtras);
+  const showRatios = !isCrypto && marketExtrasHasDisplayData(dossier.marketExtras);
   const showCalendar = ins.calendarYearReturns.length > 0;
-  const showDividends = dividendInsightsHasData(dossier.dividends);
+  const showDividends = !isCrypto && dividendInsightsHasData(dossier.dividends);
   const fundamentalsTitle =
     dossier.intlKeyMetricsTtm && intlFundamentalsHasData(dossier.intlKeyMetricsTtm)
       ? dossier.region === "br"
@@ -100,11 +116,18 @@ export async function AssetTerminalPage({
             {t("heroPillPrivate")}
           </Badge>
           <Badge className="border-white/10 bg-white/[0.04] text-muted-foreground">
-            {dossier.region === "br" ? t("regionBr") : t("regionIntl")}
+            {isCrypto
+              ? t("regionCrypto")
+              : dossier.deskMarket === "br"
+                ? t("regionBr")
+                : marketMeta
+                  ? `${marketMeta.flag} ${locale === "pt-BR" ? marketMeta.namePt : marketMeta.nameEn}`
+                  : t("regionIntl")}
           </Badge>
           <Badge className="border-white/10 bg-white/[0.04] text-muted-foreground">
             {dossier.historyMode === "live" ? t("historyLive") : t("historyIndicative")}
           </Badge>
+          <DossierSeloBadge grade={selo.grade} label={t(`selo.${selo.labelKey}`)} />
         </div>
 
         <div className="mt-5 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -196,7 +219,23 @@ export async function AssetTerminalPage({
         showRatios={showRatios}
         showCalendar={showCalendar}
         showDividends={showDividends}
+        showSelo
+        showAnalytica={!isCrypto && analytica != null}
       />
+
+      <DossierSeloPanel selo={selo} symbol={dossier.symbol} />
+
+      {analytica && !isCrypto ? (
+        <DossierAnalyticaPanel
+          symbol={dossier.symbol}
+          currency={dossier.currency}
+          locale={locale}
+          inputs={analytica.inputs}
+          initialBundle={analytica.subject}
+          peerBundles={analytica.peers}
+          portfolioValueBrl={portfolioSnapshot?.marketValue ?? null}
+        />
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
         <SignalCard
@@ -220,20 +259,49 @@ export async function AssetTerminalPage({
 
       <DossierSessionTradingSection dossier={dossier} locale={locale} labels={sectionLabels} />
       <DossierPeriodReturnsSection stats={dossier.periodStats} labels={sectionLabels} />
-      <DossierMarketRatiosSection dossier={dossier} locale={locale} labels={sectionLabels} />
-      <DossierDividendsPanel
-        insights={dossier.dividends}
-        history={dossier.history}
-        currency={dossier.currency}
-        locale={locale}
-        labels={sectionLabels}
-        filters={[
-          { id: "ALL", label: sectionLabels.dividendsFilterAll },
-          { id: "DIVIDEND", label: sectionLabels.dividendsFilterDividend },
-          { id: "JCP", label: sectionLabels.dividendsFilterJcp },
-          { id: "INCOME", label: sectionLabels.dividendsFilterIncome },
-        ]}
-      />
+      {isCrypto ? (
+        <DossierCryptoProfileSection
+          dossier={dossier}
+          locale={locale}
+          labels={{
+            title: t("cryptoProfileTitle"),
+            subtitle: t("cryptoProfileSubtitle"),
+            marketRank: t("cryptoMarketRank"),
+            supplyCirculating: t("cryptoSupplyCirculating"),
+            supplyTotal: t("cryptoSupplyTotal"),
+            supplyMax: t("cryptoSupplyMax"),
+            fdv: t("cryptoFdv"),
+            ath: t("cryptoAth"),
+            atl: t("cryptoAtl"),
+            change7d: t("cryptoChange7d"),
+            change30d: t("cryptoChange30d"),
+            change1y: t("cryptoChange1y"),
+            community: t("cryptoCommunity"),
+            developers: t("cryptoDevelopers"),
+            algorithm: t("cryptoAlgorithm"),
+            genesis: t("cryptoGenesis"),
+            links: t("cryptoLinks"),
+            notAvailable: t("notAvailable"),
+          }}
+        />
+      ) : (
+        <>
+          <DossierMarketRatiosSection dossier={dossier} locale={locale} labels={sectionLabels} />
+          <DossierDividendsPanel
+            insights={dossier.dividends}
+            history={dossier.history}
+            currency={dossier.currency}
+            locale={locale}
+            labels={sectionLabels}
+            filters={[
+              { id: "ALL", label: sectionLabels.dividendsFilterAll },
+              { id: "DIVIDEND", label: sectionLabels.dividendsFilterDividend },
+              { id: "JCP", label: sectionLabels.dividendsFilterJcp },
+              { id: "INCOME", label: sectionLabels.dividendsFilterIncome },
+            ]}
+          />
+        </>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.85fr)]">
         <Card className="glass-panel card-shine border-white/12 shadow-none ring-0">
@@ -1218,6 +1286,8 @@ function buildSectionLabels(
   t: (key: string) => string,
 ): AssetDossierSectionLabels {
   return {
+    navAnalytica: t("navAnalytica"),
+    navSelo: t("navSelo"),
     navSession: t("navSession"),
     navReturns: t("navReturns"),
     navRatios: t("navRatios"),

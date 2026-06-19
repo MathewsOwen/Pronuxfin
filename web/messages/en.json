@@ -1360,6 +1360,13 @@
       "licenseBadge": "Licensed & official sources",
       "level_beginner": "Beginner",
       "level_intermediate": "Intermediate",
+      "level_advanced": "Advanced",
+      "track_beginner": "Beginner track",
+      "track_beginner_lead": "Core concepts: equities, fixed income, compounding, inflation and crypto.",
+      "track_intermediate": "Intermediate track",
+      "track_intermediate_lead": "Funds, diversification, P/E, earnings per share and portfolio allocation.",
+      "track_advanced": "Advanced track",
+      "track_advanced_lead": "Institutional valuation, options, Black-Scholes and short selling.",
       "sourceAttribution": "Source: {channel} · {license}",
       "disclaimer": "Third-party videos embedded for education. PRONUXFIN is not responsible for original channel content.",
       "intro-acoes-khan": {
@@ -1385,6 +1392,58 @@
       "juros-compostos-khan": {
         "title": "Compound interest explained",
         "description": "The power of compounding over time — the foundation of financial planning."
+      },
+      "intro-titulos-khan": {
+        "title": "Introduction to bonds",
+        "description": "How debt securities work and why companies and governments issue them."
+      },
+      "acoes-vs-titulos-khan": {
+        "title": "Stocks vs bonds",
+        "description": "Equity owner vs creditor — risk and return trade-offs."
+      },
+      "inflacao-khan": {
+        "title": "Inflation basics",
+        "description": "What inflation is, how it's measured and why it erodes purchasing power."
+      },
+      "cripto-basico-ted": {
+        "title": "How blockchain works",
+        "description": "A didactic view of crypto and distributed ledgers — not a return promise."
+      },
+      "fundos-investimento-khan": {
+        "title": "Open-end vs closed-end funds",
+        "description": "How mutual funds pool capital and differ from ETFs and single stocks."
+      },
+      "pe-ratio-khan": {
+        "title": "Price-to-earnings (P/E)",
+        "description": "How to read the P/E multiple in relative company valuation."
+      },
+      "eps-lucro-khan": {
+        "title": "Earnings and EPS",
+        "description": "Net income, income statements and earnings per share."
+      },
+      "selic-juros-khan": {
+        "title": "Real vs nominal return",
+        "description": "How inflation affects investment returns — basis for understanding policy rates."
+      },
+      "carteira-allocation-khan": {
+        "title": "ETFs and diversification at scale",
+        "description": "How ETFs work and why they spread risk in a single tradable unit."
+      },
+      "enterprise-value-khan": {
+        "title": "Enterprise Value (EV)",
+        "description": "A valuation metric beyond P/E — debt, cash and market cap together."
+      },
+      "opcoes-intro-khan": {
+        "title": "Call options as leverage",
+        "description": "Intro to call options and how they amplify exposure with limited capital."
+      },
+      "black-scholes-khan": {
+        "title": "Black-Scholes formula",
+        "description": "The classic European option pricing model — volatility and time."
+      },
+      "shorting-acoes-khan": {
+        "title": "Short selling basics",
+        "description": "How betting on a price drop works — mechanics and risks."
       }
     },
     "glossaryHub": {
@@ -1544,6 +1603,14 @@
     "ctaPrimary": "Create free account",
     "ctaSecondary": "Explore live desk"
   },
+  "GlobalAssetSearch": {
+    "label": "Search global assets",
+    "placeholder": "Search by name or ticker — Toyota, Bitcoin, SAP.DE…",
+    "clear": "Clear search",
+    "empty": "No assets matched this query.",
+    "error": "Search temporarily unavailable. Try again.",
+    "hint": "Equities across 20 markets + crypto · opens full dossier"
+  },
   "BolsaHub": {
     "badgeGlobal": "Global desk · Brazilian equities & digital assets",
     "h1Lead": "Institutional desk —",
@@ -1567,9 +1634,10 @@
     "equitiesBook": "Reference book · blue chips",
     "sectorBookEyebrow": "Sector desks · wide universes",
     "sectorBookLead": "{sector}: liquidity-ranked mix showing {count} symbols in this view.",
-    "sectorRegion": "Listing region",
+    "sectorRegion": "Market",
     "sectorRegionBr": "Brazil · B3",
     "sectorRegionIntl": "Global · US-listed",
+    "sectorSourceWorldBlurb": "quotes for {market} ({exchange}) via Yahoo Finance aggregation — informational; confirm terms for production traffic.",
     "searchLabel": "Quick filter",
     "searchPlaceholder": "Search ticker or name",
     "searchClear": "Clear filter",
@@ -1644,6 +1712,37 @@
     "cryptoFootLead": "Cryptocurrency prices via",
     "cryptoFootTrail": ". Respect the API terms — figures are illustrative and may differ from your exchanges.",
     "cryptoSectorFoot": "Crypto sectors are grouped by dominant thesis for faster navigation; some assets may overlap multiple market narratives over time.",
+    "brokers": {
+      "ariaLabel": "Broker desk panel",
+      "eyebrow": "Brokers · PRONUX desk",
+      "title": "Liquidity & trust",
+      "subtitle": "Top 10 by typical Brazilian retail liquidity plus regulatory trust picks — editorial index synced with the desk quote cycle.",
+      "syncLabel": "Index updated · {value}",
+      "syncPending": "awaiting tape…",
+      "livePulse": "Live tape",
+      "liquidityTitle": "Highest liquidity now",
+      "trustTitle": "Most trusted",
+      "ctaSite": "Website",
+      "ctaAffiliate": "Open account",
+      "mobileTitle": "Highest-liquidity brokers",
+      "mobileLead": "Top 5 of the PRONUX editorial ranking — full panel on desktop.",
+      "disclaimer": "Indicative ranking from typical B3/CVM volume and institutional scale — not a real-time order book. PRONUXFIN is not a broker. Links may include affiliates later.",
+      "market_br": "BR",
+      "market_us": "US",
+      "market_crypto": "Crypto",
+      "names": {
+        "XP": "XP Investimentos",
+        "BTG": "BTG Pactual",
+        "RICO": "Rico",
+        "CLEAR": "Clear",
+        "NUINVEST": "Nu Invest",
+        "INTER": "Inter",
+        "TORO": "Toro",
+        "GENIAL": "Genial",
+        "AVENUE": "Avenue",
+        "WARREN": "Warren"
+      }
+    },
     "ctaDesk": "Want this desk in your dashboard with custom alerts?",
     "ctaRegister": "Open PRONUXFIN account"
   },
@@ -2032,6 +2131,24 @@
     "heroPillPrivate": "Private terminal",
     "regionBr": "Brazil",
     "regionIntl": "International",
+    "regionCrypto": "Crypto · global",
+    "cryptoProfileTitle": "On-chain and market metrics",
+    "cryptoProfileSubtitle": "Supply, ATH/ATL, performance and ecosystem via CoinGecko — desk prices in BRL.",
+    "cryptoMarketRank": "Market cap rank",
+    "cryptoSupplyCirculating": "Circulating supply",
+    "cryptoSupplyTotal": "Total supply",
+    "cryptoSupplyMax": "Max supply",
+    "cryptoFdv": "FDV",
+    "cryptoAth": "ATH (BRL)",
+    "cryptoAtl": "ATL (BRL)",
+    "cryptoChange7d": "7d change",
+    "cryptoChange30d": "30d change",
+    "cryptoChange1y": "1y change",
+    "cryptoCommunity": "X followers",
+    "cryptoDevelopers": "GitHub stars",
+    "cryptoAlgorithm": "Algorithm",
+    "cryptoGenesis": "Genesis",
+    "cryptoLinks": "Links",
     "historyLive": "Live history",
     "historyIndicative": "Indicative history",
     "sourceLabel": "Source · {source}",
@@ -2071,6 +2188,7 @@
     "fundamentalsTitleBr": "TTM fundamentals (professional feed · B3)",
     "fundamentalsSubtitle": "Trailing-twelve-month metrics from a professional feed — complements the live quote snapshot.",
     "navAnalytica": "PRONUX Analytica",
+    "navSelo": "PRONUX Seal",
     "navSession": "Session",
     "navReturns": "Returns",
     "navRatios": "Ratios",
@@ -2221,6 +2339,53 @@
     "assistantTitle": "Take this asset to Market AI",
     "assistantLead": "Use the assistant to discuss scenario, risk, triggers and institutional framing for {symbol} inside your account.",
     "assistantCta": "Open Market AI",
+    "selo": {
+      "eyebrow": "PRONUX institutional seal",
+      "title": "Asset health seal",
+      "subtitle": "0–5 grade summarizing profitability, balance-sheet strength, growth and data confidence — 0 signals severe deterioration; 5 signals a robust equity or digital asset for portfolio consideration.",
+      "compositeScore": "Composite index: {value}",
+      "pillarsTitle": "Grade pillars",
+      "dataSourcesTitle": "Verified sources",
+      "dataSourcesBody": "The grade uses only data present in this dossier. More reconciled layers (BRAPI/Yahoo + FMP or full CoinGecko) raise institutional confidence.",
+      "disclaimer": "The PRONUX Seal is an educational read from public data. It is not investment advice and does not replace official filings.",
+      "confidence_low": "Low confidence",
+      "confidence_medium": "Medium confidence",
+      "confidence_high": "High confidence",
+      "confidence_institutional": "Institutional confidence",
+      "grade0Label": "Critical",
+      "grade1Label": "Fragile",
+      "grade2Label": "Below average",
+      "grade3Label": "Stable",
+      "grade4Label": "Solid",
+      "grade5Label": "Excellent",
+      "grade0Summary": "{symbol} shows severe deterioration signals — no profit or negative earnings, concerning leverage or a loss history. Avoid treating it as opportunity without deep due diligence.",
+      "grade1Summary": "{symbol} is in a fragile zone. Weak fundamentals or thin data suggest extreme caution before any allocation.",
+      "grade2Summary": "{symbol} sits below average quality. May fit a specific thesis but is not a natural core holding.",
+      "grade3Summary": "{symbol} shows a reasonable risk/return balance. Suitable for watchlist or tactical sizing, not necessarily concentration.",
+      "grade4Summary": "{symbol} displays solid fundamentals and a consistent track record. A good candidate for a disciplined portfolio.",
+      "grade5Summary": "{symbol} combines above-average profitability, growth and governance. Quality profile aligned with conviction holdings.",
+      "pillarProfitability": "Profitability",
+      "pillarLongevity": "Consistency",
+      "pillarGrowth": "Growth",
+      "pillarBalance": "Financial strength",
+      "pillarQualitative": "Qualitative quality",
+      "pillarCryptoRank": "Market relevance",
+      "pillarCryptoMomentum": "Momentum",
+      "pillarCryptoRisk": "Risk / volatility",
+      "pillarCryptoEcosystem": "Ecosystem",
+      "pillarCryptoRecovery": "Recovery vs ATH",
+      "rationaleDistress": "Distress signals: negative or absent operating profit.",
+      "rationaleHighDebt": "Leverage above comfort for a moderate profile.",
+      "rationaleProfitableStreak": "Multi-year positive streak in the history window.",
+      "rationaleStrongMargin": "Net margin above 12% — standout operating efficiency.",
+      "rationaleElitePci": "PCI in the elite band on PRONUX Analytica.",
+      "rationaleHighConfidence": "Dossier with multiple reconciled sources — high-confidence data.",
+      "rationaleEliteCompound": "Elite compounder classification on the Analytica engine.",
+      "rationaleCryptoTopRank": "Top 20 by market cap — institutional liquidity and relevance.",
+      "rationaleCryptoPositiveYear": "Positive 12-month momentum.",
+      "rationaleCryptoStrongEcosystem": "Active ecosystem (community and/or development).",
+      "rationaleCryptoDistress": "Severe prolonged drawdown or very low market relevance."
+    },
     "analytica": {
       "eyebrow": "Quant-mentalist engine",
       "title": "PRONUX Analytica Core",

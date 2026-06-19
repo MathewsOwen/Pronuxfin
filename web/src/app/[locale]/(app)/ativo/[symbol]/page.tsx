@@ -3,6 +3,8 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { AssetTerminalPage } from "@/components/market/asset-terminal-page";
 import type { AppLocale } from "@/i18n/routing";
+import { buildDossierAnalyticaPayload } from "@/lib/analytica/map-dossier-to-analytica";
+import { buildDossierSeloPayload } from "@/lib/analytica/build-dossier-selo";
 import { loadAssetDossier } from "@/lib/market/load-asset-dossier";
 import { privateAppMetadata } from "@/lib/page-metadata";
 import { getCurrentUser } from "@/lib/session";
@@ -51,6 +53,18 @@ export default async function AssetPage({ params }: AssetPageProps) {
     redirect("/dashboard");
   }
 
+  const seloPayload = buildDossierSeloPayload(dossier, "MODERATE");
+
+  const analytica =
+    dossier.assetClass === "crypto"
+      ? null
+      : await buildDossierAnalyticaPayload(
+          dossier,
+          "MODERATE",
+          (sym) => loadAssetDossier(sym),
+          4,
+        );
+
   const locale = await getLocale();
   return (
     <AssetTerminalPage
@@ -59,6 +73,8 @@ export default async function AssetPage({ params }: AssetPageProps) {
       watchlisted={watchlisted}
       portfolioPosition={portfolioPosition}
       portfolioSnapshot={portfolioSnapshot}
+      analytica={analytica}
+      selo={seloPayload.selo}
     />
   );
 }

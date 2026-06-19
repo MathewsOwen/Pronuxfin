@@ -23,6 +23,8 @@ export type AssetDossierSectionLabels = {
   navCalendar: string;
   navRisk: string;
   navDividends: string;
+  navAnalytica: string;
+  navSelo: string;
   sessionTitle: string;
   sessionSubtitle: string;
   sessionOpen: string;
@@ -100,6 +102,8 @@ export type AssetDossierSectionLabels = {
 };
 
 const NAV_IDS = {
+  selo: "dossier-selo",
+  analytica: "dossier-analytica",
   session: "dossier-session",
   returns: "dossier-returns",
   ratios: "dossier-ratios",
@@ -113,13 +117,19 @@ export function DossierSectionNav({
   showRatios,
   showCalendar,
   showDividends,
+  showSelo = false,
+  showAnalytica = true,
 }: {
   labels: AssetDossierSectionLabels;
   showRatios: boolean;
   showCalendar: boolean;
   showDividends: boolean;
+  showSelo?: boolean;
+  showAnalytica?: boolean;
 }) {
   const items = [
+    ...(showSelo ? [{ id: NAV_IDS.selo, label: labels.navSelo }] : []),
+    ...(showAnalytica ? [{ id: NAV_IDS.analytica, label: labels.navAnalytica }] : []),
     { id: NAV_IDS.session, label: labels.navSession },
     { id: NAV_IDS.returns, label: labels.navReturns },
     ...(showRatios ? [{ id: NAV_IDS.ratios, label: labels.navRatios }] : []),

@@ -5,7 +5,7 @@ import {
   mountSingularityScene,
   type SingularityOffering,
 } from "@/components/marketing/singularity-scene";
-import { useIntroMobile } from "@/components/marketing/intro-mobile";
+import { useIntroMobile, useSingularityViewportSignature } from "@/components/marketing/intro-mobile";
 import { cn } from "@/lib/utils";
 
 export function PronuxIntroSingularity({
@@ -20,6 +20,7 @@ export function PronuxIntroSingularity({
   const rootRef = useRef<HTMLDivElement>(null);
   const warpRef = useRef(warpOut);
   const isMobile = useIntroMobile();
+  const viewportSignature = useSingularityViewportSignature();
   const offeringsKey = offerings.map((o) => o.label).join("\0");
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export function PronuxIntroSingularity({
       pointerInteractive: !isMobile,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [offeringsKey, isMobile]);
+  }, [offeringsKey, isMobile, viewportSignature]);
 
   return (
     <div

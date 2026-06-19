@@ -30,6 +30,49 @@ export const MOBILE_INTRO_SERVICE_IDS = [
   "monitoring",
 ] as const;
 
+export function getSingularityViewportSignature(width: number, height: number) {
+  const mobile = width < 768;
+  const portrait = height > width;
+  const short = height < 520;
+  return `${mobile ? "m" : "d"}-${portrait ? "p" : "l"}-${short ? "s" : "n"}`;
+}
+
+/** Remonta a cena WebGL quando o perfil mobile/desktop ou orientação muda de verdade. */
+export function useSingularityViewportSignature() {
+  const [signature, setSignature] = useState(() =>
+    typeof window !== "undefined"
+      ? getSingularityViewportSignature(window.innerWidth, window.innerHeight)
+      : "ssr",
+  );
+
+  useEffect(() => {
+    const sync = () => {
+      setSignature(
+        getSingularityViewportSignature(window.innerWidth, window.innerHeight),
+      );
+    };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(document.documentElement);
+    window.addEventListener("resize", sync);
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener("resize", sync);
+      vv.addEventListener("scroll", sync);
+    }
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", sync);
+      if (vv) {
+        vv.removeEventListener("resize", sync);
+        vv.removeEventListener("scroll", sync);
+      }
+    };
+  }, []);
+
+  return signature;
+}
+
 export type SingularitySceneMode = "intro" | "ambient";
 
 export function getSingularityViewportProfile(
@@ -45,7 +88,7 @@ export function getSingularityViewportProfile(
       isMobile: false,
       isPortrait,
       shortFrame: false,
-      instanceCount: mode === "ambient" ? 4200 : 2400,
+      instanceCount: mode === "ambient" ? 4600 : 3000,
       pixelRatioCap: 2.5,
       camDistance: mode === "ambient" ? 90 : 82,
       orbitRadius: 40,
@@ -55,7 +98,7 @@ export function getSingularityViewportProfile(
       labelCompact: false,
       showCrystalLabels: true,
       crystalLockedOrbit: true,
-      diskRMax: 48,
+      diskRMax: mode === "ambient" ? 88 : 72,
       diskOrbitScale: 0.64,
       diskIntensity: 1.22,
       auraIntensity: 1.0,
@@ -83,14 +126,14 @@ export function getSingularityViewportProfile(
     isPortrait,
     shortFrame,
     instanceCount: shortFrame
-      ? 720
+      ? 880
       : mode === "ambient"
         ? isPortrait
-          ? 1800
-          : 2400
+          ? 2200
+          : 2800
         : isPortrait
-          ? 900
-          : 980,
+          ? 1120
+          : 1220,
     pixelRatioCap: 1.5,
     camDistance: intro ? (shortFrame ? 102 : isPortrait ? 118 : 108) : isPortrait ? 100 : 94,
     orbitRadius: intro ? (shortFrame ? 24 : isPortrait ? 26 : 28) : isPortrait ? 36 : 38,
@@ -100,7 +143,15 @@ export function getSingularityViewportProfile(
     labelCompact: true,
     showCrystalLabels: intro,
     crystalLockedOrbit: true,
-    diskRMax: intro ? (shortFrame ? 32 : 34) : 40,
+    diskRMax: intro
+      ? shortFrame
+        ? 52
+        : isPortrait
+          ? 58
+          : 56
+      : isPortrait
+        ? 64
+        : 66,
     diskOrbitScale: 0.66,
     diskIntensity: 1.26,
     auraIntensity: 1.05,

@@ -24,6 +24,7 @@ import {
   type MarketRegionId,
   type SectorId,
 } from "@/lib/market/sector-universe";
+import { deskMarketUsesBrapi, normalizeDeskMarketId } from "@/lib/market/world-markets";
 import {
   listCryptoSectorAssets,
   type CryptoSectorId,
@@ -84,18 +85,19 @@ export async function loadCachedQuotesPayload(): Promise<{
 }
 
 export async function loadCachedSectorQuotesPayload(
-  region: MarketRegionId,
+  marketInput: MarketRegionId | string,
   sector: SectorId,
 ): Promise<{ payload: SectorBookPayload; warnings: string[] }> {
+  const market = normalizeDeskMarketId(String(marketInput)) ?? "br";
   return rememberWithTtl(
-    `market-gateway:sector:${region}:${sector}:v1`,
+    `market-gateway:sector:${market}:${sector}:v2`,
     CACHE_TTL.sectorBookMs,
     async () => {
       const warnings: string[] = [];
-      const symbols = listSectorSymbols(region, sector);
+      const symbols = listSectorSymbols(market, sector);
       const now = Date.now();
 
-      if (region === "br") {
+      if (deskMarketUsesBrapi(market)) {
         const book = await executeProviderChain(
           "sector_book_br",
           {
@@ -125,7 +127,7 @@ export async function loadCachedSectorQuotesPayload(
 
         const payload: SectorBookPayload = {
           fetchedAt: now,
-          region,
+          region: market,
           sector,
           universeCount: symbols.length,
           source: book.source,
@@ -164,7 +166,7 @@ export async function loadCachedSectorQuotesPayload(
 
       const payload: SectorBookPayload = {
         fetchedAt: now,
-        region: "intl",
+        region: market,
         sector,
         universeCount: symbols.length,
         source: book.source,
@@ -238,7 +240,7 @@ export async function loadCachedAggregatedNews(
     async () => {
       const articles = await fetchAggregatedNews(limit);
       if (articles.length > 0) {
-        noteMarketProviderUsage("rss_public");
+        await noteMarketProviderUsage("rss_public");
       }
       return articles;
     },
@@ -262,7 +264,7 @@ export async function loadCachedAggregatedNewsDiagnostics(
     async () => {
       const diag = await fetchAggregatedNewsWithDiagnostics(limit);
       if (diag.articles.length > 0) {
-        noteMarketProviderUsage("rss_public");
+        await noteMarketProviderUsage("rss_public");
       }
       return diag;
     },
@@ -369,7 +371,7 @@ async function executeProviderChain<T extends { warning?: string }>(
     const execute = executors[provider];
     if (!execute) continue;
 
-    const budgetWarning = getMarketProviderBudgetWarning(provider);
+    const budgetWarning = await getMarketProviderBudgetWarning(provider);
     if (budgetWarning) {
       warnings.push(budgetWarning);
       continue;
@@ -377,7 +379,7 @@ async function executeProviderChain<T extends { warning?: string }>(
 
     try {
       const result = await execute();
-      noteMarketProviderUsage(provider);
+      await noteMarketProviderUsage(provider);
       return result;
     } catch {
       warnings.push(`${provider}_failed`);

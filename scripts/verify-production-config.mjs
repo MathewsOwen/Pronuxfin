@@ -120,8 +120,21 @@ if (!pubKey.includes("BEGIN PUBLIC KEY")) {
   fail("JWT_PUBLIC_KEY inválida ou ausente");
 }
 
+if (!isTruthy(env, "INTERNAL_API_REQUEST_SIGNING")) {
+  fail("INTERNAL_API_REQUEST_SIGNING=1 obrigatório no web");
+}
+
 if (get(env, "INTERNAL_API_SECRET").length < 32) {
   fail("INTERNAL_API_SECRET ausente ou < 32 caracteres");
+}
+
+if (get(env, "NEXT_PUBLIC_MARKET_ALLOW_SIMULATION") === "1") {
+  fail("NEXT_PUBLIC_MARKET_ALLOW_SIMULATION=1 proibido em produção");
+}
+
+const healthProbe = get(env, "HEALTH_PROBE_SECRET");
+if (healthProbe.length < 32) {
+  fail("HEALTH_PROBE_SECRET ausente ou < 32 caracteres");
 }
 
 if (!isTruthy(env, "COOKIE_SAMESITE_STRICT")) {
@@ -176,7 +189,7 @@ if (privKey && !privKey.includes("BEGIN PRIVATE KEY")) {
 }
 
 if (get(env, "REFRESH_STRICT_BIND") && !isTruthy(env, "REFRESH_STRICT_BIND")) {
-  warn("REFRESH_STRICT_BIND recomendado =1 no backend");
+  fail("REFRESH_STRICT_BIND=1 obrigatório no backend em produção");
 }
 
 if (isManualPlaceholder(get(env, "SMTP_URL"))) {

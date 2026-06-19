@@ -19,9 +19,9 @@ describe("csp", () => {
     expect(resolveCspMode()).toBe("enforce");
   });
 
-  it("defaults to off in development", () => {
+  it("defaults to report-only in development", () => {
     vi.stubEnv("NODE_ENV", "development");
-    expect(resolveCspMode()).toBe("off");
+    expect(resolveCspMode()).toBe("report-only");
   });
 
   it("honours CSP_MODE override", () => {

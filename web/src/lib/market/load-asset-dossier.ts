@@ -12,6 +12,14 @@ import {
   listSectorPeersForSymbol,
   mergeComparablePeers,
 } from "@/lib/market/asset-dossier-sector-peers";
+import {
+  detectAssetClass,
+  detectDeskMarketFromSymbol,
+  inferEquitySectorId,
+  resolveLegacyEquityRegion,
+} from "@/lib/market/asset-class";
+import { loadCryptoAssetDossier } from "@/lib/market/load-crypto-asset-dossier";
+import { resolveFmpEquitySymbol } from "@/lib/market/fmp-symbol-resolver";
 import { getAssetReferenceProfile } from "@/lib/market/asset-reference-profiles";
 import {
   fetchIntlCompanyProfileFromFmp,
@@ -26,8 +34,14 @@ import {
   canUseMarketProvider,
   noteMarketProviderUsage,
 } from "@/lib/market/market-provider-budget";
+import { enrichAssetDossier } from "@/lib/market/asset-dossier-enrichment";
 import { rememberWithTtl } from "@/lib/market/market-server-cache";
-import { SECTOR_ORDER, listSectorSymbols, type SectorId } from "@/lib/market/sector-universe";
+import type { SectorId } from "@/lib/market/sector-universe";
+import {
+  deskMarketDefaultCurrency,
+  DESK_MARKET_META,
+  type DeskMarketId,
+} from "@/lib/market/world-markets";
 import type {
   AssetDividendEvent,
   AssetDossier,
@@ -82,15 +96,21 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
   const symbol = normalizeSymbol(symbolInput);
   if (!symbol) return null;
 
-  return rememberWithTtl(`asset-dossier:${symbol}:v10`, DOSSIER_TTL_MS, async () => {
-    const region = detectAssetRegion(symbol);
+  if (detectAssetClass(symbol) === "crypto") {
+    return loadCryptoAssetDossier(symbol);
+  }
+
+  return rememberWithTtl(`asset-dossier:${symbol}:v12`, DOSSIER_TTL_MS, async () => {
+    const deskMarket = detectDeskMarketFromSymbol(symbol);
+    const region = resolveLegacyEquityRegion(symbol);
     const [market, articles] = await Promise.all([
-      region === "br" ? fetchBrAssetDossier(symbol) : fetchIntlAssetDossier(symbol),
+      deskMarket === "br" ? fetchBrAssetDossier(symbol) : fetchIntlAssetDossier(symbol, deskMarket),
       loadCachedAggregatedNews(72).catch(() => [] as NewsArticle[]),
     ]);
 
     const reference = getAssetReferenceProfile(symbol);
-    const inferredSector = inferSectorName(symbol, region);
+    const inferredSector = inferSectorName(symbol);
+    const sectorLabel = inferredSector ?? market.profile?.sector ?? reference?.sector ?? null;
     const companyName =
       reference?.companyName ??
       market.profile?.companyName ??
@@ -111,7 +131,7 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       market.fields.fiftyTwoWeekHigh,
       market.fields.fiftyTwoWeekLow,
     );
-    const sectorPeers = listSectorPeersForSymbol(symbol, region);
+    const sectorPeers = listSectorPeersForSymbol(symbol, deskMarket);
     const comparablePeers = mergeComparablePeers(symbol, sectorPeers, market.intlStockPeers);
     const marketExtras = {
       ...market.marketExtras,
@@ -127,8 +147,10 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       market.history,
     );
 
-    return {
+    return enrichAssetDossier({
       symbol,
+      assetClass: "equity",
+      deskMarket,
       region,
       historyMode: market.historyMode,
       quote: {
@@ -136,18 +158,20 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
         imageUrl: market.quote.imageUrl ?? market.profile?.imageUrl ?? undefined,
       },
       companyName,
-      currency: market.quote.currency ?? (region === "br" ? "BRL" : "USD"),
+      currency:
+        market.quote.currency ??
+        deskMarketDefaultCurrency(deskMarket),
       foundedYear: reference?.foundedYear ?? null,
       headquarters: reference?.headquarters ?? market.profile?.headquarters ?? null,
       country: market.profile?.country ?? extractCountry(reference?.headquarters) ?? null,
       exchange: market.profile?.exchange ?? null,
       website: market.profile?.website ?? null,
       ipoDate: market.profile?.ipoDate ?? null,
-      sector: reference?.sector ?? market.profile?.sector ?? inferredSector,
+      sector: reference?.sector ?? market.profile?.sector ?? sectorLabel,
       industry: reference?.industry ?? market.profile?.industry ?? null,
       ceoName: market.profile?.ceoName ?? marketExtras.ceoName ?? null,
       fullTimeEmployees: market.profile?.fullTimeEmployees ?? marketExtras.fullTimeEmployees ?? null,
-      intlStockPeers: region === "intl" ? market.intlStockPeers : null,
+      intlStockPeers: deskMarket === "br" ? null : market.intlStockPeers,
       comparablePeers,
       marketExtras,
       periodStats,
@@ -155,14 +179,13 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       summary:
         reference?.summary ??
         market.profile?.summary ??
-        buildFallbackSummary(
-          companyName,
-          reference?.sector ?? market.profile?.sector ?? inferredSector,
-          region,
-          market.quote,
-        ),
+        buildFallbackSummary(companyName, sectorLabel, deskMarket, market.quote),
       keywords,
-      sourceLabel: region === "br" ? "BRAPI" : market.profile?.sourceLabel ?? "Yahoo Finance + PRONUX model",
+      sourceLabel:
+        deskMarket === "br"
+          ? "BRAPI"
+          : (market.profile?.sourceLabel ??
+            `Yahoo Finance + FMP · ${DESK_MARKET_META[deskMarket].exchangeLabelEn}`),
       marketCap: market.fields.marketCap,
       regularMarketVolume: market.fields.regularMarketVolume,
       regularMarketOpen: market.fields.regularMarketOpen,
@@ -180,7 +203,8 @@ export async function loadAssetDossier(symbolInput: string): Promise<AssetDossie
       intlKeyMetricsTtm: market.intlKeyMetricsTtm,
       intlAnnualStatements: market.intlAnnualStatements,
       historicalInsights,
-    };
+      cryptoProfile: null,
+    });
   });
 }
 
@@ -201,7 +225,7 @@ async function fetchBrAssetDossier(symbol: string) {
   const url = `${base}&range=10y&interval=1d&dividends=true&modules=summaryProfile,defaultKeyStatistics,financialData,balanceSheetHistory,incomeStatementHistory,financialStats`;
 
   try {
-    if (!canUseMarketProvider("brapi")) {
+    if (!(await canUseMarketProvider("brapi"))) {
       throw new Error("brapi_budget_soft_cap");
     }
 
@@ -258,7 +282,7 @@ async function fetchBrAssetDossier(symbol: string) {
       intlAnnualStatements,
       intlStockPeers,
     };
-    noteMarketProviderUsage("brapi");
+    await noteMarketProviderUsage("brapi");
     return output;
   } catch {
     const quote = emptyQuoteSnapshot(symbol, "BRL");
@@ -283,19 +307,23 @@ function mergeDividendSources(
   return { events: [], sourceLabel: primaryLabel };
 }
 
-async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnapshot> {
+async function fetchIntlAssetDossier(
+  symbol: string,
+  deskMarket: DeskMarketId,
+): Promise<MarketDossierSnapshot> {
+  const fmpSymbol = resolveFmpEquitySymbol(symbol, deskMarket);
   const [profile, intlKeyMetricsTtm, intlAnnualStatements, intlStockPeers, fmpDividendRows] =
     await Promise.all([
-      fetchIntlCompanyProfileFromFmp(symbol),
-      fetchIntlKeyMetricsTtmFromFmp(symbol),
-      fetchIntlLatestAnnualStatementsFromFmp(symbol),
-      fetchIntlStockPeersFromFmp(symbol),
-      fetchStockDividendHistoryFromFmp(symbol),
+      fetchIntlCompanyProfileFromFmp(fmpSymbol),
+      fetchIntlKeyMetricsTtmFromFmp(fmpSymbol),
+      fetchIntlLatestAnnualStatementsFromFmp(fmpSymbol),
+      fetchIntlStockPeersFromFmp(fmpSymbol),
+      fetchStockDividendHistoryFromFmp(fmpSymbol),
     ]);
   const fmpDividends = parseFmpDividendEvents(fmpDividendRows);
 
   try {
-    if (!canUseMarketProvider("yahoo")) {
+    if (!(await canUseMarketProvider("yahoo"))) {
       throw new Error("yahoo_budget_soft_cap");
     }
 
@@ -320,10 +348,14 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
 
     const quote = mapYahooQuote(row);
     const liveHistory = await fetchYahooChartHistory(symbol, "10y");
-    noteMarketProviderUsage("yahoo");
+    const defaultCurrency = deskMarketDefaultCurrency(deskMarket);
+    await noteMarketProviderUsage("yahoo");
     return {
-      quote,
-      history: liveHistory.length > 1 ? liveHistory : buildIndicativeHistory(quote, "intl"),
+      quote: { ...quote, currency: quote.currency ?? defaultCurrency },
+      history:
+        liveHistory.length > 1
+          ? liveHistory
+          : buildIndicativeHistory(quote, deskMarket),
       historyMode: liveHistory.length > 1 ? ("live" as const) : ("indicative" as const),
       marketExtras: extractMarketExtrasFromQuoteRow(row),
       dividendEvents: fmpDividends,
@@ -349,7 +381,7 @@ async function fetchIntlAssetDossier(symbol: string): Promise<MarketDossierSnaps
       intlStockPeers,
     };
   } catch {
-    const quote = emptyQuoteSnapshot(symbol, "USD");
+    const quote = emptyQuoteSnapshot(symbol, deskMarketDefaultCurrency(deskMarket));
     return {
       ...unavailableDossier(quote),
       profile,
@@ -561,12 +593,12 @@ async function fetchYahooChartHistory(
 
 function buildIndicativeHistory(
   quote: QuoteSnapshot,
-  region: "br" | "intl",
+  market: DeskMarketId,
 ): AssetHistoryPoint[] {
   const steps = 60;
   const now = Date.now();
   const seed = symbolSeed(quote.symbol);
-  const price = quote.regularMarketPrice ?? (region === "br" ? 32 : 78);
+  const price = quote.regularMarketPrice ?? (market === "br" ? 32 : 78);
   const pct = quote.regularMarketChangePercent ?? 0;
   const baseDrift = pct / 100;
   const rows: AssetHistoryPoint[] = [];
@@ -668,24 +700,25 @@ function tokenizeWords(value: string) {
 function buildFallbackSummary(
   name: string,
   sector: string | null,
-  region: "br" | "intl",
+  market: DeskMarketId,
   quote?: QuoteSnapshot,
 ) {
+  const meta = DESK_MARKET_META[market];
   const scope =
-    region === "br"
+    market === "br"
       ? "na cobertura institucional do mercado brasileiro"
-      : "na cobertura internacional da PRONUXFIN";
+      : `na cobertura internacional da PRONUXFIN (${meta.namePt} · ${meta.exchangeLabelPt})`;
   const body = !sector
     ? `${name} integra a mesa aprofundada de ativos da PRONUXFIN, com foco em contexto de mercado, movimentos recentes e leitura operacional ${scope}.`
     : `${name} aparece na camada aprofundada de ativos da PRONUXFIN como representante de ${sector.toLowerCase()}, combinando contexto operacional, movimentos recentes e monitoramento ${scope}.`;
 
-  const cur = quote?.currency ?? (region === "br" ? "BRL" : "USD");
-  const iso = /^[A-Z]{3}$/i.test(cur) ? cur.toUpperCase() : region === "br" ? "BRL" : "USD";
+  const cur = quote?.currency ?? deskMarketDefaultCurrency(market);
+  const iso = /^[A-Z]{3}$/i.test(cur) ? cur.toUpperCase() : deskMarketDefaultCurrency(market);
   const px = quote?.regularMarketPrice;
   const chg = quote?.regularMarketChangePercent;
   if (px == null || !Number.isFinite(px)) return body;
 
-  const loc = region === "br" ? "pt-BR" : "en-US";
+  const loc = market === "br" ? "pt-BR" : "en-US";
   const formatted = new Intl.NumberFormat(loc, {
     style: "currency",
     currency: iso,
@@ -696,12 +729,12 @@ function buildFallbackSummary(
   if (chg != null && Number.isFinite(chg)) {
     const sign = chg > 0 ? "+" : "";
     priceBit =
-      region === "br"
+      market === "br"
         ? `Cotação recente na mesa: ${formatted} (${sign}${chg.toFixed(2)}% nesta leitura).`
         : `Latest desk quote: ${formatted} (${sign}${chg.toFixed(2)}% this read).`;
   } else {
     priceBit =
-      region === "br"
+      market === "br"
         ? `Última cotação registada na mesa: ${formatted}.`
         : `Latest desk quote on file: ${formatted}.`;
   }
@@ -715,19 +748,10 @@ function extractCountry(headquarters?: string) {
   return parts.at(-1) ?? null;
 }
 
-function inferSectorName(symbol: string, region: "br" | "intl") {
-  const sector = inferSectorId(symbol, region);
+function inferSectorName(symbol: string) {
+  const sector = inferEquitySectorId(symbol);
   if (!sector) return null;
   return SECTOR_LABELS[sector];
-}
-
-function inferSectorId(symbol: string, region: "br" | "intl"): SectorId | null {
-  for (const sector of SECTOR_ORDER) {
-    if (listSectorSymbols(region, sector).includes(symbol)) {
-      return sector;
-    }
-  }
-  return null;
 }
 
 function emptyDetailedFields(): DetailedQuoteFields {

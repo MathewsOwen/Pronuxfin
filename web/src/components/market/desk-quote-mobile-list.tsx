@@ -64,7 +64,7 @@ export function DeskQuoteMobileList({
         const pct = row.regularMarketChangePercent;
         const up = pct != null && pct >= 0;
         const flashDir = flash?.[row.symbol];
-        const href = row.segment === "crypto" ? null : `/ativo/${row.symbol}`;
+        const href = `/ativo/${row.symbol}`;
         const pctLabel = formatPct(pct, locale);
 
         const inner = (

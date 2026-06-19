@@ -78,7 +78,7 @@ export function listLiveDeskBrTickers(): readonly string[] {
 /** Ações internacionais na mesa ao vivo (deduplicado por setor). */
 export function listLiveDeskIntlTickers(): readonly string[] {
   const sectorSymbols = SECTOR_ORDER.flatMap((sector: SectorId) =>
-    listSectorSymbols("intl", sector),
+    listSectorSymbols("us", sector),
   );
   return dedupeOrdered(sectorSymbols).slice(0, getLiveDeskIntlMax());
 }

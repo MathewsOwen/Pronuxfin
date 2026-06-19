@@ -18,7 +18,7 @@ export function resolveCspMode(): CspMode {
   if (raw === "off" || raw === "report-only" || raw === "enforce") {
     return raw;
   }
-  return process.env.NODE_ENV === "production" ? "enforce" : "off";
+  return process.env.NODE_ENV === "production" ? "enforce" : "report-only";
 }
 
 export function cspHeaderName(mode: CspMode): string | null {
@@ -39,7 +39,7 @@ export function buildContentSecurityPolicy(opts: {
 
   const scriptParts = ["'self'", `'nonce-${nonce}'`, "'strict-dynamic'"];
   if (!isProd) {
-    scriptParts.push("'wasm-unsafe-eval'", "'unsafe-eval'");
+    scriptParts.push("'wasm-unsafe-eval'", "'unsafe-eval'", "'unsafe-inline'");
   } else {
     // Three.js / WebGL (intro 3D e fundo ambiente)
     scriptParts.push("'wasm-unsafe-eval'");

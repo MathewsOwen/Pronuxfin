@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSingularityViewportSignature } from "@/components/marketing/intro-mobile";
 import { mountSingularityScene } from "@/components/marketing/singularity-scene";
 
 function isIntroActive() {
@@ -13,6 +14,7 @@ function isIntroActive() {
 export function SiteSingularityBackdrop() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  const viewportSignature = useSingularityViewportSignature();
 
   useEffect(() => {
     if (!isIntroActive()) {
@@ -41,7 +43,7 @@ export function SiteSingularityBackdrop() {
       offerings: [],
       pointerInteractive: true,
     });
-  }, [ready]);
+  }, [ready, viewportSignature]);
 
   return (
     <div

@@ -4,6 +4,8 @@
  */
 
 import { getSectorBookMaxTickers } from "@/lib/market/sector-book-cap";
+import { normalizeDeskMarketId } from "@/lib/market/world-markets";
+import { listWorldMarketSectorSymbols } from "@/lib/market/world-market-universe";
 
 import {
   XL_BR_COMMODITIES_N,
@@ -26,7 +28,7 @@ import {
   XL_INTL_UTILITIES,
 } from "@/lib/market/sector-universe-xl";
 
-export type MarketRegionId = "br" | "intl";
+export type MarketRegionId = import("@/lib/market/world-markets").DeskMarketId;
 
 export type SectorId =
   | "commodities"
@@ -1037,17 +1039,23 @@ const INTL_MAP: Record<SectorId, string[]> = {
   ]),
 };
 
-/** Alguns símbolos (.PA etc.) não entram nos lotes comma-separated do Yahoo — excluímos. */
-const INTL_SKIP_RE = /[./]/;
+/** Alguns símbolos US com ponto (ex. BRK.B) não entram nos lotes comma-separated do Yahoo — excluímos só no EUA. */
+const US_YAHOO_BATCH_SKIP_RE = /[./]/;
 
 export function listSectorSymbols(
-  region: MarketRegionId,
+  marketInput: MarketRegionId | "intl",
   sector: SectorId,
 ): string[] {
-  const raw = region === "br" ? BR_MAP[sector] : INTL_MAP[sector];
-  const filtered =
-    region === "intl" ? raw.filter((s) => !INTL_SKIP_RE.test(s)) : raw;
-  return filtered.slice(0, getSectorBookMaxTickers());
+  const market = normalizeDeskMarketId(marketInput) ?? "br";
+  if (market === "br") {
+    return BR_MAP[sector].slice(0, getSectorBookMaxTickers());
+  }
+  if (market === "us") {
+    const raw = INTL_MAP[sector];
+    const filtered = raw.filter((s) => !US_YAHOO_BATCH_SKIP_RE.test(s));
+    return filtered.slice(0, getSectorBookMaxTickers());
+  }
+  return listWorldMarketSectorSymbols(market, sector).slice(0, getSectorBookMaxTickers());
 }
 
 export function isSectorId(s: string): s is SectorId {
@@ -1055,5 +1063,5 @@ export function isSectorId(s: string): s is SectorId {
 }
 
 export function isMarketRegionId(s: string): s is MarketRegionId {
-  return s === "br" || s === "intl";
+  return normalizeDeskMarketId(s) !== null;
 }

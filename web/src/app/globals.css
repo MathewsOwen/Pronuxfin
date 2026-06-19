@@ -378,7 +378,7 @@ html[data-pronux-intro] [data-pronux-intro-root] {
   }
 
   .animate-marquee-fin {
-    animation: marquee-fin 120s linear infinite;
+    animation: marquee-fin 240s linear infinite;
   }
 
   @media (prefers-reduced-motion: no-preference) {

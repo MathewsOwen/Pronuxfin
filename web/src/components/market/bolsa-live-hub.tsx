@@ -8,9 +8,7 @@ import {
   ArrowRight,
   ArrowUpDown,
   BarChart3,
-  Globe2,
   Layers,
-  MapPin,
   RefreshCw,
   Search,
   ShieldAlert,
@@ -35,6 +33,8 @@ import {
   RevealStaggerList,
 } from "@/components/marketing/landing-reveal";
 import { DeskQuoteMobileList } from "@/components/market/desk-quote-mobile-list";
+import { BrokerDeskSidebarMobile } from "@/components/market/broker-desk-sidebar";
+import { GlobalAssetSearch } from "@/components/market/global-asset-search";
 import { useQuotesStream } from "@/components/market/quotes-stream-provider";
 import { useCryptoSectorQuotesBook } from "@/hooks/use-crypto-sector-quotes";
 import { useSectorQuotesBook } from "@/hooks/use-sector-quotes";
@@ -44,9 +44,15 @@ import {
 } from "@/lib/market/crypto-sector-universe";
 import {
   SECTOR_ORDER,
-  type MarketRegionId,
   type SectorId,
 } from "@/lib/market/sector-universe";
+import {
+  DESK_MARKET_META,
+  DESK_MARKET_ORDER,
+  deskMarketDefaultCurrency,
+  deskMarketUsesBrapi,
+  type DeskMarketId,
+} from "@/lib/market/world-markets";
 
 const EMPTY_QUOTE_ROWS: QuoteSnapshot[] = [];
 
@@ -220,7 +226,7 @@ export function BolsaLiveHub() {
   const tDesk = useTranslations("MarketDesk");
   const t = useTranslations("BolsaHub");
   const payload = useQuotesStream();
-  const [region, setRegion] = useState<MarketRegionId>("br");
+  const [market, setMarket] = useState<DeskMarketId>("br");
   const [sector, setSector] = useState<SectorId>("commodities");
   const [cryptoSector, setCryptoSector] = useState<CryptoSectorId>("layer1");
   const [equitySearch, setEquitySearch] = useState("");
@@ -241,17 +247,18 @@ export function BolsaLiveHub() {
     key: "pct",
     direction: "desc",
   });
-  const sectorBook = useSectorQuotesBook(region, sector);
+  const sectorBook = useSectorQuotesBook(market, sector);
   const cryptoSectorBook = useCryptoSectorQuotesBook(cryptoSector);
   const prevPctRef = useRef<Record<string, number>>({});
   const fadeFlashRef = useRef(0);
   const clearFlashRef = useRef(0);
   const [flash, setFlash] = useState<Record<string, "up" | "down">>({});
 
-  const sectorFallBackCur = region === "br" ? "BRL" : "USD";
+  const marketMeta = DESK_MARKET_META[market];
+  const sectorFallBackCur = deskMarketDefaultCurrency(market);
 
-  function selectRegion(nextRegion: MarketRegionId) {
-    setRegion(nextRegion);
+  function selectMarket(nextMarket: DeskMarketId) {
+    setMarket(nextMarket);
     setEquitySearch("");
     setEquityVisibleCount(TABLE_PAGE_SIZE);
   }
@@ -426,6 +433,9 @@ export function BolsaLiveHub() {
               <span className="text-gradient-brand">{t("h1Accent")}</span>
             </h2>
             <p className="text-muted-foreground leading-relaxed">{t("intro")}</p>
+            <div className="mt-5 max-w-xl">
+              <GlobalAssetSearch />
+            </div>
           </div>
           <div className="glass-panel card-shine flex w-full max-w-xl flex-col gap-3 rounded-2xl px-4 py-3 font-mono text-[11px] lg:w-auto lg:max-w-none">
             <div className="grid gap-2 sm:grid-cols-3">
@@ -521,6 +531,10 @@ export function BolsaLiveHub() {
         </div>
       </div>
 
+      <div className="mt-8">
+        <BrokerDeskSidebarMobile />
+      </div>
+
       <section className="mt-8 space-y-3">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -600,40 +614,45 @@ export function BolsaLiveHub() {
         </div>
 
         <div className="flex flex-col gap-4 border-b border-white/[0.06] px-4 py-4 sm:px-6">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t("sectorRegion")}
             </span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => selectRegion("br")}
-                aria-pressed={region === "br"}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-mono text-[11px] transition-colors",
-                  region === "br"
-                    ? "border-primary/35 bg-status-warning/12 text-status-warning"
-                    : "border-white/15 bg-transparent text-muted-foreground hover:border-primary/25 hover:text-foreground",
-                )}
-              >
-                <MapPin className="size-3.5" aria-hidden />
-                {t("sectorRegionBr")}
-              </button>
-              <button
-                type="button"
-                onClick={() => selectRegion("intl")}
-                aria-pressed={region === "intl"}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 font-mono text-[11px] transition-colors",
-                  region === "intl"
-                    ? "border-teal-500/50 bg-teal-950/35 text-teal-100"
-                    : "border-white/15 bg-transparent text-muted-foreground hover:border-teal-500/35 hover:text-foreground",
-                )}
-              >
-                <Globe2 className="size-3.5" aria-hidden />
-                {t("sectorRegionIntl")}
-              </button>
+            <div className="overflow-x-auto pb-1">
+              <div className="flex w-max max-w-full flex-wrap gap-2 sm:max-w-none">
+                {DESK_MARKET_ORDER.map((id) => {
+                  const meta = DESK_MARKET_META[id];
+                  const label =
+                    locale === "pt-BR" ? meta.namePt : meta.nameEn;
+                  const active = market === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => selectMarket(id)}
+                      aria-pressed={active}
+                      title={`${label} · ${locale === "pt-BR" ? meta.exchangeLabelPt : meta.exchangeLabelEn}`}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[10px] transition-colors sm:px-3 sm:text-[11px]",
+                        active
+                          ? id === "br"
+                            ? "border-primary/35 bg-status-warning/12 text-status-warning"
+                            : "border-teal-500/50 bg-teal-950/35 text-teal-100"
+                          : "border-white/15 bg-transparent text-muted-foreground hover:border-primary/25 hover:text-foreground",
+                      )}
+                    >
+                      <span aria-hidden>{meta.flag}</span>
+                      <span className="whitespace-nowrap">{label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+            <p className="text-[10px] text-muted-foreground">
+              {locale === "pt-BR"
+                ? `${marketMeta.exchangeLabelPt} · ${marketMeta.benchmarkIndex}`
+                : `${marketMeta.exchangeLabelEn} · ${marketMeta.benchmarkIndex}`}
+            </p>
           </div>
 
           <div className="overflow-x-auto pb-1">
@@ -647,7 +666,7 @@ export function BolsaLiveHub() {
                   className={cn(
                     "rounded-full border px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider whitespace-nowrap transition-colors",
                     sector === id
-                      ? region === "br"
+                      ? market === "br"
                         ? "border-primary/30 bg-status-warning/14 text-status-warning"
                         : "border-teal-500/45 bg-teal-950/40 text-teal-100"
                       : "border-white/12 bg-transparent text-muted-foreground hover:border-white/22 hover:text-foreground",
@@ -661,9 +680,19 @@ export function BolsaLiveHub() {
 
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             <span className="font-semibold text-foreground/90">
-              {region === "br" ? t("sectorSourceBrapiLabel") : t("sectorSourceYahooLabel")}
+              {deskMarketUsesBrapi(market)
+                ? t("sectorSourceBrapiLabel")
+                : t("sectorSourceYahooLabel")}
             </span>{" "}
-            {region === "br" ? t("sectorSourceBrapiBlurb") : t("sectorSourceYahooBlurb")}
+            {deskMarketUsesBrapi(market)
+              ? t("sectorSourceBrapiBlurb")
+              : t("sectorSourceWorldBlurb", {
+                  market: locale === "pt-BR" ? marketMeta.namePt : marketMeta.nameEn,
+                  exchange:
+                    locale === "pt-BR"
+                      ? marketMeta.exchangeLabelPt
+                      : marketMeta.exchangeLabelEn,
+                })}
           </p>
 
           <DeskTableToolbar
@@ -737,7 +766,7 @@ export function BolsaLiveHub() {
             <tbody className="tabular-nums">
               {visibleSectorRows.map((row) => (
                 <QuoteRow
-                  key={`${region}-${sector}-${row.symbol}`}
+                  key={`${market}-${sector}-${row.symbol}`}
                   row={row}
                   flashDir={flash[row.symbol]}
                   locale={locale}
@@ -1450,7 +1479,7 @@ const QuoteRow = memo(
     const ch = row.regularMarketChange;
     const up = pct != null && pct >= 0;
     const cur = quoteCurrencyCode(row, fallbackCurrency);
-    const detailHref = row.segment === "crypto" ? null : `/ativo/${row.symbol}`;
+    const detailHref = `/ativo/${row.symbol}`;
 
     const priceLabel = formatQuoteMoney(row.regularMarketPrice, row, locale, fallbackCurrency);
     const changeLabel =

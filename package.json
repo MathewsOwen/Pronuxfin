@@ -19,7 +19,7 @@
     "test:e2e": "npm run test:e2e --prefix web",
     "test:e2e:ci": "npm run build --prefix web && npm run test:e2e --prefix web",
     "test:e2e:install": "npm run test:e2e:install --prefix web",
-    "validate": "node scripts/verify-env.mjs && npm run test:web && npm run typecheck --prefix web && npm test --prefix backend",
+    "validate": "node scripts/verify-env.mjs && npm run security:audit-local && npm run test:web && npm run typecheck --prefix web && npm test --prefix backend",
     "verify:env": "node scripts/verify-env.mjs",
     "repo:hygiene": "node scripts/repo-hygiene.mjs",
     "repo:hygiene:strict": "node scripts/repo-hygiene.mjs --strict",
@@ -38,7 +38,8 @@
     "production:probe-signing": "node scripts/probe-internal-api-signing.mjs",
     "deploy:status": "node scripts/deploy-status.mjs",
     "deploy:finish": "node scripts/deploy-finish.mjs",
-    "production:verify": "node scripts/verify-production-config.mjs"
+    "production:verify": "node scripts/verify-production-config.mjs",
+    "security:audit-local": "node scripts/audit-local-secrets.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.2.0"

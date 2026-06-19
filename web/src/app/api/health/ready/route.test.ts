@@ -61,7 +61,9 @@ describe("GET /api/health/ready", () => {
 
     const res = await GET(new Request("http://localhost/api/health/ready"));
     expect(res.status).toBe(503);
-    expect((await res.json()).ok).toBe(false);
+    const body = await res.json();
+    expect(body.ok).toBe(false);
+    expect(body.failed_checks).toBeUndefined();
   });
 
   it("includes checks when probe secret matches", async () => {

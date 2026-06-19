@@ -103,6 +103,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={resolvedLocale}
+      nonce={cspNonce}
       className={`dark ${inter.variable} ${sora.variable} ${geistMono.variable} h-full`}
       suppressHydrationWarning
     >

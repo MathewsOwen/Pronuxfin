@@ -7,6 +7,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { GlobalAssetSearch } from "@/components/market/global-asset-search";
 import { useQuotesStream } from "@/components/market/quotes-stream-provider";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { Link } from "@/i18n/navigation";
@@ -211,6 +212,16 @@ function PortfolioLiveMarketPanelInner({
             {activeMode === "live" && !lookupSimulated ? t("liveBadge") : t("liveBadgeUnavailable")}
           </Badge>
         ) : null}
+      </div>
+
+      <div className="mt-4">
+        <GlobalAssetSearch
+          mode="select"
+          onSelect={(hit) => {
+            void fetchLookup(hit.symbol, true);
+            setSearch(hit.symbol);
+          }}
+        />
       </div>
 
       <div className="relative mt-4">

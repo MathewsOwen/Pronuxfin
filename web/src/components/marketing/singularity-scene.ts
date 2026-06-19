@@ -42,9 +42,29 @@ type OrbitSlot = {
 };
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
-const DISK_R_MIN = 8;
+export const DISK_R_MIN = 8;
 
-function placeDiskInstances(
+function fillSceneSurface(el: HTMLElement) {
+  el.style.position = "absolute";
+  el.style.inset = "0";
+  el.style.width = "100%";
+  el.style.height = "100%";
+  el.style.display = "block";
+}
+
+export function estimateDiskCapacity(
+  diskRMin: number,
+  diskRMax: number,
+  minSeparation: number,
+  instanceScale: number,
+) {
+  const streakSpan = 2.2 * instanceScale;
+  const effectiveSep = Math.max(minSeparation, streakSpan * 1.04);
+  const area = Math.PI * (diskRMax * diskRMax - diskRMin * diskRMin);
+  return Math.max(0, Math.floor(area / (effectiveSep * effectiveSep * 0.84)));
+}
+
+export function placeDiskInstances(
   count: number,
   minSeparation: number,
   instanceScale: number,
@@ -52,7 +72,62 @@ function placeDiskInstances(
 ) {
   const positions: { x: number; y: number; z: number; angle: number; scale: number }[] =
     [];
-  const effectiveSep = minSeparation * instanceScale;
+  const streakSpan = 2.2 * instanceScale;
+  const effectiveSep = Math.max(minSeparation, streakSpan * 1.04);
+  const effectiveSepSq = effectiveSep * effectiveSep;
+  const cellSize = effectiveSep;
+  const grid = new Map<string, { x: number; y: number; z: number }[]>();
+
+  const cellKey = (x: number, y: number, z: number) => {
+    const cx = Math.floor(x / cellSize);
+    const cy = Math.floor(y / cellSize);
+    const cz = Math.floor(z / cellSize);
+    return `${cx}|${cy}|${cz}`;
+  };
+
+  const isCrowded = (x: number, y: number, z: number) => {
+    const cx = Math.floor(x / cellSize);
+    const cy = Math.floor(y / cellSize);
+    const cz = Math.floor(z / cellSize);
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          const bucket = grid.get(`${cx + dx}|${cy + dy}|${cz + dz}`);
+          if (!bucket) continue;
+          for (const p of bucket) {
+            const ddx = p.x - x;
+            const ddy = p.y - y;
+            const ddz = p.z - z;
+            if (ddx * ddx + ddy * ddy + ddz * ddz < effectiveSepSq) return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
+
+  const commit = (
+    x: number,
+    y: number,
+    z: number,
+    angle: number,
+    scale: number,
+  ) => {
+    const pos = { x, y, z, angle, scale };
+    positions.push(pos);
+    const key = cellKey(x, y, z);
+    const bucket = grid.get(key);
+    if (bucket) bucket.push(pos);
+    else grid.set(key, [pos]);
+  };
+
+  const tryPlace = (x: number, y: number, z: number, angle: number) => {
+    if (!isCrowded(x, y, z)) {
+      commit(x, y, z, angle, instanceScale);
+      return true;
+    }
+    return false;
+  };
 
   for (let i = 0; i < count; i++) {
     const t = (i + 0.5) / count;
@@ -64,41 +139,56 @@ function placeDiskInstances(
     const x = Math.cos(angle) * r;
     const z = Math.sin(angle) * r;
 
-    const crowded = positions.some((p) => {
-      const dx = p.x - x;
-      const dy = p.y - y;
-      const dz = p.z - z;
-      return Math.sqrt(dx * dx + dy * dy + dz * dz) < effectiveSep;
-    });
+    if (tryPlace(x, y, z, angle)) continue;
 
-    if (!crowded) {
-      positions.push({ x, y, z, angle, scale: instanceScale });
-      continue;
+    let placed = false;
+    for (let k = 1; k <= 14 && !placed; k++) {
+      const a2 = angle + k * 0.38;
+      const r2 = r + k * 0.4;
+      placed = tryPlace(Math.cos(a2) * r2, y, Math.sin(a2) * r2, a2);
     }
 
-    for (let k = 1; k <= 6; k++) {
-      const a2 = angle + k * 0.42;
-      const r2 = r + k * 0.35;
-      const x2 = Math.cos(a2) * r2;
-      const z2 = Math.sin(a2) * r2;
-      const ok = positions.every((p) => {
-        const dx = p.x - x2;
-        const dy = p.y - y;
-        const dz = p.z - z2;
-        return Math.sqrt(dx * dx + dy * dy + dz * dz) >= effectiveSep;
-      });
-      if (ok) {
-        positions.push({ x: x2, y, z: z2, angle: a2, scale: instanceScale });
-        break;
+    if (placed) continue;
+
+    for (let dr = 0.45; dr <= 10 && !placed; dr += 0.45) {
+      for (let k = 0; k < 20 && !placed; k++) {
+        const a3 = angle + k * 0.33;
+        const r3 = r + dr;
+        placed = tryPlace(Math.cos(a3) * r3, y, Math.sin(a3) * r3, a3);
       }
     }
 
-    if (positions.length <= i) {
-      positions.push({ x, y, z, angle, scale: instanceScale });
+    if (!placed) {
+      commit(0, -9999, 0, angle, 0);
     }
   }
 
   return positions;
+}
+
+export function resolveDiskLayout(
+  requested: number,
+  minSep: number,
+  instanceScale: number,
+  diskRMax: number,
+) {
+  const cap = estimateDiskCapacity(DISK_R_MIN, diskRMax, minSep, instanceScale);
+  let count = Math.min(requested, Math.max(Math.floor(cap * 0.8), 1));
+  let positions = placeDiskInstances(count, minSep, instanceScale, diskRMax);
+  let visible = positions.reduce((n, p) => n + (p.scale > 0 ? 1 : 0), 0);
+
+  if (visible < count * 0.99 && count > 64) {
+    count = Math.floor(count * 0.9);
+    positions = placeDiskInstances(count, minSep, instanceScale, diskRMax);
+    visible = positions.reduce((n, p) => n + (p.scale > 0 ? 1 : 0), 0);
+  }
+
+  if (visible < count * 0.99 && count > 64) {
+    count = Math.floor(count * 0.9);
+    positions = placeDiskInstances(count, minSep, instanceScale, diskRMax);
+  }
+
+  return { count, positions };
 }
 
 function buildCrystalSlots(
@@ -232,12 +322,11 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   );
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = profile0.toneMappingExposure;
-  renderer.domElement.style.display = "block";
+  fillSceneSurface(renderer.domElement);
   root.appendChild(renderer.domElement);
 
   const labelRenderer = new CSS2DRenderer();
-  labelRenderer.domElement.style.position = "absolute";
-  labelRenderer.domElement.style.inset = "0";
+  fillSceneSurface(labelRenderer.domElement);
   labelRenderer.domElement.style.pointerEvents = "none";
   root.appendChild(labelRenderer.domElement);
 
@@ -292,6 +381,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
       uCompression: { value: 1.0 },
       uIntensity: { value: profile0.diskIntensity },
       uOrbitScale: { value: profile0.diskOrbitScale },
+      uDiskRMax: { value: profile0.diskRMax },
     },
     vertexShader: DISK_VERTEX(NOISE_CHUNK),
     fragmentShader: DISK_FRAGMENT,
@@ -300,17 +390,16 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     depthWrite: false,
   });
 
-  const instanceCount = profile0.instanceCount;
-  const instancedDisk = new THREE.InstancedMesh(streakGeo, diskMaterial, instanceCount);
-  const dummy = new THREE.Object3D();
   const instanceScale = profile0.isMobile ? 0.56 : 0.68;
-  const minSep = profile0.isMobile ? 3.8 : 2.8;
-  const diskPositions = placeDiskInstances(
-    instanceCount,
+  const minSep = 2.35;
+  const { count: instanceCount, positions: diskPositions } = resolveDiskLayout(
+    profile0.instanceCount,
     minSep,
     instanceScale,
     profile0.diskRMax,
   );
+  const instancedDisk = new THREE.InstancedMesh(streakGeo, diskMaterial, instanceCount);
+  const dummy = new THREE.Object3D();
   for (let i = 0; i < instanceCount; i++) {
     const pos = diskPositions[i];
     if (!pos) continue;
@@ -376,8 +465,8 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
   };
 
   const resize = () => {
-    const w = root.clientWidth;
-    const h = root.clientHeight;
+    const w = Math.max(root.clientWidth || window.innerWidth, 1);
+    const h = Math.max(root.clientHeight || window.innerHeight, 1);
     profile = getSingularityViewportProfile(w, h, mode);
     camera.fov = profile.fov;
     camera.aspect = w / Math.max(h, 1);
@@ -393,6 +482,7 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     camControl.distance = profile.camDistance;
     diskMaterial.uniforms.uIntensity!.value = profile.diskIntensity;
     diskMaterial.uniforms.uOrbitScale!.value = profile.diskOrbitScale;
+    diskMaterial.uniforms.uDiskRMax!.value = profile.diskRMax;
     diskMaterial.uniforms.uMorph!.value =
       profile.diskMorph ?? (mode === "ambient" ? 0.08 : 0.12);
     auraMat.uniforms.uIntensity!.value = profile.auraIntensity;
@@ -407,8 +497,26 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     applySceneTilt(profile);
   };
 
+  let resizeRaf = 0;
+  const scheduleResize = () => {
+    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = 0;
+      resize();
+    });
+  };
+
+  const resizeObserver = new ResizeObserver(() => scheduleResize());
+  resizeObserver.observe(root);
+
+  const onVisualViewportChange = () => scheduleResize();
+
   resize();
-  window.addEventListener("resize", resize);
+  window.addEventListener("resize", scheduleResize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", onVisualViewportChange);
+    window.visualViewport.addEventListener("scroll", onVisualViewportChange);
+  }
   document.addEventListener("visibilitychange", onVisibility);
   if (pointerInteractive) {
     window.addEventListener("pointermove", onPointerMove, { passive: true });
@@ -435,13 +543,14 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
     const activeRingSpeed =
       diskOrbitalVelocity(profile.orbitRadius, profile.diskOrbitScale) *
       (profile.crystalOrbitScale ?? 1);
-    orbitGroup.rotation.y = time * activeRingSpeed;
+    const crystalOrbitR = profile.orbitRadius;
+    orbitGroup.rotation.y = -time * activeRingSpeed;
 
     for (const slot of slots) {
       slot.crystal.position.set(
-        Math.cos(slot.initialAngle) * slot.orbitR,
+        Math.cos(slot.initialAngle) * crystalOrbitR,
         slot.yOffset,
-        Math.sin(slot.initialAngle) * slot.orbitR,
+        Math.sin(slot.initialAngle) * crystalOrbitR,
       );
       slot.crystal.rotation.set(
         time * 0.35 + slot.initialAngle,
@@ -449,15 +558,12 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
         time * 0.2,
       );
       const dist = camera.position.distanceTo(slot.crystal.getWorldPosition(worldPos));
-      const scaleRef = profile.orbitRadius * 2.1;
+      const scaleRef = crystalOrbitR * 2.1;
       const s = THREE.MathUtils.clamp(dist / scaleRef, 0.88, 1.02);
       slot.crystal.scale.setScalar(s);
     }
 
     if (!useFixedCamera) {
-      if (!profile.frontView) {
-        instancedDisk.rotation.y += profile.isMobile ? 0.0002 : 0.00024;
-      }
       const currentDir = new THREE.Vector3()
         .subVectors(camera.position, controls.target)
         .normalize();
@@ -476,7 +582,13 @@ export function mountSingularityScene(options: MountSingularityOptions): () => v
 
   return () => {
     cancelAnimationFrame(raf);
-    window.removeEventListener("resize", resize);
+    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+    resizeObserver.disconnect();
+    window.removeEventListener("resize", scheduleResize);
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener("resize", onVisualViewportChange);
+      window.visualViewport.removeEventListener("scroll", onVisualViewportChange);
+    }
     document.removeEventListener("visibilitychange", onVisibility);
     if (pointerInteractive) window.removeEventListener("pointermove", onPointerMove);
     controls.dispose();

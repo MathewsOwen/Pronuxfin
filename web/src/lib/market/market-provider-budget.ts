@@ -1,4 +1,8 @@
 import {
+  incrementDistributedProviderUsage,
+  readDistributedProviderUsage,
+} from "@/lib/market/distributed-market-provider-budget";
+import {
   getMarketProviderSoftMonthlyLimit,
   type MarketProviderId,
 } from "@/lib/market/market-provider-registry";
@@ -11,23 +15,40 @@ type BudgetEntry = {
 
 const providerUsage = new Map<MarketProviderId, BudgetEntry>();
 
-export function canUseMarketProvider(id: MarketProviderId): boolean {
+export async function canUseMarketProvider(id: MarketProviderId): Promise<boolean> {
   const limit = getMarketProviderSoftMonthlyLimit(id);
   if (!limit) return true;
+
+  const distributed = await readDistributedProviderUsage(id);
+  if (distributed !== null) {
+    syncLocalFromDistributed(id, distributed);
+    return distributed < limit;
+  }
+
   return currentEntry(id).count < limit;
 }
 
-export function noteMarketProviderUsage(id: MarketProviderId): void {
+export async function noteMarketProviderUsage(id: MarketProviderId): Promise<void> {
   const entry = currentEntry(id);
   entry.count += 1;
   entry.lastUsedAt = Date.now();
   providerUsage.set(id, entry);
+
+  await incrementDistributedProviderUsage(id);
 }
 
-export function getMarketProviderBudgetWarning(
+export async function getMarketProviderBudgetWarning(
   id: MarketProviderId,
-): string | null {
-  return canUseMarketProvider(id) ? null : `${id}_budget_soft_cap`;
+): Promise<string | null> {
+  return (await canUseMarketProvider(id)) ? null : `${id}_budget_soft_cap`;
+}
+
+function syncLocalFromDistributed(id: MarketProviderId, count: number): void {
+  providerUsage.set(id, {
+    monthKey: utcMonthKey(),
+    count,
+    lastUsedAt: Date.now(),
+  });
 }
 
 function currentEntry(id: MarketProviderId): BudgetEntry {

@@ -79,6 +79,7 @@ export const DISK_VERTEX = (noiseChunk: string) => `
   uniform float uCompression;
   uniform float uIntensity;
   uniform float uOrbitScale;
+  uniform float uDiskRMax;
   varying vec3 vColor;
   varying float vOpacity;
   void main() {
@@ -87,12 +88,13 @@ export const DISK_VERTEX = (noiseChunk: string) => `
     float r = rOriginal * uCompression;
     float initialAngle = atan(instPos.z, instPos.x);
     float orbitalVelocity = (1.5 / sqrt(rOriginal)) * uOrbitScale;
-    float currentAngle = initialAngle + (uTime * orbitalVelocity);
-    vec3 morphedWorldPos = vec3(cos(currentAngle) * r, instPos.y, sin(currentAngle) * r);
-    float noise = snoise(vec3(morphedWorldPos.x * 0.08, morphedWorldPos.z * 0.08, uTime * 0.3));
-    morphedWorldPos.y += noise * uMorph * 4.0;
+    float currentAngle = initialAngle - (uTime * orbitalVelocity);
+    vec3 morphedLocal = vec3(cos(currentAngle) * r, instPos.y, sin(currentAngle) * r);
+    float noise = snoise(vec3(morphedLocal.x * 0.08, morphedLocal.z * 0.08, uTime * 0.3));
+    morphedLocal.y += noise * uMorph * 4.0;
+    vec3 morphedWorldPos = (modelMatrix * vec4(morphedLocal, 1.0)).xyz;
     vec3 viewDir = normalize(cameraPosition - morphedWorldPos);
-    vec3 orbitDir = normalize(vec3(-sin(currentAngle), 0.0, cos(currentAngle)));
+    vec3 orbitDir = normalize(mat3(modelMatrix) * vec3(-sin(currentAngle), 0.0, cos(currentAngle)));
     float doppler = dot(orbitDir, viewDir);
     vec3 hot = vec3(1.0, 0.52, 0.06);
     vec3 warm = vec3(1.0, 0.45, 0.1);
@@ -100,17 +102,19 @@ export const DISK_VERTEX = (noiseChunk: string) => `
     vec3 teal = vec3(0.15, 0.78, 0.68);
     float hue = fract(initialAngle * 0.318 + rOriginal * 0.024);
     vec3 accent = mix(cool, teal, hue);
-    vec3 color = mix(accent, warm, smoothstep(45.0, 12.0, r));
+    vec3 color = mix(accent, warm, smoothstep(uDiskRMax * 0.94, 12.0, r));
     color = mix(color, hot, smoothstep(10.0, 4.0, r) * 0.55);
     vColor = color * (1.42 + doppler * 0.78) * uIntensity;
-    vOpacity = (smoothstep(3.8, 5.5, r) * (1.0 - smoothstep(38.0, 48.0, r))) * 0.92;
+    vOpacity =
+      (smoothstep(3.8, 5.5, r) * (1.0 - smoothstep(uDiskRMax * 0.79, uDiskRMax * 0.98, r))) * 0.92;
     float deltaAngle = currentAngle - initialAngle;
     float c = cos(deltaAngle);
     float s = sin(deltaAngle);
     mat3 rotY = mat3(c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c);
-    vec3 localPos = (instanceMatrix * vec4(position, 0.0)).xyz;
-    vec3 rotatedLocalPos = rotY * localPos;
-    gl_Position = projectionMatrix * viewMatrix * vec4(morphedWorldPos + rotatedLocalPos, 1.0);
+    vec3 linearOffset = (instanceMatrix * vec4(position, 0.0)).xyz;
+    vec3 rotatedOffset = rotY * linearOffset;
+    vec3 finalLocal = morphedLocal + rotatedOffset;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(finalLocal, 1.0);
   }
 `;
 

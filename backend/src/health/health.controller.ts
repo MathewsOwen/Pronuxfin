@@ -69,9 +69,19 @@ export class HealthController {
   /** Readiness: Postgres acessível via Prisma — adequado a `readinessProbe` e deploys. */
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @Get('ready')
-  async ready() {
+  async ready(@Req() req: Request) {
+    const isProd = process.env.NODE_ENV === 'production';
+    const internal = isInternalApiProbe(req);
+
     try {
       await this.prisma.$queryRaw(Prisma.sql`SELECT 1`);
+      if (isProd && !internal) {
+        return {
+          ok: true as const,
+          service: SERVICE,
+          check: 'ready' as const,
+        };
+      }
       return {
         ok: true as const,
         service: SERVICE,
@@ -79,6 +89,13 @@ export class HealthController {
         database: 'up' as const,
       };
     } catch {
+      if (isProd && !internal) {
+        throw new ServiceUnavailableException({
+          ok: false,
+          service: SERVICE,
+          check: 'ready',
+        });
+      }
       throw new ServiceUnavailableException({
         ok: false,
         service: SERVICE,

@@ -11,6 +11,8 @@ const webDir = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  poweredByHeader: false,
+  productionBrowserSourceMaps: false,
   outputFileTracingRoot: webDir,
   turbopack: {
     root: webDir,
@@ -67,6 +69,14 @@ const nextConfig: NextConfig = {
     }
     return [
       { source: "/api/:path*", headers: apiHeaders },
+      {
+        source: "/scripts/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Cache-Control", value: "public, max-age=3600, immutable" },
+          { key: "Cross-Origin-Resource-Policy", value: "same-site" },
+        ],
+      },
       { source: "/:path*", headers: base },
     ];
   },

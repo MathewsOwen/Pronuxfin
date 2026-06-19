@@ -15,8 +15,8 @@ function fmpApiKey(): string {
   );
 }
 
-function fmpReady(): boolean {
-  return isFmpProviderEnabled() && canUseMarketProvider("financial_modeling_prep");
+async function fmpReady(): Promise<boolean> {
+  return isFmpProviderEnabled() && (await canUseMarketProvider("financial_modeling_prep"));
 }
 
 type FmpProfileRow = {
@@ -55,7 +55,7 @@ export type IntlCompanyProfile = {
 export async function fetchIntlCompanyProfileFromFmp(
   symbol: string,
 ): Promise<IntlCompanyProfile | null> {
-  if (!fmpReady()) return null;
+  if (!(await fmpReady())) return null;
   const apiKey = fmpApiKey();
   if (!apiKey) return null;
 
@@ -80,7 +80,7 @@ export async function fetchIntlCompanyProfileFromFmp(
     const row = Array.isArray(json) ? json[0] : json.profile?.[0];
     if (!row) return null;
 
-    noteMarketProviderUsage("financial_modeling_prep");
+    await noteMarketProviderUsage("financial_modeling_prep");
     return normalizeFmpProfile(row);
   } catch {
     return null;
@@ -89,7 +89,7 @@ export async function fetchIntlCompanyProfileFromFmp(
 
 /** Pares setoriais (tickers) — não confundir com filiais ou grupo controlador. */
 export async function fetchIntlStockPeersFromFmp(symbol: string): Promise<string[] | null> {
-  if (!fmpReady()) return null;
+  if (!(await fmpReady())) return null;
   const apiKey = fmpApiKey();
   if (!apiKey) return null;
 
@@ -120,7 +120,7 @@ export async function fetchIntlStockPeersFromFmp(symbol: string): Promise<string
 
     if (!peers.length) return null;
 
-    noteMarketProviderUsage("financial_modeling_prep");
+    await noteMarketProviderUsage("financial_modeling_prep");
     return peers.slice(0, 16);
   } catch {
     return null;
@@ -139,7 +139,7 @@ function fmpReadNumber(value: unknown): number | null {
 export async function fetchIntlKeyMetricsTtmFromFmp(
   symbol: string,
 ): Promise<IntlKeyMetricsTtm | null> {
-  if (!fmpReady()) return null;
+  if (!(await fmpReady())) return null;
   const apiKey = fmpApiKey();
   if (!apiKey) return null;
 
@@ -161,7 +161,7 @@ export async function fetchIntlKeyMetricsTtmFromFmp(
     const row = Array.isArray(json) ? json[0] : null;
     if (!row || typeof row !== "object") return null;
 
-    noteMarketProviderUsage("financial_modeling_prep");
+    await noteMarketProviderUsage("financial_modeling_prep");
     return {
       sourceLabel: "Financial Modeling Prep · key metrics TTM",
       dividendYield: fmpReadNumber(row.dividendYieldTTM),
@@ -249,14 +249,14 @@ async function fmpFetchAnnualRow(
   const json = (await res.json()) as FmpAnnualRow[];
   const row = Array.isArray(json) ? json[0] : null;
   if (!row || typeof row !== "object") return null;
-  noteMarketProviderUsage("financial_modeling_prep");
+  await noteMarketProviderUsage("financial_modeling_prep");
   return row;
 }
 
 export async function fetchStockDividendHistoryFromFmp(
   symbol: string,
 ): Promise<Array<Record<string, unknown>>> {
-  if (!fmpReady()) return [];
+  if (!(await fmpReady())) return [];
   const apiKey = fmpApiKey();
   if (!apiKey) return [];
 
@@ -281,7 +281,7 @@ export async function fetchStockDividendHistoryFromFmp(
     const rows = Array.isArray(json.historical) ? json.historical : [];
     if (!rows.length) return [];
 
-    noteMarketProviderUsage("financial_modeling_prep");
+    await noteMarketProviderUsage("financial_modeling_prep");
     return rows;
   } catch {
     return [];
@@ -291,7 +291,7 @@ export async function fetchStockDividendHistoryFromFmp(
 export async function fetchIntlLatestAnnualStatementsFromFmp(
   symbol: string,
 ): Promise<IntlAnnualStatementsSnapshot | null> {
-  if (!fmpReady()) return null;
+  if (!(await fmpReady())) return null;
   const apiKey = fmpApiKey();
   if (!apiKey) return null;
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useSequentialInterval } from "@/hooks/use-sequential-interval";
-import type { SectorId, MarketRegionId } from "@/lib/market/sector-universe";
+import type { SectorId } from "@/lib/market/sector-universe";
+import type { DeskMarketId } from "@/lib/market/world-markets";
 import { listSectorSymbols } from "@/lib/market/sector-universe";
 import {
   sectorDeskFallbackPayload,
@@ -20,12 +21,12 @@ import {
 
 /** Atualização independente da mesa canonical (`/api/quotes`): só pede região+setor ativos. */
 export function useSectorQuotesBook(
-  region: MarketRegionId,
+  market: DeskMarketId,
   sector: SectorId,
 ): SectorBookPayload {
-  const canon = useMemo(() => listSectorSymbols(region, sector), [region, sector]);
+  const canon = useMemo(() => listSectorSymbols(market, sector), [market, sector]);
   const [payload, setPayload] = useState<SectorBookPayload>(() =>
-    sectorDeskPlaceholderPayload(region, sector, canon),
+    sectorDeskPlaceholderPayload(market, sector, canon),
   );
   const canonKey = canon.join("|");
   const canonRef = useRef(canonKey);
@@ -34,21 +35,21 @@ export function useSectorQuotesBook(
   useEffect(() => {
     if (canonRef.current !== canonKey) {
       canonRef.current = canonKey;
-      setPayload(sectorDeskPlaceholderPayload(region, sector, canon));
+      setPayload(sectorDeskPlaceholderPayload(market, sector, canon));
     }
-  }, [canon, canonKey, region, sector]);
+  }, [canon, canonKey, market, sector]);
 
   const pull = useCallback(async () => {
     if (typeof document !== "undefined" && document.hidden) return;
     try {
       const qp = new URLSearchParams({
-        region,
+        market,
         sector,
       });
       const res = await fetch(`/api/quotes/sector?${qp}`, { cache: "no-store" });
       if (!res.ok) {
         startTransition(() =>
-          setPayload(sectorDeskFallbackPayload(region, sector, canon)),
+          setPayload(sectorDeskFallbackPayload(market, sector, canon)),
         );
         return;
       }
@@ -56,10 +57,10 @@ export function useSectorQuotesBook(
       startTransition(() => setPayload(data));
     } catch {
       startTransition(() =>
-        setPayload(sectorDeskFallbackPayload(region, sector, canon)),
+        setPayload(sectorDeskFallbackPayload(market, sector, canon)),
       );
     }
-  }, [canon, region, sector]);
+  }, [canon, market, sector]);
 
   useEffect(() => {
     pullRef.current = pull;
