@@ -3,7 +3,18 @@ import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import type { QuoteSnapshot } from "@/lib/market/types";
 
 const YAHOO_CHUNK = 56;
-const YAHOO_DOTTED_CONCURRENCY = 8;
+const YAHOO_INDIVIDUAL_CONCURRENCY = 12;
+
+/** Sufixos de bolsa globais — Yahoo aceita lote comma-separated (ex.: SAP.DE,BMW.DE). */
+const YAHOO_EXCHANGE_SUFFIX =
+  /\.(SS|SZ|HK|T|L|DE|PA|NS|TO|SR|SW|AX|KS|AS|TW|ST|MI|MC|SI)$/i;
+
+export function canYahooBatchSymbol(symbol: string): boolean {
+  const s = symbol.trim();
+  if (!s) return false;
+  if (!/[./]/.test(s)) return true;
+  return YAHOO_EXCHANGE_SUFFIX.test(s);
+}
 
 function chunk<T>(arr: readonly T[], size: number): T[][] {
   const out: T[][] = [];
@@ -14,7 +25,7 @@ function chunk<T>(arr: readonly T[], size: number): T[][] {
 }
 
 function needsIndividualYahooFetch(symbol: string): boolean {
-  return /[./]/.test(symbol);
+  return !canYahooBatchSymbol(symbol);
 }
 
 function mapYahooRow(row: Record<string, unknown>): QuoteSnapshot | null {
@@ -141,15 +152,15 @@ export async function fetchYahooQuotesForSymbols(
     const batchJobs = chunk(batchable, YAHOO_CHUNK).map((batch) =>
       fetchYahooQuoteBatch(batch, merged),
     );
-    const dottedSettled =
+    const [batchSettled, individualSettled] = await Promise.all([
+      Promise.allSettled(batchJobs),
       dotted.length > 0
-        ? await runWithConcurrency(dotted, YAHOO_DOTTED_CONCURRENCY, (symbol) =>
+        ? runWithConcurrency(dotted, YAHOO_INDIVIDUAL_CONCURRENCY, (symbol) =>
             fetchYahooQuoteBatch([symbol], merged),
           )
-        : [];
-
-    const batchSettled = await Promise.allSettled(batchJobs);
-    const settled = [...batchSettled, ...dottedSettled];
+        : Promise.resolve([] as PromiseSettledResult<void>[]),
+    ]);
+    const settled = [...batchSettled, ...individualSettled];
 
     const allFailed = settled.every((result) => result.status === "rejected");
     if (allFailed) {

@@ -378,7 +378,8 @@ html[data-pronux-intro] [data-pronux-intro-root] {
   }
 
   .animate-marquee-fin {
-    animation: marquee-fin 240s linear infinite;
+    /* 360s = 50% mais lento que 240s — ticker tape da mesa global */
+    animation: marquee-fin 360s linear infinite;
   }
 
   @media (prefers-reduced-motion: no-preference) {

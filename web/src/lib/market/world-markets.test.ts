@@ -52,7 +52,7 @@ describe("world markets desk", () => {
         market === "se" ||
         market === "it" ||
         market === "es";
-      const floor = small ? 18 : market === "tw" ? 35 : 45;
+      const floor = small ? 25 : market === "tw" ? 35 : 45;
       expect(count, `${market} universe`).toBeGreaterThanOrEqual(floor);
     }
   });
@@ -62,7 +62,7 @@ describe("world markets desk", () => {
     const smallMarkets = new Set(["ch", "sg", "nl", "it", "es", "se"]);
     const deepMarkets = new Set(["cn", "hk", "jp", "gb", "de", "fr", "in", "kr", "ca", "sa", "au"]);
     for (const market of worldMarkets) {
-      const minPerSector = smallMarkets.has(market) ? 3 : deepMarkets.has(market) ? 8 : 5;
+      const minPerSector = smallMarkets.has(market) ? 6 : deepMarkets.has(market) ? 8 : 5;
       for (const sector of SECTOR_ORDER) {
         expect(
           listSectorSymbols(market, sector).length,

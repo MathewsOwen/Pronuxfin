@@ -123,7 +123,7 @@ function quoteMonogram(row: QuoteSnapshot) {
   return raw.slice(0, Math.min(3, raw.length)) || "Q";
 }
 
-const TABLE_PAGE_SIZE = 18;
+const TABLE_PAGE_SIZE = 30;
 
 function formatCompactVolume(value: number | null | undefined, locale: string) {
   if (value == null || !Number.isFinite(value)) return "—";
