@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { listSectorSymbols } from "@/lib/market/sector-universe";
+import { listSectorSymbols, SECTOR_ORDER } from "@/lib/market/sector-universe";
 import {
   DESK_MARKET_ORDER,
   normalizeDeskMarketId,
 } from "@/lib/market/world-markets";
+
+function uniqueWorldMarketSymbolCount(market: string): number {
+  const symbols = SECTOR_ORDER.flatMap((sector) => listSectorSymbols(market, sector));
+  return new Set(symbols).size;
+}
 
 describe("world markets desk", () => {
   it("defines 20 global markets including Brazil", () => {
@@ -34,5 +39,36 @@ describe("world markets desk", () => {
   it("keeps Brazil on BRAPI universe", () => {
     const symbols = listSectorSymbols("br", "commodities");
     expect(symbols).toContain("VALE3");
+  });
+
+  it("lists more tickers than the old sparse universes (~45) per country", () => {
+    const worldMarkets = DESK_MARKET_ORDER.filter((id) => id !== "br" && id !== "us");
+    for (const market of worldMarkets) {
+      const count = uniqueWorldMarketSymbolCount(market);
+      const small =
+        market === "ch" ||
+        market === "sg" ||
+        market === "nl" ||
+        market === "se" ||
+        market === "it" ||
+        market === "es";
+      const floor = small ? 18 : market === "tw" ? 35 : 45;
+      expect(count, `${market} universe`).toBeGreaterThanOrEqual(floor);
+    }
+  });
+
+  it("lists at least 5–8 tickers per sector depending on market depth", () => {
+    const worldMarkets = DESK_MARKET_ORDER.filter((id) => id !== "br" && id !== "us");
+    const smallMarkets = new Set(["ch", "sg", "nl", "it", "es", "se"]);
+    const deepMarkets = new Set(["cn", "hk", "jp", "gb", "de", "fr", "in", "kr", "ca", "sa", "au"]);
+    for (const market of worldMarkets) {
+      const minPerSector = smallMarkets.has(market) ? 3 : deepMarkets.has(market) ? 8 : 5;
+      for (const sector of SECTOR_ORDER) {
+        expect(
+          listSectorSymbols(market, sector).length,
+          `${market}/${sector}`,
+        ).toBeGreaterThanOrEqual(minPerSector);
+      }
+    }
   });
 });
