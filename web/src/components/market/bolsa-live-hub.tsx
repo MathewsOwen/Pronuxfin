@@ -33,7 +33,7 @@ import {
   RevealStaggerList,
 } from "@/components/marketing/landing-reveal";
 import { DeskQuoteMobileList } from "@/components/market/desk-quote-mobile-list";
-import { CountryFlag } from "@/components/market/country-flag";
+import { DeskMarketPicker } from "@/components/market/desk-market-picker";
 import { QuotePriceSkeleton } from "@/components/market/quote-price-skeleton";
 import { BrokerDeskSidebarMobile } from "@/components/market/broker-desk-sidebar";
 import { GlobalAssetSearch } from "@/components/market/global-asset-search";
@@ -51,7 +51,6 @@ import {
 } from "@/lib/market/sector-universe";
 import {
   DESK_MARKET_META,
-  DESK_MARKET_ORDER,
   deskMarketDefaultCurrency,
   deskMarketUsesBrapi,
   type DeskMarketId,
@@ -631,42 +630,8 @@ export function BolsaLiveHub() {
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t("sectorRegion")}
             </span>
-            <div className="overflow-x-auto pb-1">
-              <div className="flex w-max max-w-full flex-wrap gap-2 sm:max-w-none">
-                {DESK_MARKET_ORDER.map((id) => {
-                  const meta = DESK_MARKET_META[id];
-                  const label =
-                    locale === "pt-BR" ? meta.namePt : meta.nameEn;
-                  const active = market === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => selectMarket(id)}
-                      aria-pressed={active}
-                      title={`${label} · ${locale === "pt-BR" ? meta.exchangeLabelPt : meta.exchangeLabelEn}`}
-                      className={cn(
-                        "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[10px] transition-colors sm:px-3 sm:text-[11px]",
-                        active
-                          ? id === "br"
-                            ? "border-primary/35 bg-status-warning/12 text-status-warning"
-                            : "border-teal-500/50 bg-teal-950/35 text-teal-100"
-                          : "border-white/15 bg-transparent text-muted-foreground hover:border-primary/25 hover:text-foreground",
-                      )}
-                    >
-                      <CountryFlag
-                        countryCode={meta.countryCode}
-                        emojiFallback={meta.flag}
-                        size={13}
-                        title={label}
-                      />
-                      <span className="whitespace-nowrap">{label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
+            <DeskMarketPicker market={market} locale={locale} onSelect={selectMarket} />
+            <p className="hidden text-[10px] text-muted-foreground sm:block">
               {locale === "pt-BR"
                 ? `${marketMeta.exchangeLabelPt} · ${marketMeta.benchmarkIndex}`
                 : `${marketMeta.exchangeLabelEn} · ${marketMeta.benchmarkIndex}`}
