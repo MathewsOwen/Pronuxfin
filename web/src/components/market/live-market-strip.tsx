@@ -3,7 +3,9 @@
 import { ChevronRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuotesStream } from "@/components/market/quotes-stream-provider";
+import { CountryFlag } from "@/components/market/country-flag";
 import { sortQuotesForDesk } from "@/lib/market/indices";
+import { deskMarketMetaForSymbol } from "@/lib/market/desk-market-display";
 import type { QuoteSnapshot } from "@/lib/market/types";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -152,8 +154,17 @@ function TickerItem({ quote, uiLocale }: { quote: QuoteSnapshot; uiLocale: strin
       : "—";
 
   const isEquity = quote.segment !== "crypto";
+  const marketMeta = isEquity ? deskMarketMetaForSymbol(quote.symbol) : null;
   const inner = (
     <>
+      {marketMeta ? (
+        <CountryFlag
+          countryCode={marketMeta.countryCode}
+          emojiFallback={marketMeta.flag}
+          size={12}
+          className="self-center"
+        />
+      ) : null}
       <span className="font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
         {quote.symbol}
       </span>
@@ -170,11 +181,11 @@ function TickerItem({ quote, uiLocale }: { quote: QuoteSnapshot; uiLocale: strin
   );
 
   return (
-    <div className="flex shrink-0 items-baseline gap-3 border-r border-white/[0.06] pr-12 font-mono text-[13px] tabular-nums last:border-0 last:pr-0">
+    <div className="flex shrink-0 items-center gap-2 border-r border-white/[0.06] pr-12 font-mono text-[13px] tabular-nums last:border-0 last:pr-0">
       {isEquity ? (
         <Link
           href={`/ativo/${quote.symbol}`}
-          className="group flex items-baseline gap-3 transition-opacity hover:opacity-90"
+          className="group flex items-center gap-2 transition-opacity hover:opacity-90"
         >
           {inner}
         </Link>

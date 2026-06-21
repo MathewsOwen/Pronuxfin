@@ -25,6 +25,7 @@ import type {
   IntlKeyMetricsTtm,
 } from "@/lib/market/types";
 import { Badge } from "@/components/ui/badge";
+import { CountryFlag } from "@/components/market/country-flag";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DossierCalendarYearsSection,
@@ -116,10 +117,24 @@ export async function AssetTerminalPage({
             {isCrypto
               ? t("regionCrypto")
               : dossier.deskMarket === "br"
-                ? t("regionBr")
-                : marketMeta
-                  ? `${marketMeta.flag} ${locale === "pt-BR" ? marketMeta.namePt : marketMeta.nameEn}`
-                  : t("regionIntl")}
+                ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <CountryFlag countryCode="BR" emojiFallback="🇧🇷" size={12} />
+                      {t("regionBr")}
+                    </span>
+                  )
+                : marketMeta ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <CountryFlag
+                        countryCode={marketMeta.countryCode}
+                        emojiFallback={marketMeta.flag}
+                        size={12}
+                      />
+                      {locale === "pt-BR" ? marketMeta.namePt : marketMeta.nameEn}
+                    </span>
+                  ) : (
+                    t("regionIntl")
+                  )}
           </Badge>
           <Badge className="border-white/10 bg-white/[0.04] text-muted-foreground">
             {dossier.historyMode === "live" ? t("historyLive") : t("historyIndicative")}

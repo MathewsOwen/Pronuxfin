@@ -309,6 +309,36 @@ export const DESK_MARKET_META: Record<DeskMarketId, WorldMarketMeta> = {
   },
 };
 
+/** 2 líderes por mercado — prioridade no ticker tape global (exclui BR, que tem rota BRAPI). */
+export const WORLD_MARKET_HEADLINE_TICKERS: Record<
+  Exclude<DeskMarketId, "br">,
+  readonly string[]
+> = {
+  us: ["AAPL", "NVDA"],
+  cn: ["600519.SS", "601318.SS"],
+  hk: ["0700.HK", "9988.HK"],
+  jp: ["7203.T", "6758.T"],
+  gb: ["SHEL.L", "AZN.L"],
+  de: ["SAP.DE", "SIE.DE"],
+  fr: ["MC.PA", "OR.PA"],
+  in: ["RELIANCE.NS", "TCS.NS"],
+  ca: ["SHOP.TO", "RY.TO"],
+  sa: ["2222.SR", "1120.SR"],
+  ch: ["NESN.SW", "ROG.SW"],
+  au: ["BHP.AX", "CBA.AX"],
+  kr: ["005930.KS", "000660.KS"],
+  nl: ["ASML.AS", "ADYEN.AS"],
+  tw: ["2330.TW", "2317.TW"],
+  se: ["VOLV-B.ST", "ERIC-B.ST"],
+  it: ["RACE.MI", "ENI.MI"],
+  es: ["SAN.MC", "ITX.MC"],
+  sg: ["D05.SI", "O39.SI"],
+};
+
+export function listWorldMarketHeadlineTickers(): readonly string[] {
+  return WORLD_DESK_MARKET_ORDER.flatMap((id) => WORLD_MARKET_HEADLINE_TICKERS[id]);
+}
+
 /** Mercados internacionais (exclui Brasil). */
 export const WORLD_DESK_MARKET_ORDER = DESK_MARKET_ORDER.filter(
   (id): id is Exclude<DeskMarketId, "br"> => id !== "br",

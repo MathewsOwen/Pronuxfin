@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useId, useRef, useState } from "react";
 
 import { Input } from "@/components/ui/input";
+import { CountryFlag } from "@/components/market/country-flag";
 import { Link } from "@/i18n/navigation";
 import { useGlobalAssetSearch } from "@/hooks/use-global-asset-search";
 import type { GlobalAssetSearchHit } from "@/lib/market/global-asset-search-types";
@@ -112,9 +113,17 @@ export function GlobalAssetSearch({
                 <>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-base" aria-hidden>
-                        {hit.flag ?? "🪙"}
-                      </span>
+                      {hit.countryCode ? (
+                        <CountryFlag
+                          countryCode={hit.countryCode}
+                          emojiFallback={hit.flag ?? undefined}
+                          size={14}
+                        />
+                      ) : (
+                        <span className="text-base" aria-hidden>
+                          {hit.flag ?? "🪙"}
+                        </span>
+                      )}
                       <span className="font-mono text-xs font-semibold text-foreground">
                         {hit.symbol}
                       </span>

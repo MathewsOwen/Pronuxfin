@@ -7,6 +7,8 @@ export type GlobalAssetSearchHit = {
   assetClass: AssetClass;
   deskMarket: DeskMarketId | null;
   exchangeLabel: string | null;
+  /** ISO 3166-1 alpha-2 para bandeira na UI. */
+  countryCode: string | null;
   flag: string | null;
   marketCapRank: number | null;
   source: "local" | "fmp" | "coingecko";

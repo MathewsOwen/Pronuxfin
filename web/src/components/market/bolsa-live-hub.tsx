@@ -33,6 +33,7 @@ import {
   RevealStaggerList,
 } from "@/components/marketing/landing-reveal";
 import { DeskQuoteMobileList } from "@/components/market/desk-quote-mobile-list";
+import { CountryFlag } from "@/components/market/country-flag";
 import { QuotePriceSkeleton } from "@/components/market/quote-price-skeleton";
 import { BrokerDeskSidebarMobile } from "@/components/market/broker-desk-sidebar";
 import { GlobalAssetSearch } from "@/components/market/global-asset-search";
@@ -653,7 +654,12 @@ export function BolsaLiveHub() {
                           : "border-white/15 bg-transparent text-muted-foreground hover:border-primary/25 hover:text-foreground",
                       )}
                     >
-                      <span aria-hidden>{meta.flag}</span>
+                      <CountryFlag
+                        countryCode={meta.countryCode}
+                        emojiFallback={meta.flag}
+                        size={13}
+                        title={label}
+                      />
                       <span className="whitespace-nowrap">{label}</span>
                     </button>
                   );

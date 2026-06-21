@@ -120,6 +120,7 @@ async function searchFmpEquities(query: string, limit: number): Promise<GlobalAs
         assetClass: "equity",
         deskMarket,
         exchangeLabel: exchangeLabel ?? meta.exchangeLabelEn,
+        countryCode: meta.countryCode,
         flag: meta.flag,
         marketCapRank: null,
         source: "fmp",
@@ -165,6 +166,7 @@ async function searchCoinGecko(query: string, limit: number): Promise<GlobalAsse
         assetClass: "crypto",
         deskMarket: null,
         exchangeLabel: "Crypto",
+        countryCode: null,
         flag: "🪙",
         marketCapRank:
           typeof coin.market_cap_rank === "number" ? coin.market_cap_rank : null,

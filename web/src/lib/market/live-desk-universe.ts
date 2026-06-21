@@ -1,4 +1,5 @@
 import { INDEX_PROXY_TICKERS } from "@/lib/market/indices";
+import { listWorldMarketHeadlineTickers } from "@/lib/market/world-markets";
 import {
   SECTOR_ORDER,
   listSectorSymbols,
@@ -75,10 +76,11 @@ export function listLiveDeskBrTickers(): readonly string[] {
   );
 }
 
-/** Ações internacionais na mesa ao vivo (deduplicado por setor). */
+/** Ações internacionais na mesa ao vivo (headlines globais + EUA setorial). */
 export function listLiveDeskIntlTickers(): readonly string[] {
-  const sectorSymbols = SECTOR_ORDER.flatMap((sector: SectorId) =>
+  const headlines = listWorldMarketHeadlineTickers();
+  const usSectorSymbols = SECTOR_ORDER.flatMap((sector: SectorId) =>
     listSectorSymbols("us", sector),
   );
-  return dedupeOrdered(sectorSymbols).slice(0, getLiveDeskIntlMax());
+  return dedupeOrdered([...headlines, ...usSectorSymbols]).slice(0, getLiveDeskIntlMax());
 }

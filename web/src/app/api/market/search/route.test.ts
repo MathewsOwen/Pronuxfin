@@ -18,6 +18,7 @@ vi.mock("@/lib/market/search-global-assets", () => ({
         assetClass: "crypto" as const,
         deskMarket: null,
         exchangeLabel: "Crypto",
+        countryCode: null,
         flag: "🪙",
         marketCapRank: 1,
         source: "coingecko" as const,

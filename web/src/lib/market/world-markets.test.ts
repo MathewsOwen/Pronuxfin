@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import { listSectorSymbols, SECTOR_ORDER } from "@/lib/market/sector-universe";
 import {
   DESK_MARKET_ORDER,
+  listWorldMarketHeadlineTickers,
   normalizeDeskMarketId,
+  WORLD_MARKET_HEADLINE_TICKERS,
 } from "@/lib/market/world-markets";
 
 function uniqueWorldMarketSymbolCount(market: string): number {
@@ -68,6 +70,16 @@ describe("world markets desk", () => {
           listSectorSymbols(market, sector).length,
           `${market}/${sector}`,
         ).toBeGreaterThanOrEqual(minPerSector);
+      }
+    }
+  });
+
+  it("lists headline tickers for every non-BR market (ticker tape)", () => {
+    const headlines = listWorldMarketHeadlineTickers();
+    expect(headlines).toHaveLength(38);
+    for (const market of DESK_MARKET_ORDER.filter((id) => id !== "br")) {
+      for (const symbol of WORLD_MARKET_HEADLINE_TICKERS[market]) {
+        expect(headlines).toContain(symbol);
       }
     }
   });
