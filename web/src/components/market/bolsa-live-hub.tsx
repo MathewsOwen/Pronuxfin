@@ -33,11 +33,13 @@ import {
   RevealStaggerList,
 } from "@/components/marketing/landing-reveal";
 import { DeskQuoteMobileList } from "@/components/market/desk-quote-mobile-list";
+import { QuotePriceSkeleton } from "@/components/market/quote-price-skeleton";
 import { BrokerDeskSidebarMobile } from "@/components/market/broker-desk-sidebar";
 import { GlobalAssetSearch } from "@/components/market/global-asset-search";
 import { useQuotesStream } from "@/components/market/quotes-stream-provider";
 import { useCryptoSectorQuotesBook } from "@/hooks/use-crypto-sector-quotes";
 import { useSectorQuotesBook } from "@/hooks/use-sector-quotes";
+import { sectorBookIsLoading } from "@/lib/market/sector-quotes-client-fallback";
 import {
   CRYPTO_SECTOR_ORDER,
   type CryptoSectorId,
@@ -249,6 +251,8 @@ export function BolsaLiveHub() {
   });
   const sectorBook = useSectorQuotesBook(market, sector);
   const cryptoSectorBook = useCryptoSectorQuotesBook(cryptoSector);
+  const sectorPricesLoading = sectorBookIsLoading(sectorBook);
+  const cryptoSectorPricesLoading = cryptoSectorBook.fetchedAt === 0;
   const prevPctRef = useRef<Record<string, number>>({});
   const fadeFlashRef = useRef(0);
   const clearFlashRef = useRef(0);
@@ -416,7 +420,7 @@ export function BolsaLiveHub() {
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <RevealOnce className="relative overflow-hidden rounded-3xl border border-border bg-zinc-950/55 p-8 sm:p-10 surface-rise">
+      <RevealOnce instant className="relative overflow-hidden rounded-3xl border border-border bg-zinc-950/55 p-8 sm:p-10 surface-rise">
         <div className="pointer-events-none absolute inset-0 opacity-[0.06] terminal-grid-bg" />
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
         <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
@@ -482,7 +486,11 @@ export function BolsaLiveHub() {
                   {tDesk("cryptoBadgeLive")}
                 </span>
               )}
-              {sectorBook.results.length === 0 ? (
+              {sectorPricesLoading ? (
+                <span className="rounded border border-white/20 bg-white/[0.04] px-2 py-1 font-medium text-muted-foreground">
+                  {t("sectorBadgeLoading")}
+                </span>
+              ) : sectorBook.results.every((row) => row.regularMarketPrice == null) ? (
                 <span className="rounded border border-status-degraded/35 bg-status-degraded/10 px-2 py-1 font-medium text-market-down">
                   {t("sectorBadgeUnavailable")}
                 </span>
@@ -495,7 +503,11 @@ export function BolsaLiveHub() {
                   {t("sectorBadgeLive")}
                 </span>
               )}
-              {cryptoSectorBook.results.length === 0 ? (
+              {cryptoSectorPricesLoading ? (
+                <span className="rounded border border-white/20 bg-white/[0.04] px-2 py-1 font-medium text-muted-foreground">
+                  {t("cryptoSectorBadgeLoading")}
+                </span>
+              ) : cryptoSectorBook.results.every((row) => row.regularMarketPrice == null) ? (
                 <span className="rounded border border-status-degraded/35 bg-status-degraded/10 px-2 py-1 font-medium text-market-down">
                   {t("cryptoSectorBadgeUnavailable")}
                 </span>
@@ -594,7 +606,7 @@ export function BolsaLiveHub() {
         </RevealStaggerList>
       </section>
 
-      <RevealOnce className="card-shine mt-10 overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(180deg,oklch(0.17_0.05_262/0.66),oklch(0.12_0.04_262/0.72))] shadow-[inset_0_1px_0_oklch(0.88_0.06_85_/_.06)] surface-rise">
+      <RevealOnce instant className="card-shine mt-10 overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(180deg,oklch(0.17_0.05_262/0.66),oklch(0.12_0.04_262/0.72))] shadow-[inset_0_1px_0_oklch(0.88_0.06_85_/_.06)] surface-rise">
         <div
           id="equities-sector-book"
           className="scroll-mt-28 flex flex-col gap-3 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6"
@@ -718,6 +730,7 @@ export function BolsaLiveHub() {
           locale={locale}
           fallbackCurrency={sectorFallBackCur}
           flash={flash}
+          pricesLoading={sectorPricesLoading}
           caption={t("tableCaptionEquitySector")}
           emptyLabel={t("searchNoMatches")}
         />
@@ -771,6 +784,7 @@ export function BolsaLiveHub() {
                   flashDir={flash[row.symbol]}
                   locale={locale}
                   fallbackCurrency={sectorFallBackCur}
+                  pricesLoading={sectorPricesLoading}
                 />
               ))}
               {orderedSectorRows.length === 0 ? (
@@ -805,7 +819,7 @@ export function BolsaLiveHub() {
         />
       </RevealOnce>
 
-      <RevealOnce className="card-shine mt-10 overflow-hidden rounded-2xl border border-cognitive/15 bg-[linear-gradient(180deg,oklch(0.16_0.055_250/0.65),oklch(0.11_0.04_262/0.72))] shadow-[inset_0_1px_0_oklch(0.55_0.18_250_/_.08)] surface-rise">
+      <RevealOnce instant className="card-shine mt-10 overflow-hidden rounded-2xl border border-cognitive/15 bg-[linear-gradient(180deg,oklch(0.16_0.055_250/0.65),oklch(0.11_0.04_262/0.72))] shadow-[inset_0_1px_0_oklch(0.55_0.18_250_/_.08)] surface-rise">
         <div
           id="crypto-major-tape"
           className="scroll-mt-28 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6"
@@ -940,7 +954,7 @@ export function BolsaLiveHub() {
         </p>
       </RevealOnce>
 
-      <RevealOnce className="card-shine mt-10 overflow-hidden rounded-2xl border border-fuchsia-500/20 bg-[linear-gradient(180deg,oklch(0.17_0.065_320/0.62),oklch(0.11_0.04_262/0.72))] shadow-[inset_0_1px_0_oklch(0.66_0.22_330_/_.08)] surface-rise">
+      <RevealOnce instant className="card-shine mt-10 overflow-hidden rounded-2xl border border-fuchsia-500/20 bg-[linear-gradient(180deg,oklch(0.17_0.065_320/0.62),oklch(0.11_0.04_262/0.72))] shadow-[inset_0_1px_0_oklch(0.66_0.22_330_/_.08)] surface-rise">
         <div
           id="crypto-sector-book"
           className="scroll-mt-28 flex flex-col gap-3 border-b border-white/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6"
@@ -1011,6 +1025,7 @@ export function BolsaLiveHub() {
           locale={locale}
           fallbackCurrency="BRL"
           flash={flash}
+          pricesLoading={cryptoSectorPricesLoading}
           caption={t("tableCaptionCryptoSector")}
           emptyLabel={t("searchNoMatches")}
         />
@@ -1064,6 +1079,7 @@ export function BolsaLiveHub() {
                   flashDir={flash[row.symbol]}
                   locale={locale}
                   fallbackCurrency="BRL"
+                  pricesLoading={cryptoSectorPricesLoading}
                 />
               ))}
               {orderedCryptoSectorRows.length === 0 ? (
@@ -1469,23 +1485,33 @@ const QuoteRow = memo(
     flashDir,
     locale,
     fallbackCurrency,
+    pricesLoading,
   }: {
     row: QuoteSnapshot;
     flashDir?: "up" | "down";
     locale: string;
     fallbackCurrency: string;
+    pricesLoading?: boolean;
   }) {
     const pct = row.regularMarketChangePercent;
     const ch = row.regularMarketChange;
     const up = pct != null && pct >= 0;
     const cur = quoteCurrencyCode(row, fallbackCurrency);
     const detailHref = `/ativo/${row.symbol}`;
+    const rowLoading = pricesLoading && row.regularMarketPrice == null;
 
-    const priceLabel = formatQuoteMoney(row.regularMarketPrice, row, locale, fallbackCurrency);
-    const changeLabel =
-      ch != null
-        ? `${up ? "+" : ""}${formatQuoteMoney(ch, row, locale, fallbackCurrency)}`
-        : "—";
+    const priceLabel = rowLoading ? (
+      <QuotePriceSkeleton className="w-16" />
+    ) : (
+      formatQuoteMoney(row.regularMarketPrice, row, locale, fallbackCurrency)
+    );
+    const changeLabel = rowLoading ? (
+      <QuotePriceSkeleton className="w-12" />
+    ) : ch != null ? (
+      `${up ? "+" : ""}${formatQuoteMoney(ch, row, locale, fallbackCurrency)}`
+    ) : (
+      "—"
+    );
 
     return (
       <tr
@@ -1552,10 +1578,20 @@ const QuoteRow = memo(
             title={cur}
             className={cn(
               "inline-block font-semibold",
-              pct == null ? "text-muted-foreground" : up ? "text-market-up" : "text-market-down",
+              rowLoading || pct == null
+                ? "text-muted-foreground"
+                : up
+                  ? "text-market-up"
+                  : "text-market-down",
             )}
           >
-            {pct == null ? "—" : `${up ? "+" : ""}${pct.toFixed(2)}%`}
+            {rowLoading ? (
+              <QuotePriceSkeleton className="w-10" />
+            ) : pct == null ? (
+              "—"
+            ) : (
+              `${up ? "+" : ""}${pct.toFixed(2)}%`
+            )}
           </span>
         </td>
       </tr>
@@ -1565,5 +1601,6 @@ const QuoteRow = memo(
     prev.flashDir === next.flashDir &&
     prev.locale === next.locale &&
     prev.fallbackCurrency === next.fallbackCurrency &&
+    prev.pricesLoading === next.pricesLoading &&
     quoteVisualEquals(prev.row, next.row),
 );

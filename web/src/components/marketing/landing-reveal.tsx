@@ -201,13 +201,16 @@ export function RevealOnce({
   children,
   className,
   y = 22,
+  instant,
 }: {
   children: ReactNode;
   className?: string;
   y?: number;
+  /** Sem esperar scroll — ideal para mesas ao vivo (Bolsa). */
+  instant?: boolean;
 }) {
   const reduce = useReducedMotion();
-  if (reduce) return <div className={className}>{children}</div>;
+  if (reduce || instant) return <div className={className}>{children}</div>;
   return (
     <motion.div
       className={className}

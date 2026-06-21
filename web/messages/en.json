@@ -1660,9 +1660,11 @@
       "desc": "descending"
     },
     "sectorBadgeLive": "Sector quotes · live",
+    "sectorBadgeLoading": "Sector quotes · loading",
     "sectorBadgePartial": "Sector quotes · partial",
     "sectorBadgeUnavailable": "Sector quotes · unavailable",
     "cryptoSectorBadgeLive": "Crypto sectors · live",
+    "cryptoSectorBadgeLoading": "Crypto sectors · loading",
     "cryptoSectorBadgePartial": "Crypto sectors · partial",
     "cryptoSectorBadgeUnavailable": "Crypto sectors · unavailable",
     "sectorSourceBrapiLabel": "Brazil feed ·",

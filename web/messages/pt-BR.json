@@ -1898,9 +1898,11 @@
       "desc": "descendente"
     },
     "sectorBadgeLive": "Setor · ao vivo",
+    "sectorBadgeLoading": "Setor · carregando",
     "sectorBadgePartial": "Setor · lista parcial",
     "sectorBadgeUnavailable": "Setor · indisponível",
     "cryptoSectorBadgeLive": "Cripto setorial · ao vivo",
+    "cryptoSectorBadgeLoading": "Cripto setorial · carregando",
     "cryptoSectorBadgePartial": "Cripto setorial · lista parcial",
     "cryptoSectorBadgeUnavailable": "Cripto setorial · indisponível",
     "sectorSourceBrapiLabel": "Brasil ·",

@@ -21,7 +21,7 @@ function readBrapiParallelRequests(): number {
   if (Number.isFinite(raw) && raw >= 1) {
     return Math.min(12, Math.floor(raw));
   }
-  return process.env.BRAPI_TOKEN?.trim() ? 3 : 12;
+  return process.env.BRAPI_TOKEN?.trim() ? 4 : 12;
 }
 
 function chunk<T>(arr: readonly T[], size: number): T[][] {
@@ -119,7 +119,7 @@ export async function fetchBrapiQuotesForSymbols(
 
   try {
     const parallelWaves = readBrapiParallelRequests();
-    const interWaveMs = token ? 150 : 80;
+    const interWaveMs = token ? 60 : 40;
     for (let i = 0; i < chunks.length; i += parallelWaves) {
       const wave = chunks.slice(i, i + parallelWaves);
       const settled = await Promise.allSettled(

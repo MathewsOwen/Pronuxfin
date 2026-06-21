@@ -5,8 +5,10 @@ import type { SectorId } from "@/lib/market/sector-universe";
 import type { DeskMarketId } from "@/lib/market/world-markets";
 import { listSectorSymbols } from "@/lib/market/sector-universe";
 import {
+  readCachedSectorBook,
   sectorDeskFallbackPayload,
   sectorDeskPlaceholderPayload,
+  writeCachedSectorBook,
 } from "@/lib/market/sector-quotes-client-fallback";
 import type { SectorBookPayload } from "@/lib/market/types";
 import { PUBLIC_DESK_QUOTES_POLL_MS } from "@/lib/market/quotes-poll-interval";
@@ -25,9 +27,10 @@ export function useSectorQuotesBook(
   sector: SectorId,
 ): SectorBookPayload {
   const canon = useMemo(() => listSectorSymbols(market, sector), [market, sector]);
-  const [payload, setPayload] = useState<SectorBookPayload>(() =>
-    sectorDeskPlaceholderPayload(market, sector, canon),
-  );
+  const [payload, setPayload] = useState<SectorBookPayload>(() => {
+    const cached = readCachedSectorBook(market, sector);
+    return cached ?? sectorDeskPlaceholderPayload(market, sector, canon);
+  });
   const canonKey = canon.join("|");
   const canonRef = useRef(canonKey);
   const pullRef = useRef<() => Promise<void>>(async () => {});
@@ -35,7 +38,8 @@ export function useSectorQuotesBook(
   useEffect(() => {
     if (canonRef.current !== canonKey) {
       canonRef.current = canonKey;
-      setPayload(sectorDeskPlaceholderPayload(market, sector, canon));
+      const cached = readCachedSectorBook(market, sector);
+      setPayload(cached ?? sectorDeskPlaceholderPayload(market, sector, canon));
     }
   }, [canon, canonKey, market, sector]);
 
@@ -54,6 +58,7 @@ export function useSectorQuotesBook(
         return;
       }
       const data = (await res.json()) as SectorBookPayload & { warnings?: string[] };
+      writeCachedSectorBook(market, sector, data);
       startTransition(() => setPayload(data));
     } catch {
       startTransition(() =>

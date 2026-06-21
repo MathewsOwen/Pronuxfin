@@ -2,7 +2,20 @@ import {
   listCryptoSectorAssets,
   type CryptoSectorId,
 } from "@/lib/market/crypto-sector-universe";
-import type { CryptoSectorBookPayload } from "@/lib/market/types";
+import { buildSkeletonQuoteRows } from "@/lib/market/sector-quotes-client-fallback";
+import type { CryptoSectorBookPayload, QuoteSnapshot } from "@/lib/market/types";
+
+function cryptoSkeletonRows(sector: CryptoSectorId): QuoteSnapshot[] {
+  const assets = listCryptoSectorAssets(sector);
+  return buildSkeletonQuoteRows(
+    assets.map((a) => a.symbol),
+    { segment: "crypto" },
+  ).map((row, index) => ({
+    ...row,
+    shortName: assets[index]?.shortName,
+    currency: "BRL",
+  }));
+}
 
 function degradedCryptoSectorBook(sector: CryptoSectorId): CryptoSectorBookPayload {
   const assets = listCryptoSectorAssets(sector);
@@ -11,7 +24,7 @@ function degradedCryptoSectorBook(sector: CryptoSectorId): CryptoSectorBookPaylo
     sector,
     universeCount: assets.length,
     source: "coingecko",
-    results: [],
+    results: cryptoSkeletonRows(sector),
     simulated: false,
     partial: true,
   };
@@ -26,7 +39,7 @@ export function cryptoSectorDeskPlaceholderPayload(
     sector,
     universeCount: assets.length,
     source: "coingecko",
-    results: [],
+    results: cryptoSkeletonRows(sector),
     simulated: false,
     partial: true,
   };

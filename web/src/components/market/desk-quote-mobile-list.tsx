@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
+import { QuotePriceSkeleton } from "@/components/market/quote-price-skeleton";
 import type { QuoteSnapshot } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ export function DeskQuoteMobileList({
   flash,
   caption,
   emptyLabel,
+  pricesLoading,
 }: {
   rows: QuoteSnapshot[];
   locale: string;
@@ -46,6 +48,7 @@ export function DeskQuoteMobileList({
   flash?: Record<string, "up" | "down">;
   caption: string;
   emptyLabel: string;
+  pricesLoading?: boolean;
 }) {
   if (rows.length === 0) {
     return (
@@ -66,6 +69,7 @@ export function DeskQuoteMobileList({
         const flashDir = flash?.[row.symbol];
         const href = `/ativo/${row.symbol}`;
         const pctLabel = formatPct(pct, locale);
+        const rowLoading = pricesLoading && row.regularMarketPrice == null;
 
         const inner = (
           <article
@@ -92,9 +96,15 @@ export function DeskQuoteMobileList({
             </div>
             <div className="shrink-0 text-right">
               <p className="font-heading text-base font-semibold tabular-nums">
-                {formatMoney(row.regularMarketPrice, row, locale, fallbackCurrency)}
+                {rowLoading ? (
+                  <QuotePriceSkeleton className="w-20" />
+                ) : (
+                  formatMoney(row.regularMarketPrice, row, locale, fallbackCurrency)
+                )}
               </p>
-              {pctLabel != null ? (
+              {rowLoading ? (
+                <QuotePriceSkeleton className="mt-1 w-12" />
+              ) : pctLabel != null ? (
                 <p
                   className={cn(
                     "font-mono text-[11px] font-medium",

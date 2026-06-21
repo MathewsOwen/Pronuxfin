@@ -38,9 +38,9 @@ import type {
 } from "@/lib/market/types";
 
 const CACHE_TTL = {
-  liveDeskMs: 10_000,
-  sectorBookMs: 15_000,
-  cryptoSectorBookMs: 15_000,
+  liveDeskMs: 15_000,
+  sectorBookMs: 30_000,
+  cryptoSectorBookMs: 30_000,
   relatedNewsMs: 2 * 60_000,
 } as const;
 
