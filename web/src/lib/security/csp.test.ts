@@ -41,4 +41,14 @@ describe("csp", () => {
     expect(scriptSrc).not.toContain("'unsafe-inline'");
     expect(cspHeaderName("enforce")).toBe("Content-Security-Policy");
   });
+
+  it("allows YouTube embeds for Aprenda while blocking unknown frames", () => {
+    const policy = buildContentSecurityPolicy({
+      nonce: "abc123",
+      isProd: true,
+    });
+    expect(policy).toContain(
+      "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
+    );
+  });
 });

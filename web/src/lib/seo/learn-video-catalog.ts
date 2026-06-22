@@ -189,3 +189,7 @@ export function learnVideosByLevel(level: LearnVideoLevel): LearnVideoSlug[] {
 export function learnVideoEmbedUrl(youtubeId: string): string {
   return `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1`;
 }
+
+export function learnVideoThumbnailUrl(youtubeId: string): string {
+  return `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+}

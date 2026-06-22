@@ -69,7 +69,7 @@ export function buildContentSecurityPolicy(opts: {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'self'",
-    "frame-src 'none'",
+    "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
     "object-src 'none'",
     `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline'",
