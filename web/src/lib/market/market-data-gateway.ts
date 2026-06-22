@@ -31,10 +31,12 @@ import {
   type CryptoSectorId,
 } from "@/lib/market/crypto-sector-universe";
 import { resolveQuotesDataMode } from "@/lib/market/market-data-policy";
+import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import type {
   CryptoSectorBookPayload,
   NewsArticle,
   QuotesPayload,
+  QuoteSnapshot,
   SectorBookPayload,
 } from "@/lib/market/types";
 
@@ -44,6 +46,22 @@ const CACHE_TTL = {
   cryptoSectorBookMs: 45_000,
   relatedNewsMs: 2 * 60_000,
 } as const;
+
+function supplementBrSectorRows(
+  sectorSymbols: readonly string[],
+  rows: QuoteSnapshot[],
+  deskRows: QuoteSnapshot[],
+): QuoteSnapshot[] {
+  const symSet = new Set(sectorSymbols);
+  const merged = new Map<string, QuoteSnapshot>();
+  for (const row of rows) merged.set(row.symbol, row);
+  for (const row of deskRows) {
+    if (symSet.has(row.symbol) && row.regularMarketPrice != null) {
+      merged.set(row.symbol, row);
+    }
+  }
+  return sortQuotesByCanonicalOrder([...merged.values()], sectorSymbols);
+}
 
 export async function loadCachedQuotesPayload(): Promise<{
   payload: QuotesPayload;
@@ -91,7 +109,7 @@ export async function loadCachedSectorQuotesPayload(
 ): Promise<{ payload: SectorBookPayload; warnings: string[] }> {
   const market = normalizeDeskMarketId(String(marketInput)) ?? "br";
   return rememberWithTtl(
-    `market-gateway:sector:${market}:${sector}:v3`,
+    `market-gateway:sector:${market}:${sector}:v4`,
     CACHE_TTL.sectorBookMs,
     async () => {
       const warnings: string[] = [];
@@ -126,15 +144,26 @@ export async function loadCachedSectorQuotesPayload(
             })),
         );
 
+        let sectorRows = book.rows;
+        const minExpected = Math.min(8, symbols.length);
+        if (sectorRows.length < minExpected) {
+          const desk = await loadCachedQuotesPayload();
+          const supplemented = supplementBrSectorRows(symbols, sectorRows, desk.payload.results);
+          if (supplemented.length > sectorRows.length) {
+            sectorRows = supplemented;
+            warnings.push("sector_br_desk_supplement");
+          }
+        }
+
         const payload: SectorBookPayload = {
           fetchedAt: now,
           region: market,
           sector,
           universeCount: symbols.length,
           source: book.source,
-          results: book.rows,
+          results: sectorRows,
           simulated: book.simulated,
-          partial: book.partial,
+          partial: book.partial || sectorRows.length < symbols.length,
         };
         if (book.warning) warnings.push(book.warning);
         return { payload, warnings: dedupeWarnings(warnings) };

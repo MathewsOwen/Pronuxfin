@@ -6,8 +6,8 @@ import type { QuoteSnapshot } from "@/lib/market/types";
 
 /** Sem token, a BRAPI limita quantidade de símbolos por GET — empacotamos várias chamadas. */
 const BRAPI_FREE_MAX_SYMBOLS = 3;
-/** Starter BRAPI: lotes grandes falham no plano básico — split automático abaixo. */
-const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 6;
+/** Plano Starter: lotes de 3–6; split automático se o lote falhar. */
+const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 3;
 
 function readBrapiMaxSymbolsPerRequest(): number {
   const raw = Number(process.env.BRAPI_MAX_SYMBOLS_PER_REQUEST);
@@ -22,7 +22,7 @@ function readBrapiParallelRequests(): number {
   if (Number.isFinite(raw) && raw >= 1) {
     return Math.min(12, Math.floor(raw));
   }
-  return process.env.BRAPI_TOKEN?.trim() ? 6 : 12;
+  return process.env.BRAPI_TOKEN?.trim() ? 4 : 12;
 }
 
 function chunk<T>(arr: readonly T[], size: number): T[][] {
@@ -222,9 +222,33 @@ async function fetchBrapiInWaves(
  */
 export async function fetchEquitiesFromBrapi(): Promise<BrapiBookResult> {
   const tickers = listLiveDeskBrTickers();
-  const book = await fetchBrapiInWaves(tickers, tickers);
+  const prioritySet = new Set<string>(QUOTE_TICKERS);
+  const priority = tickers.filter((t) => prioritySet.has(t));
+  const extended = tickers.filter((t) => !prioritySet.has(t));
+
+  const priorityBook = await fetchBrapiQuotesForSymbols(priority, { sortOrder: priority });
+  const extendedBook =
+    extended.length > 0
+      ? await fetchBrapiQuotesForSymbols(extended, { sortOrder: extended })
+      : { rows: [], simulated: false, partial: false as const };
+
+  const merged = new Map<string, QuoteSnapshot>();
+  for (const row of [...priorityBook.rows, ...extendedBook.rows]) {
+    merged.set(row.symbol, row);
+  }
+  const rows = sortQuotesForDesk(sortQuotesByCanonicalOrder([...merged.values()], tickers));
+  const partial =
+    priorityBook.partial ||
+    extendedBook.partial ||
+    rows.length < tickers.length;
+  const warning = partial
+    ? priorityBook.warning ?? extendedBook.warning ?? "equities_partial"
+    : undefined;
+
   return {
-    ...book,
-    rows: sortQuotesForDesk(book.rows),
+    rows,
+    simulated: false,
+    partial,
+    ...(warning ? { warning } : {}),
   };
 }
