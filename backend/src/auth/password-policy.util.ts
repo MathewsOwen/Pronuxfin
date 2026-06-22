@@ -12,7 +12,10 @@ const COMMON_PASSWORDS = new Set([
 
 export type PasswordPolicyResult =
   | { ok: true }
-  | { ok: false; code: 'PASSWORD_TOO_SHORT' | 'PASSWORD_TOO_WEAK' | 'PASSWORD_COMMON' };
+  | {
+      ok: false;
+      code: 'PASSWORD_TOO_SHORT' | 'PASSWORD_TOO_WEAK' | 'PASSWORD_COMMON';
+    };
 
 /** Enterprise password rules for register / reset (not login). */
 export function validatePasswordPolicy(password: string): PasswordPolicyResult {

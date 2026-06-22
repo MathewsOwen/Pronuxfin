@@ -1,4 +1,4 @@
-import { Play, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { getMessages, getTranslations } from "next-intl/server";
 
 import { LearnVideoCard } from "@/components/learn/learn-video-card";

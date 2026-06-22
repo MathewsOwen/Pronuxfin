@@ -13,7 +13,10 @@ function breachCheckEnabled(): boolean {
 export async function isPasswordBreached(password: string): Promise<boolean> {
   if (!breachCheckEnabled()) return false;
 
-  const sha1 = createHash('sha1').update(password, 'utf8').digest('hex').toUpperCase();
+  const sha1 = createHash('sha1')
+    .update(password, 'utf8')
+    .digest('hex')
+    .toUpperCase();
   const prefix = sha1.slice(0, 5);
   const suffix = sha1.slice(5);
 
@@ -21,7 +24,9 @@ export async function isPasswordBreached(password: string): Promise<boolean> {
   const controller = new AbortController();
   const timer = setTimeout(
     () => controller.abort(),
-    Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS,
+    Number.isFinite(timeoutMs) && timeoutMs > 0
+      ? timeoutMs
+      : DEFAULT_TIMEOUT_MS,
   );
 
   try {

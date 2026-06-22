@@ -380,10 +380,7 @@ export class AuthService {
     locale: 'pt-BR' | 'en' = 'pt-BR',
   ) {
     const isAdmin = rolesForEmail(user.email, this.config).length > 0;
-    if (
-      isAdmin &&
-      !isPlatformAdminIpAllowed(meta?.ip ?? null, this.config)
-    ) {
+    if (isAdmin && !isPlatformAdminIpAllowed(meta?.ip ?? null, this.config)) {
       await this.securityEvents.record('ADMIN_IP_DENIED', user.id, meta);
       throw new HttpException(
         {

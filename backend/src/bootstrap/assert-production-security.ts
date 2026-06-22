@@ -66,7 +66,9 @@ export function assertProductionSecurityConfig(): void {
   }
 
   if (!isTruthyEnv('TRUST_PROXY')) {
-    log.error('TRUST_PROXY=1 é obrigatório em produção (IP real / rate limit).');
+    log.error(
+      'TRUST_PROXY=1 é obrigatório em produção (IP real / rate limit).',
+    );
     process.exit(1);
   }
 

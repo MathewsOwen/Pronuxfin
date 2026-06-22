@@ -28,14 +28,20 @@ describe("distributed-market-provider-budget", () => {
   });
 
   it("increments usage in Postgres", async () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(1);
     upsert.mockResolvedValue({ count: 1 });
-    await expect(incrementDistributedProviderUsage("financial_modeling_prep")).resolves.toBe(
-      true,
-    );
-    expect(upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { id: expect.stringMatching(/^mp-budget:financial_modeling_prep:\d{4}-\d{2}$/) },
-      }),
-    );
+    deleteMany.mockResolvedValue({ count: 0 });
+    try {
+      await expect(incrementDistributedProviderUsage("financial_modeling_prep")).resolves.toBe(
+        true,
+      );
+      expect(upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: expect.stringMatching(/^mp-budget:financial_modeling_prep:\d{4}-\d{2}$/) },
+        }),
+      );
+    } finally {
+      randomSpy.mockRestore();
+    }
   });
 });

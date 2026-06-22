@@ -10,7 +10,9 @@ const DEFAULT_MAX_FAMILIES = 8;
 
 function maxFamiliesPerUser(): number {
   const raw = Number(process.env.MAX_REFRESH_FAMILIES_PER_USER);
-  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_MAX_FAMILIES;
+  return Number.isFinite(raw) && raw > 0
+    ? Math.floor(raw)
+    : DEFAULT_MAX_FAMILIES;
 }
 
 export type TokenMeta = { userAgent?: string | null; ip?: string | null };
@@ -219,7 +221,7 @@ export class RefreshTokenService {
 
     const excess = families.length - max + 1;
     for (let i = 0; i < excess; i += 1) {
-      await this.revokeFamily(families[i]!.familyId);
+      await this.revokeFamily(families[i].familyId);
     }
   }
 }

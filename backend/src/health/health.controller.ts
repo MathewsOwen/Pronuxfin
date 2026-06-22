@@ -1,4 +1,9 @@
-import { Controller, Get, Req, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { Prisma } from '@prisma/client';

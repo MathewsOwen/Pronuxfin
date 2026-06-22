@@ -6,9 +6,10 @@ import {
   listWorldMarketHeadlineTickers,
   normalizeDeskMarketId,
   WORLD_MARKET_HEADLINE_TICKERS,
+  type DeskMarketId,
 } from "@/lib/market/world-markets";
 
-function uniqueWorldMarketSymbolCount(market: string): number {
+function uniqueWorldMarketSymbolCount(market: DeskMarketId): number {
   const symbols = SECTOR_ORDER.flatMap((sector) => listSectorSymbols(market, sector));
   return new Set(symbols).size;
 }
