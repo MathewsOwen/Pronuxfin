@@ -43,6 +43,6 @@
     "security:audit-local": "node scripts/audit-local-secrets.mjs"
   },
   "devDependencies": {
-    "concurrently": "^9.2.0"
+    "concurrently": "^10.0.3"
   }
 }
