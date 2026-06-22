@@ -22,7 +22,7 @@ function readBrapiParallelRequests(): number {
   if (Number.isFinite(raw) && raw >= 1) {
     return Math.min(12, Math.floor(raw));
   }
-  return process.env.BRAPI_TOKEN?.trim() ? 4 : 12;
+  return process.env.BRAPI_TOKEN?.trim() ? 2 : 12;
 }
 
 function chunk<T>(arr: readonly T[], size: number): T[][] {
@@ -151,6 +151,14 @@ export async function fetchBrapiQuotesForSymbols(
       if (i + parallelWaves < chunks.length && chunks.length > 1) {
         await new Promise((r) => setTimeout(r, interWaveMs));
       }
+    }
+
+    const missing = symbolsUpper.filter((s) => !merged.has(s));
+    const backfillGapMs = token ? 35 : 45;
+    for (const sym of missing) {
+      const rows = await fetchBrapiChunk([sym], token);
+      for (const r of rows) merged.set(r.symbol, r);
+      await new Promise((r) => setTimeout(r, backfillGapMs));
     }
   } catch {
     return {
