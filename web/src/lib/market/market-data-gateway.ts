@@ -5,6 +5,7 @@ import {
 } from "@/lib/market/fetch-news";
 import { fetchCryptoSectorQuotesBrl, fetchCryptoQuotesBrl } from "@/lib/market/crypto";
 import { fetchBrapiQuotesForSymbols, fetchEquitiesFromBrapi } from "@/lib/market/equities-brapi";
+import { fetchFmpQuotesForSymbols } from "@/lib/market/fmp-equity-quotes";
 import { fetchYahooQuotesForSymbols } from "@/lib/market/equities-yahoo-quote";
 import { sortQuotesForDesk } from "@/lib/market/indices";
 import { listLiveDeskIntlTickers } from "@/lib/market/live-desk-universe";
@@ -38,9 +39,9 @@ import type {
 } from "@/lib/market/types";
 
 const CACHE_TTL = {
-  liveDeskMs: 15_000,
-  sectorBookMs: 30_000,
-  cryptoSectorBookMs: 30_000,
+  liveDeskMs: 20_000,
+  sectorBookMs: 45_000,
+  cryptoSectorBookMs: 45_000,
   relatedNewsMs: 2 * 60_000,
 } as const;
 
@@ -144,6 +145,16 @@ export async function loadCachedSectorQuotesPayload(
         {
           yahoo: async () => {
             const result = await fetchYahooQuotesForSymbols(symbols, symbols);
+            return {
+              rows: result.rows,
+              simulated: result.simulated,
+              partial: result.partial,
+              warning: result.warning,
+              source: "yahoo" as const,
+            };
+          },
+          financial_modeling_prep: async () => {
+            const result = await fetchFmpQuotesForSymbols(symbols, symbols);
             return {
               rows: result.rows,
               simulated: result.simulated,
@@ -322,6 +333,15 @@ async function loadIntlEquitiesSnapshot(warnings: string[]) {
           warning: result.warning,
         };
       },
+      financial_modeling_prep: async () => {
+        const result = await fetchFmpQuotesForSymbols(tickers, tickers);
+        return {
+          rows: result.rows,
+          simulated: result.simulated,
+          partial: result.partial,
+          warning: result.warning,
+        };
+      },
     },
     warnings,
     () =>
@@ -379,6 +399,14 @@ async function executeProviderChain<T extends { warning?: string }>(
 
     try {
       const result = await execute();
+      if (
+        "rows" in result &&
+        Array.isArray(result.rows) &&
+        result.rows.length === 0
+      ) {
+        warnings.push(`${provider}_empty`);
+        continue;
+      }
       await noteMarketProviderUsage(provider);
       return result;
     } catch {

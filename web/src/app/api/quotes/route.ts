@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { loadQuotesPayload } from "@/lib/market/load-quotes-payload";
+import { applyMarketApiCacheHeaders } from "@/lib/http/market-api-cache";
 import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 
-/** Sem cache de rota / CDN: cada GET consulta brapi + CoinGecko na hora. */
+/** Cache CDN 12s + TTL in-memory no gateway; BRAPI em ondas paralelas. */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 /** Mesa ao vivo com centenas de tickers BR (várias ondas BRAPI). */
@@ -25,9 +26,6 @@ export async function GET() {
   const res = NextResponse.json(
     warnings.length ? { ...payload, warnings } : payload,
   );
-  res.headers.set(
-    "Cache-Control",
-    "private, no-store, max-age=0, must-revalidate",
-  );
+  applyMarketApiCacheHeaders(res);
   return res;
 }

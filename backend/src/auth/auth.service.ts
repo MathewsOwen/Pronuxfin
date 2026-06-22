@@ -275,23 +275,17 @@ export class AuthService {
       expiresAt,
     });
 
-    try {
-      await this.mailer.sendPasswordResetEmail({
+    // Token já persistido — SMTP em background (cold start Render + Brevo não bloqueia a API).
+    void this.mailer
+      .sendPasswordResetEmail({
         email: user.email,
         locale,
         expiresMinutes,
         resetUrl: this.buildPasswordResetUrl(rawToken),
+      })
+      .catch(() => {
+        /* best-effort; o utilizador pode pedir novo link se o e-mail falhar */
       });
-    } catch {
-      throw new HttpException(
-        {
-          statusCode: HttpStatus.SERVICE_UNAVAILABLE,
-          message: 'Password reset delivery is temporarily unavailable.',
-          code: 'AUTH_PASSWORD_RESET_UNAVAILABLE',
-        },
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
-    }
 
     return { ok: true };
   }

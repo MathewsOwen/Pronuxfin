@@ -1,24 +1,17 @@
 import { ShieldCheck } from "lucide-react";
 import { getMessages, getTranslations } from "next-intl/server";
 
-import { LearnVideoCard } from "@/components/learn/learn-video-card";
 import {
-  LEARN_VIDEO_LEVELS,
+  LearnVideoRoadmap,
+  type LearnVideoRoadmapItem,
+} from "@/components/learn/learn-video-roadmap";
+import {
+  LEARN_VIDEO_LANGUAGES,
   LEARN_VIDEO_META,
-  learnVideosByLevel,
-  type LearnVideoLevel,
+  LEARN_VIDEO_SLUGS,
+  resolveLearnVideoSource,
   type LearnVideoSlug,
 } from "@/lib/seo/learn-video-catalog";
-
-type VideoCard = {
-  slug: LearnVideoSlug;
-  title: string;
-  description: string;
-  channel: string;
-  durationMinutes: number;
-  license: string;
-  level: LearnVideoLevel;
-};
 
 export async function LearnVideoSection() {
   const t = await getTranslations("Learn.videos");
@@ -27,19 +20,30 @@ export async function LearnVideoSection() {
   const videosRaw =
     (learn.videos as Record<string, { title?: string; description?: string }>) ?? {};
 
-  const cardsForLevel = (level: LearnVideoLevel): VideoCard[] =>
-    learnVideosByLevel(level).map((slug) => {
+  const items: LearnVideoRoadmapItem[] = [];
+
+  for (const language of LEARN_VIDEO_LANGUAGES) {
+    for (const slug of LEARN_VIDEO_SLUGS) {
+      const resolved = resolveLearnVideoSource(slug, language);
+      if (!resolved) continue;
       const meta = LEARN_VIDEO_META[slug];
-      return {
+      items.push({
         slug,
         title: videosRaw[slug]?.title ?? slug,
         description: videosRaw[slug]?.description ?? "",
-        channel: meta.channel,
-        durationMinutes: meta.durationMinutes,
-        license: meta.license,
         level: meta.level,
-      };
-    });
+        roadmapOrder: meta.roadmapOrder,
+        youtubeId: resolved.source.youtubeId,
+        channel: resolved.source.channel,
+        durationMinutes: resolved.source.durationMinutes,
+        license: resolved.source.license,
+        resolvedLanguage: resolved.resolvedLanguage,
+        requestedLanguage: language,
+      });
+    }
+  }
+
+  items.sort((a, b) => a.roadmapOrder - b.roadmapOrder);
 
   return (
     <section className="mt-16" aria-labelledby="learn-videos-heading">
@@ -54,6 +58,9 @@ export async function LearnVideoSection() {
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             {t("lead")}
           </p>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            {t("roadmapLead")}
+          </p>
         </div>
         <div className="flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5 text-[11px] text-primary">
           <ShieldCheck className="size-3.5 shrink-0" aria-hidden />
@@ -61,32 +68,7 @@ export async function LearnVideoSection() {
         </div>
       </div>
 
-      {LEARN_VIDEO_LEVELS.map((level) => (
-        <div key={level} className="mt-10">
-          <h3 className="font-heading text-xl font-semibold">{t(`track_${level}`)}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{t(`track_${level}_lead`)}</p>
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            {cardsForLevel(level).map((card) => {
-              const meta = LEARN_VIDEO_META[card.slug];
-              return (
-                <LearnVideoCard
-                  key={card.slug}
-                  youtubeId={meta.youtubeId}
-                  title={card.title}
-                  description={card.description}
-                  channel={card.channel}
-                  durationMinutes={card.durationMinutes}
-                  levelLabel={t(`level_${card.level}`)}
-                  sourceAttribution={t("sourceAttribution", {
-                    channel: card.channel,
-                    license: card.license,
-                  })}
-                />
-              );
-            })}
-          </div>
-        </div>
-      ))}
+      <LearnVideoRoadmap items={items} />
 
       <p className="mt-6 text-xs leading-relaxed text-muted-foreground">{t("disclaimer")}</p>
     </section>

@@ -2,8 +2,12 @@ import { fetchMarket } from "@/lib/http/fetch-with-timeout";
 import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
 import type { QuoteSnapshot } from "@/lib/market/types";
 
-const YAHOO_CHUNK = 56;
-const YAHOO_INDIVIDUAL_CONCURRENCY = 12;
+/** Yahoo spark aceita até 20 símbolos por request (v7/quote retorna 401). */
+const YAHOO_SPARK_CHUNK = 20;
+const YAHOO_SPARK_CONCURRENCY = 6;
+
+const YAHOO_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 /** Sufixos de bolsa globais — Yahoo aceita lote comma-separated (ex.: SAP.DE,BMW.DE). */
 const YAHOO_EXCHANGE_SUFFIX =
@@ -16,6 +20,15 @@ export function canYahooBatchSymbol(symbol: string): boolean {
   return YAHOO_EXCHANGE_SUFFIX.test(s);
 }
 
+/** BRK.B → BRK-B (spark); bolsas globais mantêm o sufixo. */
+export function yahooSparkSymbol(symbol: string): string {
+  const s = symbol.trim().toUpperCase();
+  if (/^[A-Z]{1,5}\.[A-Z]$/.test(s) && !YAHOO_EXCHANGE_SUFFIX.test(s)) {
+    return s.replace(".", "-");
+  }
+  return s;
+}
+
 function chunk<T>(arr: readonly T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -24,26 +37,36 @@ function chunk<T>(arr: readonly T[], size: number): T[][] {
   return out;
 }
 
-function needsIndividualYahooFetch(symbol: string): boolean {
-  return !canYahooBatchSymbol(symbol);
+function readOptionalNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
-function mapYahooRow(row: Record<string, unknown>): QuoteSnapshot | null {
+function mapSparkMeta(row: Record<string, unknown>): QuoteSnapshot | null {
   const symbol = String(row.symbol ?? "").trim().toUpperCase();
   if (!symbol) return null;
-  const n = (v: unknown): number | null => {
-    if (typeof v === "number" && Number.isFinite(v)) return v;
-    if (v != null && v !== "") {
-      const x = Number(v);
-      return Number.isFinite(x) ? x : null;
+
+  const price = readOptionalNumber(row.regularMarketPrice);
+  const previousClose = readOptionalNumber(row.chartPreviousClose);
+  let regularMarketChange: number | null = null;
+  let regularMarketChangePercent: number | null = null;
+  if (price != null && previousClose != null) {
+    regularMarketChange = price - previousClose;
+    if (previousClose !== 0) {
+      regularMarketChangePercent = (regularMarketChange / previousClose) * 100;
     }
-    return null;
-  };
+  }
+
   const currencyRaw = row.currency;
   const currency =
     typeof currencyRaw === "string" && currencyRaw.trim().length > 0
       ? currencyRaw.trim()
       : "USD";
+
+  const marketTimeSec = readOptionalNumber(row.regularMarketTime);
+
   return {
     symbol,
     shortName:
@@ -53,12 +76,13 @@ function mapYahooRow(row: Record<string, unknown>): QuoteSnapshot | null {
           ? row.longName
           : undefined,
     currency,
-    regularMarketPrice: n(row.regularMarketPrice),
-    regularMarketChange: n(row.regularMarketChange),
-    regularMarketChangePercent: n(row.regularMarketChangePercent),
+    regularMarketPrice: price,
+    regularMarketChange,
+    regularMarketChangePercent,
+    regularMarketVolume: readOptionalNumber(row.regularMarketVolume),
     marketTime:
-      typeof row.regularMarketTime === "number"
-        ? new Date(row.regularMarketTime * 1000).toISOString()
+      marketTimeSec != null
+        ? new Date(marketTimeSec * 1000).toISOString()
         : undefined,
     segment: "equity",
   };
@@ -81,18 +105,18 @@ function emptyIntlBook(
   };
 }
 
-async function fetchYahooQuoteBatch(
+async function fetchYahooSparkBatch(
   batch: readonly string[],
   merged: Map<string, QuoteSnapshot>,
 ): Promise<void> {
   if (batch.length === 0) return;
-  const qs = encodeURIComponent(batch.join(","));
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${qs}`;
+  const sparkSymbols = batch.map(yahooSparkSymbol);
+  const qs = encodeURIComponent(sparkSymbols.join(","));
+  const url = `https://query1.finance.yahoo.com/v7/finance/spark?symbols=${qs}&range=1d&interval=1d`;
   const res = await fetchMarket(url, {
     headers: {
       Accept: "application/json",
-      "User-Agent":
-        "Mozilla/5.0 (compatible; PRONUXFIN/1.0; +https://pronux.fin) AppleWebKit/537.36",
+      "User-Agent": YAHOO_USER_AGENT,
     },
     cache: "no-store",
   });
@@ -102,11 +126,19 @@ async function fetchYahooQuoteBatch(
   }
 
   const json = (await res.json()) as {
-    quoteResponse?: { result?: Array<Record<string, unknown>>; error?: unknown };
+    spark?: {
+      result?: Array<{
+        symbol?: string;
+        response?: Array<{ meta?: Record<string, unknown> }>;
+      }>;
+      error?: unknown;
+    };
   };
 
-  for (const row of json.quoteResponse?.result ?? []) {
-    const snap = mapYahooRow(row);
+  for (const entry of json.spark?.result ?? []) {
+    const meta = entry.response?.[0]?.meta;
+    if (!meta) continue;
+    const snap = mapSparkMeta(meta);
     if (snap) merged.set(snap.symbol, snap);
   }
 }
@@ -125,9 +157,23 @@ async function runWithConcurrency<T>(
   return results;
 }
 
+function alignRowsToCanonical(
+  merged: Map<string, QuoteSnapshot>,
+  canonical: readonly string[],
+): QuoteSnapshot[] {
+  const rows: QuoteSnapshot[] = [];
+  for (const original of canonical) {
+    const spark = yahooSparkSymbol(original);
+    const snap = merged.get(spark) ?? merged.get(original);
+    if (snap) {
+      rows.push({ ...snap, symbol: original });
+    }
+  }
+  return sortQuotesByCanonicalOrder(rows, canonical);
+}
+
 /**
- * Snapshot via agregação Yahoo Finance (endpoint público não documentado oficialmente —
- * em produção comercial avalie provedor licenciado e troque apenas este módulo).
+ * Snapshot via Yahoo Finance spark (v7/quote bloqueado com 401 em serverless).
  */
 export async function fetchYahooQuotesForSymbols(
   symbolsInput: readonly string[],
@@ -145,22 +191,12 @@ export async function fetchYahooQuotesForSymbols(
   }
 
   const merged = new Map<string, QuoteSnapshot>();
-  const batchable = uniq.filter((s) => !needsIndividualYahooFetch(s));
-  const dotted = uniq.filter((s) => needsIndividualYahooFetch(s));
 
   try {
-    const batchJobs = chunk(batchable, YAHOO_CHUNK).map((batch) =>
-      fetchYahooQuoteBatch(batch, merged),
+    const batches = chunk(uniq, YAHOO_SPARK_CHUNK);
+    const settled = await runWithConcurrency(batches, YAHOO_SPARK_CONCURRENCY, (batch) =>
+      fetchYahooSparkBatch(batch, merged),
     );
-    const [batchSettled, individualSettled] = await Promise.all([
-      Promise.allSettled(batchJobs),
-      dotted.length > 0
-        ? runWithConcurrency(dotted, YAHOO_INDIVIDUAL_CONCURRENCY, (symbol) =>
-            fetchYahooQuoteBatch([symbol], merged),
-          )
-        : Promise.resolve([] as PromiseSettledResult<void>[]),
-    ]);
-    const settled = [...batchSettled, ...individualSettled];
 
     const allFailed = settled.every((result) => result.status === "rejected");
     if (allFailed) {
@@ -170,7 +206,7 @@ export async function fetchYahooQuotesForSymbols(
     return emptyIntlBook(canonical, "intl_network");
   }
 
-  const sorted = sortQuotesByCanonicalOrder([...merged.values()], canonical);
+  const sorted = alignRowsToCanonical(merged, canonical);
   if (sorted.length === 0) {
     return emptyIntlBook(canonical, "intl_empty");
   }

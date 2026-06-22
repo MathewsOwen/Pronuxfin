@@ -63,6 +63,10 @@ export function ForgotPasswordForm() {
       });
 
     try {
+      if (warmup !== "ready") {
+        await warmAuthUpstreamFromBrowser();
+      }
+
       let res = await postForgot();
       let json = (await res.json().catch(() => ({}))) as {
         message?: string;

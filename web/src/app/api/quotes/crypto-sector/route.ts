@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { applyMarketApiCacheHeaders } from "@/lib/http/market-api-cache";
 import { loadCryptoSectorQuotesPayload } from "@/lib/market/load-crypto-sector-quotes";
 import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 import {
@@ -43,9 +44,6 @@ export async function GET(req: NextRequest) {
   const res = NextResponse.json(
     warnings.length ? { ...payload, warnings } : payload,
   );
-  res.headers.set(
-    "Cache-Control",
-    "private, no-store, max-age=0, must-revalidate",
-  );
+  applyMarketApiCacheHeaders(res);
   return res;
 }

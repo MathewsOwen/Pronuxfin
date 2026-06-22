@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canYahooBatchSymbol } from "@/lib/market/equities-yahoo-quote";
+import { canYahooBatchSymbol, yahooSparkSymbol } from "@/lib/market/equities-yahoo-quote";
 
 describe("canYahooBatchSymbol", () => {
   it("batches plain US tickers", () => {
@@ -17,5 +17,17 @@ describe("canYahooBatchSymbol", () => {
   it("keeps US class shares individual", () => {
     expect(canYahooBatchSymbol("BRK.B")).toBe(false);
     expect(canYahooBatchSymbol("BF.B")).toBe(false);
+  });
+});
+
+describe("yahooSparkSymbol", () => {
+  it("normalizes US class shares for spark", () => {
+    expect(yahooSparkSymbol("BRK.B")).toBe("BRK-B");
+    expect(yahooSparkSymbol("brk.b")).toBe("BRK-B");
+  });
+
+  it("preserves global exchange suffix tickers", () => {
+    expect(yahooSparkSymbol("SAP.DE")).toBe("SAP.DE");
+    expect(yahooSparkSymbol("7203.T")).toBe("7203.T");
   });
 });

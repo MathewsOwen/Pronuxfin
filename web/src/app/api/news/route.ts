@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { applyMarketApiCacheHeaders } from "@/lib/http/market-api-cache";
 import { loadCachedAggregatedNewsDiagnostics } from "@/lib/market/market-data-gateway";
 import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 
@@ -39,10 +40,7 @@ export async function GET() {
       sources,
       ...(hint ? { message: hint } : {}),
     });
-    res.headers.set(
-      "Cache-Control",
-      "private, no-store, max-age=0, must-revalidate",
-    );
+    applyMarketApiCacheHeaders(res);
     return res;
   } catch {
     const res = NextResponse.json(
@@ -55,10 +53,7 @@ export async function GET() {
       },
       { status: 200 },
     );
-    res.headers.set(
-      "Cache-Control",
-      "private, no-store, max-age=0, must-revalidate",
-    );
+    applyMarketApiCacheHeaders(res);
     return res;
   }
 }

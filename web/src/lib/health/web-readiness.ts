@@ -13,7 +13,7 @@ import {
   publicSiteUrlReadinessDetail,
 } from "@/lib/site-url";
 
-const BACKEND_CHECK_TIMEOUT_MS = 4_000;
+const BACKEND_CHECK_TIMEOUT_MS = 10_000;
 
 export type WebReadinessChecks = {
   api_url_configured: boolean;
@@ -44,18 +44,24 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
 }
 
 async function checkBackendReady(apiUrl: string): Promise<{ ok: boolean; status: number | null }> {
-  try {
-    const res = await withTimeout(
-      fetch(`${apiUrl.replace(/\/+$/, "")}/health/ready`, {
-        cache: "no-store",
-        headers: { Accept: "application/json" },
-      }),
-      BACKEND_CHECK_TIMEOUT_MS,
-    );
-    return { ok: res.ok, status: res.status };
-  } catch {
-    return { ok: false, status: null };
+  const base = apiUrl.replace(/\/+$/, "");
+  let lastStatus: number | null = null;
+  for (const path of ["/health/ready", "/health/live"] as const) {
+    try {
+      const res = await withTimeout(
+        fetch(`${base}${path}`, {
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        }),
+        BACKEND_CHECK_TIMEOUT_MS,
+      );
+      lastStatus = res.status;
+      if (res.ok) return { ok: true, status: res.status };
+    } catch {
+      /* tenta próximo endpoint */
+    }
   }
+  return { ok: false, status: lastStatus };
 }
 
 async function checkDatabaseReady(): Promise<boolean> {

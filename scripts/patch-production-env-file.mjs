@@ -76,8 +76,8 @@ if (directMatch) {
 }
 
 const brapiExtras = [
-  "BRAPI_MAX_SYMBOLS_PER_REQUEST=1",
-  "BRAPI_PARALLEL_REQUESTS=4",
+  "BRAPI_MAX_SYMBOLS_PER_REQUEST=12",
+  "BRAPI_PARALLEL_REQUESTS=6",
   "PRONUX_LIVE_DESK_BR_MAX=72",
   "AUTH_UPSTREAM_TIMEOUT_MS=55000",
   "NEXT_PUBLIC_API_WARMUP_URL=https://pronuxfin.onrender.com",
@@ -92,6 +92,18 @@ for (const line of brapiExtras) {
       web = web.replace(insertAfter, `$1\n${line}`);
       console.log(`✓ Adicionado ${key}`);
     }
+  }
+}
+
+const brapiUpgrades = [
+  [/^BRAPI_MAX_SYMBOLS_PER_REQUEST=1$/m, "BRAPI_MAX_SYMBOLS_PER_REQUEST=12"],
+  [/^BRAPI_PARALLEL_REQUESTS=[1-4]$/m, "BRAPI_PARALLEL_REQUESTS=6"],
+  [/^PRONUX_LIVE_DESK_BR_MAX=36$/m, "PRONUX_LIVE_DESK_BR_MAX=72"],
+];
+for (const [pattern, replacement] of brapiUpgrades) {
+  if (pattern.test(web)) {
+    web = web.replace(pattern, replacement);
+    console.log(`✓ Atualizado ${replacement.split("=")[0]}`);
   }
 }
 

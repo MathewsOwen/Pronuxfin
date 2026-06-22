@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { applyMarketApiCacheHeaders } from "@/lib/http/market-api-cache";
 import { loadSectorQuotesPayload } from "@/lib/market/load-sector-quotes";
 import { rateLimitResponse } from "@/lib/security/rate-limit-http";
 import {
@@ -13,6 +14,7 @@ import {
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /** Livro ao vivo por setor: `market=br|us|jp|…`, `sector=commodities|technology|…`. `region` legado = `market`. */
 const SECTOR_WINDOW_MS = 60_000;
@@ -52,9 +54,6 @@ export async function GET(req: NextRequest) {
   const res = NextResponse.json(
     warnings.length ? { ...payload, warnings } : payload,
   );
-  res.headers.set(
-    "Cache-Control",
-    "private, no-store, max-age=0, must-revalidate",
-  );
+  applyMarketApiCacheHeaders(res);
   return res;
 }

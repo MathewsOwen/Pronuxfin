@@ -17,6 +17,7 @@ type LearnVideoCardProps = {
   durationMinutes: number;
   levelLabel: string;
   sourceAttribution: string;
+  languageNote?: string;
 };
 
 export function LearnVideoCard({
@@ -27,6 +28,7 @@ export function LearnVideoCard({
   durationMinutes,
   levelLabel,
   sourceAttribution,
+  languageNote,
 }: LearnVideoCardProps) {
   const [playing, setPlaying] = useState(false);
 
@@ -81,6 +83,9 @@ export function LearnVideoCard({
         </div>
         <h3 className="font-heading mt-3 text-lg font-semibold">{title}</h3>
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+        {languageNote ? (
+          <p className="mt-2 text-xs text-primary/80">{languageNote}</p>
+        ) : null}
         <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
           {sourceAttribution}
         </p>

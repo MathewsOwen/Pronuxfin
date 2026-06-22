@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { forwardAuthPost } from "@/lib/auth/auth-upstream-proxy";
+import { warmAuthUpstream } from "@/lib/http/warm-auth-upstream";
 import { normalizeUpstreamAuthError } from "@/lib/auth/upstream-auth-error";
 import { attachRequestId } from "@/lib/http/request-id";
 import {
@@ -28,6 +29,8 @@ export async function POST(req: Request) {
       ),
     );
   }
+
+  await warmAuthUpstream();
 
   const forwarded = await forwardAuthPost(
     req,
