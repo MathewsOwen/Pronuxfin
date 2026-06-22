@@ -1,4 +1,4 @@
-import { Calculator, CalendarDays, Navigation, Wallet } from "lucide-react";
+import { Calculator, CalendarDays, Landmark, Navigation, Wallet } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,6 +17,12 @@ export async function ToolsHubPanel({ loggedIn }: ToolsHubPanelProps) {
       icon: Calculator,
       title: t("compoundTitle"),
       description: t("compoundDesc"),
+    },
+    {
+      href: "/ferramentas/amortizacao",
+      icon: Landmark,
+      title: t("amortizationTitle"),
+      description: t("amortizationDesc"),
     },
     {
       href: loggedIn ? "/calendario" : "/ferramentas/calendario",

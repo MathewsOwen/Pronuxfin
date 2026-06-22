@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, BarChart3, Calendar, LineChart, Wallet } from "lucide-react";
+import { ArrowUpRight, BarChart3, Calculator, Calendar, Landmark, LineChart, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
@@ -14,6 +14,18 @@ import { cn } from "@/lib/utils";
 const SURFACES = [
   { id: "bolsa", href: "/bolsa", icon: LineChart, accent: "border-status-live/25 bg-status-live/8" },
   { id: "projecao", href: "/projecao", icon: BarChart3, accent: "border-cognitive/25 bg-cognitive/8" },
+  {
+    id: "compound",
+    href: "/ferramentas/juros-compostos",
+    icon: Calculator,
+    accent: "border-primary/25 bg-primary/8",
+  },
+  {
+    id: "amortization",
+    href: "/ferramentas/amortizacao",
+    icon: Landmark,
+    accent: "border-primary/20 bg-primary/5",
+  },
   {
     id: "carteira",
     href: "/register",
@@ -50,7 +62,7 @@ export function ProductDeskPreviewSection() {
 
           <RevealStaggerList
             as="ul"
-            className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+            className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
           >
             {SURFACES.map(({ id, href, icon: Icon, accent }) => (
               <li key={id}>

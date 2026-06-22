@@ -250,6 +250,7 @@
       "Metas e simulações com vocabulário sob controle — método antes de \"dica quente\"",
       "Base modular para alertas, agentes e novos mercados sem quebrar a experiência core",
       "Calculadora de juros compostos gratuita — preview na landing, cenários salvos com login",
+      "Calculadora de amortização com SAC x Price, CET aproximado e simulação de cartão",
       "Calendário macro e mercado — eventos do dia com filtros Brasil / mundo",
       "Carteira simulada no painel — quantidade, preço médio, P&L do dia e total (sem corretora)"
     ]
@@ -261,6 +262,9 @@
     "compoundTitle": "Juros compostos",
     "compoundLead": "Aporte mensal, taxa e prazo — gráfico instantâneo.",
     "compoundCta": "Abrir calculadora completa",
+    "amortizationTitle": "Amortização inteligente",
+    "amortizationLead": "Imóvel, veículo, empréstimo ou cartão — compare SAC x Price e simule amortização extra.",
+    "amortizationCta": "Abrir simulador completo",
     "calendarTitle": "Calendário do dia",
     "calendarLead": "Macro, política monetária e temporada de resultados.",
     "calendarCta": "Ver calendário completo",
@@ -275,6 +279,8 @@
       "lead": "Calculadoras e calendário macro — educação e simulação, não recomendação de investimento.",
       "compoundTitle": "Juros compostos",
       "compoundDesc": "Projete patrimônio com aportes recorrentes e taxa anual.",
+      "amortizationTitle": "Amortização",
+      "amortizationDesc": "Financiamentos com SAC, Price, seguro, parcela extra e amortização extraordinária.",
       "calendarTitle": "Calendário econômico",
       "calendarDesc": "Eventos do dia e da semana — Brasil e mundo.",
       "portfolioTitle": "Carteira simulada",
@@ -308,6 +314,109 @@
       "loginHint": "Para sincronizar entre dispositivos:",
       "loginLink": "entrar na conta",
       "remove": "Remover"
+    },
+    "amortization": {
+      "inputsTitle": "Parâmetros do financiamento",
+      "inputsSubtitle": "Ajuste valor, taxa e prazo — a simulação recalcula na hora.",
+      "assetValue": "Valor do bem",
+      "creditBalance": "Saldo devedor",
+      "downPayment": "Entrada",
+      "annualRate": "Taxa anual (%)",
+      "termMonths": "Prazo (meses)",
+      "system": "Sistema de amortização",
+      "systemSac": "SAC",
+      "systemPrice": "Price (parcela fixa)",
+      "insuranceMonthly": "Seguro mensal (MIP/DFI)",
+      "adminFeesMonthly": "Tarifas mensais (TAC, registro etc.)",
+      "iofUpfront": "IOF / custo inicial único",
+      "extraMonthly": "Amortização extra mensal",
+      "extraStrategy": "Destino da amortização extra",
+      "reduceTerm": "Reduzir prazo",
+      "reduceInstallment": "Reduzir parcela",
+      "lumpSum": "Amortização extraordinária (valor)",
+      "lumpSumMonth": "Mês da amortização extra",
+      "creditMode": "Forma de pagamento do cartão",
+      "creditMinimum": "Pagamento mínimo",
+      "creditFixed": "Parcela fixa",
+      "creditFixedValue": "Valor da parcela fixa",
+      "creditMinimumPercent": "Mínimo (% do saldo)",
+      "showAdvanced": "Mostrar seguro, amortização extraordinária e estratégia",
+      "hideAdvanced": "Ocultar opções avançadas",
+      "viewSingle": "Um sistema",
+      "viewCompare": "Comparar SAC x Price",
+      "disclaimer": "Simulação educativa. Não inclui CET, tarifas bancárias, IOF nem seguros obrigatórios não informados. Confira o contrato antes de decidir.",
+      "resultTitle": "Resumo do contrato simulado",
+      "totalPaid": "Total pago",
+      "totalInterest": "Juros totais",
+      "termResult": "Prazo efetivo",
+      "firstInstallment": "Primeira parcela",
+      "lastInstallment": "Última parcela",
+      "averageInstallment": "Parcela média",
+      "cetAnnual": "CET anual (aprox.)",
+      "nominalAnnual": "Taxa nominal anual",
+      "totalFees": "Tarifas e IOF",
+      "shareCta": "Copiar link da simulação",
+      "shareCopied": "Link copiado — compartilhe este cenário.",
+      "shareError": "Não foi possível copiar o link.",
+      "exportCsv": "Exportar tabela CSV",
+      "monthsCount": "{count, plural, one {# mês} other {# meses}}",
+      "compareLead": "Mesmo financiamento nos dois sistemas — veja qual paga menos juros no total.",
+      "cheaperBadge": "Menos juros",
+      "compareDelta": "O {system} economiza cerca de {interest} em juros nesta simulação.",
+      "savingsTitle": "Impacto da amortização extra",
+      "savingsBody": "Você economizaria cerca de {interest} em juros e quitaria {months, plural, one {# mês} other {# meses}} mais cedo.",
+      "chartBalance": "Queda do saldo devedor",
+      "chartComposition": "Composição da parcela",
+      "chartCompositionLead": "Quanto de cada parcela vira amortização vs juros ao longo do tempo.",
+      "principalSlice": "Amortização",
+      "interestSlice": "Juros",
+      "tableTitle": "Tabela de amortização",
+      "tableSubtitle": "Primeiras e últimas parcelas do cronograma simulado.",
+      "showTable": "Ver tabela",
+      "hideTable": "Ocultar tabela",
+      "tableMonth": "Mês",
+      "tablePayment": "Parcela",
+      "tablePrincipal": "Amortização",
+      "tableInterest": "Juros",
+      "tableBalance": "Saldo",
+      "saveTitle": "Guardar simulação",
+      "saveSubtitleGuest": "Até 3 cenários neste navegador.",
+      "savePlaceholder": "Nome da simulação",
+      "saveCta": "Salvar",
+      "saveSuccessLocal": "Simulação guardada neste navegador.",
+      "defaultScenarioLabel": "Minha simulação",
+      "loginHint": "Para sincronizar entre dispositivos:",
+      "loginLink": "entrar na conta",
+      "remove": "Remover",
+      "debtKinds": {
+        "property": {
+          "label": "Imóvel",
+          "hint": "Financiamento habitacional com entrada, seguro opcional e comparação SAC x Price — padrão de bancos brasileiros."
+        },
+        "vehicle": {
+          "label": "Veículo",
+          "hint": "Parcela fixa é comum em automóveis; teste quanto uma amortização extra antecipa a quitação."
+        },
+        "personal": {
+          "label": "Empréstimo",
+          "hint": "Crédito pessoal com prazo curto — veja o peso dos juros no custo total."
+        },
+        "creditCard": {
+          "label": "Cartão",
+          "hint": "Compare o efeito do pagamento mínimo vs parcela fixa — o mínimo prolonga a dívida e aumenta juros."
+        },
+        "other": {
+          "label": "Outro",
+          "hint": "Simulação genérica para qualquer dívida com taxa e prazo definidos."
+        }
+      },
+      "insights": {
+        "creditMinimumTrap": "Pagando só o mínimo, a dívida do cartão se estende por anos — teste uma parcela fixa maior.",
+        "sacCheaper": "Neste cenário o SAC tende a pagar menos juros totais que o Price no mesmo prazo.",
+        "extraPayoff": "A amortização extra está encurtando o contrato — veja a economia no banner acima.",
+        "cetSpread": "O CET estimado ficou acima da taxa nominal — tarifas, seguro e IOF pesam no custo efetivo.",
+        "highRate": "Taxa elevada para crédito livre — compare instituições e avalie antecipar parcelas."
+      }
     },
     "calendar": {
       "eyebrow": "Calendário",
@@ -481,6 +590,47 @@
         "title": "Calendário",
         "body": "Macro e resultados via FMP quando a chave está ativa; referências curadas quando não está.",
         "cta": "Ver calendário"
+      },
+      "compound": {
+        "title": "Juros compostos",
+        "body": "Projete patrimônio com aportes recorrentes — complemento natural da amortização.",
+        "cta": "Simular rendimento"
+      },
+      "amortization": {
+        "title": "Amortização",
+        "body": "SAC x Price, CET aproximado, cartão e amortização extra — antes de assinar contrato.",
+        "cta": "Simular financiamento"
+      }
+    }
+  },
+  "DeskToolsStrip": {
+    "eyebrow": "Mesa gratuita",
+    "title": "Seis portas de entrada — mercado, planejamento e crédito",
+    "lead": "Não fique preso a uma única ferramenta: a PRONUXFIN abre com utilidade real em cada clique, sem cadastro obrigatório.",
+    "items": {
+      "bolsa": {
+        "title": "Bolsa ao vivo",
+        "body": "20 mercados, setores e tape com fonte visível."
+      },
+      "projecao": {
+        "title": "Projeção",
+        "body": "Cenários patrimoniais com faixas e matriz."
+      },
+      "compound": {
+        "title": "Juros compostos",
+        "body": "Patrimônio crescendo com aportes mensais."
+      },
+      "amortization": {
+        "title": "Amortização",
+        "body": "Financiamentos, cartão e amortização extra."
+      },
+      "calendar": {
+        "title": "Calendário",
+        "body": "Macro do dia e da semana — Brasil e mundo."
+      },
+      "news": {
+        "title": "Notícias",
+        "body": "Radar com manchete e fonte sempre visíveis."
       }
     }
   },
@@ -1199,6 +1349,12 @@
       "ogTitle": "Calculadora de juros compostos grátis | PRONUXFIN",
       "ogDescription": "Projete patrimônio com aportes recorrentes e veja o efeito dos juros compostos ao longo dos anos — hipótese educativa, não promessa de retorno."
     },
+    "amortization": {
+      "title": "Calculadora de amortização — SAC, Price e cartão",
+      "description": "Simule financiamento de imóvel, veículo, empréstimo ou cartão. Compare SAC x Price, amortização extra e veja economia de juros — ferramenta gratuita PRONUXFIN.",
+      "ogTitle": "Calculadora de amortização | PRONUXFIN",
+      "ogDescription": "Compare sistemas de amortização, simule parcelas extras e entenda o custo real do crédito antes de assinar."
+    },
     "calendar": {
       "title": "Calendário econômico Brasil e mundo",
       "description": "Agenda macro gratuita: COPOM, IPCA, payroll, PIB e resultados corporativos. Filtros por impacto e país — PRONUXFIN.",
@@ -1311,6 +1467,42 @@
         }
       }
     },
+    "amortization": {
+      "eyebrow": "Simulador gratuito",
+      "pageTitle": "Calculadora de amortização",
+      "pageLead": "Escolha o que você financiaria — imóvel, veículo, empréstimo ou cartão — compare SAC e Price, simule amortização extra mensal ou extraordinária e veja quanto economiza em juros e tempo.",
+      "guideTitle": "Por que simular amortização antes de assinar?",
+      "guideP1": "Pequenas diferenças na taxa, no sistema (SAC vs Price) ou em pagamentos extras mudam drasticamente o custo total do crédito. Uma simulação clara evita surpresas na fatura.",
+      "guideP2": "Use a comparação lado a lado para entender por que o SAC costuma pagar menos juros no longo prazo, e teste cenários de amortização extraordinária como faria com seu banco.",
+      "faqEyebrow": "Dúvidas frequentes",
+      "faqTitle": "Perguntas sobre amortização",
+      "faqLead": "Respostas objetivas para quem está negociando ou quitando dívida.",
+      "faqCta": "Criar conta grátis na PRONUXFIN",
+      "faq": {
+        "items": {
+          "what": {
+            "q": "O que é amortização?",
+            "a": "É a parte da parcela que reduz o saldo devedor. O restante da parcela são juros calculados sobre o saldo em aberto."
+          },
+          "sacPrice": {
+            "q": "Qual a diferença entre SAC e Price?",
+            "a": "No SAC a amortização mensal é constante e as parcelas diminuem. No Price a parcela é fixa, mas os juros totais tendem a ser maiores no mesmo prazo."
+          },
+          "extra": {
+            "q": "O que faz a amortização extra?",
+            "a": "Pagamentos além da parcela reduzem o saldo mais rápido. Você pode simular reduzir o prazo (parcela igual) ou recalcular uma parcela menor mantendo o prazo."
+          },
+          "credit": {
+            "q": "Como funciona a simulação de cartão?",
+            "a": "Comparamos pagamento mínimo (% do saldo + juros) com parcela fixa. O mínimo costuma manter a dívida por muito mais tempo."
+          },
+          "advice": {
+            "q": "Isso substitui o CET do banco?",
+            "a": "Não. É uma ferramenta educativa. O CET oficial inclui tarifas, seguros e encargos do contrato — sempre valide com a instituição."
+          }
+        }
+      }
+    },
     "calendar": {
       "eyebrow": "Agenda macro",
       "pageTitle": "Calendário econômico",
@@ -1388,6 +1580,7 @@
       "toolsTitle": "Coloque em prática",
       "toolsLead": "Simule cenários com as ferramentas gratuitas da PRONUXFIN.",
       "toolsCompound": "Calculadora de juros compostos",
+      "toolsAmortization": "Calculadora de amortização",
       "toolsCalendar": "Calendário econômico",
       "toolsProjecao": "Simulador de patrimônio",
       "disclaimer": "Conteúdo educativo. PRONUXFIN não presta assessoria de investimentos nem recomenda compra ou venda de ativos.",

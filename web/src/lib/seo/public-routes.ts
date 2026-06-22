@@ -7,6 +7,7 @@ export const PUBLIC_SITEMAP_PATHS = [
   { path: "/ferramentas", priority: 0.7, changeFrequency: "weekly" as const },
   { path: "/sobre", priority: 0.65, changeFrequency: "monthly" as const },
   { path: "/ferramentas/juros-compostos", priority: 0.65, changeFrequency: "monthly" as const },
+  { path: "/ferramentas/amortizacao", priority: 0.68, changeFrequency: "monthly" as const },
   { path: "/ferramentas/calendario", priority: 0.65, changeFrequency: "daily" as const },
   { path: "/aprenda", priority: 0.85, changeFrequency: "weekly" as const },
   { path: "/aprenda/glossario", priority: 0.8, changeFrequency: "monthly" as const },

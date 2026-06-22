@@ -250,6 +250,7 @@
       "Goals & simulations with vocabulary under control — method before \"hot tips\"",
       "Modular core for alerts, agents & new markets without breaking the spine",
       "Free compound interest calculator — landing preview, saved scenarios when signed in",
+      "Amortization calculator with SAC vs Price, approximate CET and credit-card simulation",
       "Macro & market calendar — today's events with Brazil / global filters",
       "Simulated portfolio on the dashboard — quantity, average cost, day & total P&L (no brokerage link)"
     ]
@@ -261,6 +262,9 @@
     "compoundTitle": "Compound interest",
     "compoundLead": "Monthly contribution, rate and horizon — instant chart.",
     "compoundCta": "Open full calculator",
+    "amortizationTitle": "Smart amortization",
+    "amortizationLead": "Property, car, loan or card — compare SAC vs Price and simulate extra payments.",
+    "amortizationCta": "Open full simulator",
     "calendarTitle": "Today's calendar",
     "calendarLead": "Macro, monetary policy and earnings season.",
     "calendarCta": "Open full calendar",
@@ -275,6 +279,8 @@
       "lead": "Calculators and macro calendar — education and simulation, not investment advice.",
       "compoundTitle": "Compound interest",
       "compoundDesc": "Project wealth with recurring contributions and annual rate.",
+      "amortizationTitle": "Amortization",
+      "amortizationDesc": "Loans with SAC, Price, insurance, extra payments and lump-sum prepayment.",
       "calendarTitle": "Economic calendar",
       "calendarDesc": "Today's and this week's events — Brazil and global.",
       "portfolioTitle": "Simulated portfolio",
@@ -308,6 +314,109 @@
       "loginHint": "To sync across devices:",
       "loginLink": "sign in",
       "remove": "Remove"
+    },
+    "amortization": {
+      "inputsTitle": "Loan parameters",
+      "inputsSubtitle": "Adjust value, rate and term — the simulation updates instantly.",
+      "assetValue": "Asset value",
+      "creditBalance": "Outstanding balance",
+      "downPayment": "Down payment",
+      "annualRate": "Annual rate (%)",
+      "termMonths": "Term (months)",
+      "system": "Amortization system",
+      "systemSac": "SAC",
+      "systemPrice": "Price (fixed installment)",
+      "insuranceMonthly": "Monthly insurance",
+      "adminFeesMonthly": "Monthly fees (admin, registry, etc.)",
+      "iofUpfront": "Upfront IOF / one-time cost",
+      "extraMonthly": "Extra monthly prepayment",
+      "extraStrategy": "Extra payment strategy",
+      "reduceTerm": "Shorten term",
+      "reduceInstallment": "Lower installment",
+      "lumpSum": "Lump-sum prepayment",
+      "lumpSumMonth": "Lump-sum month",
+      "creditMode": "Card payment mode",
+      "creditMinimum": "Minimum payment",
+      "creditFixed": "Fixed payment",
+      "creditFixedValue": "Fixed payment amount",
+      "creditMinimumPercent": "Minimum (% of balance)",
+      "showAdvanced": "Show insurance, lump sum and strategy",
+      "hideAdvanced": "Hide advanced options",
+      "viewSingle": "Single system",
+      "viewCompare": "Compare SAC vs Price",
+      "disclaimer": "Educational simulation. Excludes APR/CET, bank fees and mandatory charges not entered. Validate with your lender before deciding.",
+      "resultTitle": "Simulated contract summary",
+      "totalPaid": "Total paid",
+      "totalInterest": "Total interest",
+      "termResult": "Effective term",
+      "firstInstallment": "First installment",
+      "lastInstallment": "Last installment",
+      "averageInstallment": "Average installment",
+      "cetAnnual": "Annual CET (approx.)",
+      "nominalAnnual": "Nominal annual rate",
+      "totalFees": "Fees and IOF",
+      "shareCta": "Copy simulation link",
+      "shareCopied": "Link copied — share this scenario.",
+      "shareError": "Could not copy the link.",
+      "exportCsv": "Export CSV schedule",
+      "monthsCount": "{count, plural, one {# month} other {# months}}",
+      "compareLead": "Same loan under both systems — see which pays less interest overall.",
+      "cheaperBadge": "Less interest",
+      "compareDelta": "{system} saves about {interest} in interest in this simulation.",
+      "savingsTitle": "Extra prepayment impact",
+      "savingsBody": "You would save about {interest} in interest and finish {months, plural, one {# month} other {# months}} earlier.",
+      "chartBalance": "Outstanding balance decline",
+      "chartComposition": "Installment composition",
+      "chartCompositionLead": "How much of each payment goes to principal vs interest over time.",
+      "principalSlice": "Principal",
+      "interestSlice": "Interest",
+      "tableTitle": "Amortization schedule",
+      "tableSubtitle": "First and last installments of the simulated schedule.",
+      "showTable": "View table",
+      "hideTable": "Hide table",
+      "tableMonth": "Month",
+      "tablePayment": "Payment",
+      "tablePrincipal": "Principal",
+      "tableInterest": "Interest",
+      "tableBalance": "Balance",
+      "saveTitle": "Save simulation",
+      "saveSubtitleGuest": "Up to 3 scenarios in this browser.",
+      "savePlaceholder": "Simulation name",
+      "saveCta": "Save",
+      "saveSuccessLocal": "Simulation saved in this browser.",
+      "defaultScenarioLabel": "My simulation",
+      "loginHint": "To sync across devices:",
+      "loginLink": "sign in",
+      "remove": "Remove",
+      "debtKinds": {
+        "property": {
+          "label": "Property",
+          "hint": "Mortgage with down payment, optional insurance and SAC vs Price comparison."
+        },
+        "vehicle": {
+          "label": "Vehicle",
+          "hint": "Auto loans often use fixed installments — test how extra prepayment shortens payoff."
+        },
+        "personal": {
+          "label": "Personal loan",
+          "hint": "Short-term credit — see how much interest weighs on total cost."
+        },
+        "creditCard": {
+          "label": "Credit card",
+          "hint": "Compare minimum payment vs fixed payment — minimums keep debt alive longer."
+        },
+        "other": {
+          "label": "Other",
+          "hint": "Generic simulation for any loan with defined rate and term."
+        }
+      },
+      "insights": {
+        "creditMinimumTrap": "Paying only the minimum keeps card debt alive for years — try a higher fixed payment.",
+        "sacCheaper": "In this scenario SAC tends to pay less total interest than Price over the same term.",
+        "extraPayoff": "Extra prepayment is shortening the contract — see savings in the banner above.",
+        "cetSpread": "Estimated CET is above the nominal rate — fees, insurance and IOF raise effective cost.",
+        "highRate": "High rate for unsecured credit — compare lenders and consider prepaying faster."
+      }
     },
     "calendar": {
       "eyebrow": "Calendar",
@@ -481,6 +590,47 @@
         "title": "Calendar",
         "body": "Macro and earnings via FMP when the key is set; curated references when it is not.",
         "cta": "View calendar"
+      },
+      "compound": {
+        "title": "Compound interest",
+        "body": "Project wealth with recurring contributions — the natural counterpart to amortization.",
+        "cta": "Simulate growth"
+      },
+      "amortization": {
+        "title": "Amortization",
+        "body": "SAC vs Price, approximate CET, cards and extra prepayments — before you sign.",
+        "cta": "Simulate loan"
+      }
+    }
+  },
+  "DeskToolsStrip": {
+    "eyebrow": "Free desk",
+    "title": "Six entry points — markets, planning and credit",
+    "lead": "Don't get stuck on one widget: PRONUXFIN opens with real utility on every click, no sign-up required.",
+    "items": {
+      "bolsa": {
+        "title": "Live desk",
+        "body": "20 markets, sectors and tape with visible sources."
+      },
+      "projecao": {
+        "title": "Outlook",
+        "body": "Wealth scenarios with bands and sensitivity."
+      },
+      "compound": {
+        "title": "Compound interest",
+        "body": "Wealth growing with monthly contributions."
+      },
+      "amortization": {
+        "title": "Amortization",
+        "body": "Loans, cards and extra prepayments."
+      },
+      "calendar": {
+        "title": "Calendar",
+        "body": "Daily and weekly macro — Brazil and global."
+      },
+      "news": {
+        "title": "News",
+        "body": "Radar with headline and source always visible."
       }
     }
   },
@@ -1199,6 +1349,12 @@
       "ogTitle": "Free compound interest calculator | PRONUXFIN",
       "ogDescription": "Project wealth with recurring contributions and visualize compounding over years — educational hypothesis, not a return promise."
     },
+    "amortization": {
+      "title": "Amortization calculator — SAC, Price & credit card",
+      "description": "Simulate property, auto, personal loans or credit cards. Compare SAC vs Price, extra prepayments and interest savings — free PRONUXFIN tool.",
+      "ogTitle": "Amortization calculator | PRONUXFIN",
+      "ogDescription": "Compare amortization systems, simulate extra payments and understand true borrowing cost before signing."
+    },
     "calendar": {
       "title": "Economic calendar — Brazil & global",
       "description": "Free macro agenda: central bank meetings, CPI, payroll, GDP and earnings — with impact filters. PRONUXFIN.",
@@ -1296,6 +1452,27 @@
         }
       }
     },
+    "amortization": {
+      "eyebrow": "Free simulator",
+      "pageTitle": "Amortization calculator",
+      "pageLead": "Pick what you would finance — property, vehicle, loan or card — compare SAC and Price, simulate monthly or lump-sum prepayments and see interest and time saved.",
+      "guideTitle": "Why simulate amortization before signing?",
+      "guideP1": "Small differences in rate, system (SAC vs Price) or extra payments drastically change total borrowing cost. A clear simulation avoids bill surprises.",
+      "guideP2": "Use side-by-side comparison to see why SAC often pays less interest long term, and test extraordinary prepayment scenarios like you would with your bank.",
+      "faqEyebrow": "FAQ",
+      "faqTitle": "Amortization questions",
+      "faqLead": "Straight answers for anyone negotiating or paying down debt.",
+      "faqCta": "Create free PRONUXFIN account",
+      "faq": {
+        "items": {
+          "what": { "q": "What is amortization?", "a": "The portion of each payment that reduces outstanding principal. The rest is interest on the remaining balance." },
+          "sacPrice": { "q": "What's the difference between SAC and Price?", "a": "SAC keeps principal amortization constant and installments fall. Price keeps installments fixed but total interest tends to be higher over the same term." },
+          "extra": { "q": "What do extra prepayments do?", "a": "Payments beyond the installment shrink balance faster. Simulate shortening the term or recalculating a lower installment while keeping term." },
+          "credit": { "q": "How does the card simulation work?", "a": "We compare minimum payment (% of balance + interest) with a fixed payment. Minimums usually keep debt alive much longer." },
+          "advice": { "q": "Does this replace the bank's APR/CET?", "a": "No. It's educational. Official CET includes fees, insurance and contract charges — always validate with the lender." }
+        }
+      }
+    },
     "calendar": {
       "eyebrow": "Macro agenda",
       "pageTitle": "Economic calendar",
@@ -1346,6 +1523,7 @@
       "toolsTitle": "Put it into practice",
       "toolsLead": "Simulate scenarios with free PRONUXFIN tools.",
       "toolsCompound": "Compound interest calculator",
+      "toolsAmortization": "Amortization calculator",
       "toolsCalendar": "Economic calendar",
       "toolsProjecao": "Wealth simulator",
       "disclaimer": "Educational content. PRONUXFIN does not provide investment advice or recommend buying or selling assets.",

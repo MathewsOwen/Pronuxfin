@@ -1,9 +1,11 @@
 "use client";
 
-import { Calculator, CalendarDays, Wallet } from "lucide-react";
+import { Calculator, CalendarDays, Landmark, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { AmortizationCalculator } from "@/components/tools/amortization-calculator";
 import { CompoundInterestCalculator } from "@/components/tools/compound-interest-calculator";
+import { DeskToolsQuickStrip } from "@/components/marketing/desk-tools-quick-strip";
 import { EconomicCalendarView } from "@/components/tools/economic-calendar-view";
 import { RevealBlock, RevealSection } from "@/components/marketing/landing-reveal";
 import { SectionHeading } from "@/components/marketing/section-heading";
@@ -25,6 +27,8 @@ export function ToolsPreviewSection() {
             />
           </RevealBlock>
         </RevealSection>
+
+        <DeskToolsQuickStrip />
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="glass-panel card-shine rounded-3xl border border-white/12 p-6">
@@ -48,22 +52,41 @@ export function ToolsPreviewSection() {
 
           <div className="glass-panel card-shine rounded-3xl border border-white/12 p-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="rounded-xl border border-primary/20 bg-primary/8 p-2 text-status-warning">
-                <CalendarDays className="size-5" />
+              <div className="rounded-xl border border-cognitive/25 bg-cognitive/10 p-2 text-cognitive">
+                <Landmark className="size-5" />
               </div>
               <div>
-                <h3 className="font-heading text-lg font-semibold">{t("calendarTitle")}</h3>
-                <p className="text-sm text-muted-foreground">{t("calendarLead")}</p>
+                <h3 className="font-heading text-lg font-semibold">{t("amortizationTitle")}</h3>
+                <p className="text-sm text-muted-foreground">{t("amortizationLead")}</p>
               </div>
             </div>
-            <EconomicCalendarView previewLimit={4} />
+            <AmortizationCalculator compact />
             <Link
-              href="/ferramentas/calendario"
+              href="/ferramentas/amortizacao"
               className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4")}
             >
-              {t("calendarCta")}
+              {t("amortizationCta")}
             </Link>
           </div>
+        </div>
+
+        <div className="glass-panel card-shine rounded-3xl border border-white/12 p-6">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="rounded-xl border border-primary/20 bg-primary/8 p-2 text-status-warning">
+              <CalendarDays className="size-5" />
+            </div>
+            <div>
+              <h3 className="font-heading text-lg font-semibold">{t("calendarTitle")}</h3>
+              <p className="text-sm text-muted-foreground">{t("calendarLead")}</p>
+            </div>
+          </div>
+          <EconomicCalendarView previewLimit={4} />
+          <Link
+            href="/ferramentas/calendario"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4")}
+          >
+            {t("calendarCta")}
+          </Link>
         </div>
 
         <div className="glass-panel card-shine flex flex-col gap-4 rounded-3xl border border-white/12 p-6 sm:flex-row sm:items-center sm:justify-between">

@@ -31,6 +31,7 @@ export const PUBLIC_I18N_NAMESPACES = [
   "Benefits",
   "Features",
   "ToolsPreview",
+  "DeskToolsStrip",
   "Tools",
   "MarketStatus",
   "ProductDesk",

@@ -121,6 +121,12 @@ export async function LearnHubPanel() {
             {t("toolsCompound")}
           </Link>
           <Link
+            href="/ferramentas/amortizacao"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-white/15")}
+          >
+            {t("toolsAmortization")}
+          </Link>
+          <Link
             href="/ferramentas/calendario"
             className={cn(buttonVariants({ variant: "outline", size: "sm" }), "border-white/15")}
           >
