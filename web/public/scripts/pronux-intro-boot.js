@@ -3,6 +3,11 @@ try {
   var q = location.search || "";
   if (/^\/(pt-BR|en)\/?$/.test(p) || p === "/") {
     if (/[?&]intro=0(?:&|$)/.test(q)) return;
+    try {
+      if (sessionStorage.getItem("pronux-intro-seen") === "1") return;
+    } catch {
+      /* ignore */
+    }
     document.documentElement.setAttribute("data-pronux-intro-pending", "");
     setTimeout(function () {
       var r = document.documentElement;

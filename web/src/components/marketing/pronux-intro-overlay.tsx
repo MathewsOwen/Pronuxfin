@@ -12,6 +12,10 @@ import {
   useIntroMobile,
 } from "@/components/marketing/intro-mobile";
 import { PronuxIntroSingularity } from "@/components/marketing/pronux-intro-singularity";
+import {
+  markPronuxIntroSeenThisSession,
+  wantsPronuxIntro,
+} from "@/lib/marketing/pronux-intro-session";
 
 const IntroLogoReveal = dynamic(
   () =>
@@ -22,16 +26,6 @@ const IntroLogoReveal = dynamic(
 );
 
 /** Intro 3D Singularity — diferencial da marca; `?intro=0` só para E2E. */
-function wantsIntro(): boolean {
-  try {
-    if (new URLSearchParams(window.location.search).get("intro") === "0") {
-      return false;
-    }
-  } catch {
-    /* ignore */
-  }
-  return true;
-}
 
 const INTRO_EASE = [0.16, 1, 0.3, 1] as const;
 const INTRO_EXIT_MS = 480;
@@ -139,7 +133,7 @@ export function PronuxIntroOverlay() {
   const reduceMotion = useReducedMotion();
   const isMobile = useIntroMobile();
   const [clientReady, setClientReady] = useState(false);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [warpOut, setWarpOut] = useState(0);
   const warpRafRef = useRef(0);
@@ -154,7 +148,7 @@ export function PronuxIntroOverlay() {
 
   useLayoutEffect(() => {
     setClientReady(true);
-    if (!wantsIntro()) {
+    if (!wantsPronuxIntro()) {
       setOpen(false);
       syncIntroHtmlLock(false);
       document.documentElement.removeAttribute("data-pronux-intro-pending");
@@ -172,6 +166,7 @@ export function PronuxIntroOverlay() {
 
   const dismiss = useCallback(() => {
     if (exiting) return;
+    markPronuxIntroSeenThisSession();
     setExiting(true);
     const duration = reduceMotion ? 180 : INTRO_EXIT_MS;
 
