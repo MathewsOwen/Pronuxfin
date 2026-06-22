@@ -6,8 +6,8 @@ import type { QuoteSnapshot } from "@/lib/market/types";
 
 /** Sem token, a BRAPI limita quantidade de símbolos por GET — empacotamos várias chamadas. */
 const BRAPI_FREE_MAX_SYMBOLS = 3;
-/** Starter BRAPI suporta lotes maiores; 1 símbolo/request degrada a mesa ao vivo. */
-const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 12;
+/** Starter BRAPI: lotes grandes falham no plano básico — split automático abaixo. */
+const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 6;
 
 function readBrapiMaxSymbolsPerRequest(): number {
   const raw = Number(process.env.BRAPI_MAX_SYMBOLS_PER_REQUEST);
@@ -99,6 +99,23 @@ async function fetchBrapiChunk(
     .filter((r) => r.symbol.length > 0);
 }
 
+/** Se o lote falhar (plano BRAPI com limite baixo), divide e tenta de novo. */
+async function fetchBrapiChunkResilient(
+  symbols: string[],
+  token: string | undefined,
+): Promise<QuoteSnapshot[]> {
+  if (symbols.length === 0) return [];
+  const rows = await fetchBrapiChunk(symbols, token);
+  if (rows.length > 0) return rows;
+  if (symbols.length === 1) return [];
+  const mid = Math.ceil(symbols.length / 2);
+  const [left, right] = await Promise.all([
+    fetchBrapiChunkResilient(symbols.slice(0, mid), token),
+    fetchBrapiChunkResilient(symbols.slice(mid), token),
+  ]);
+  return [...left, ...right];
+}
+
 export type BrapiBookResult = {
   rows: QuoteSnapshot[];
   simulated: boolean;
@@ -124,7 +141,7 @@ export async function fetchBrapiQuotesForSymbols(
     for (let i = 0; i < chunks.length; i += parallelWaves) {
       const wave = chunks.slice(i, i + parallelWaves);
       const settled = await Promise.allSettled(
-        wave.map((syms) => fetchBrapiChunk(syms, token)),
+        wave.map((syms) => fetchBrapiChunkResilient(syms, token)),
       );
       for (const s of settled) {
         if (s.status === "fulfilled") {
