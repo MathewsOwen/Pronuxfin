@@ -11,7 +11,7 @@ const cases = [
   { name: "health", method: "GET", path: "/api/health" },
   { name: "health/ready", method: "GET", path: "/api/health/ready" },
   { name: "health/market", method: "GET", path: "/api/health/market" },
-  { name: "quotes", method: "GET", path: "/api/quotes", expectMinResults: 10 },
+  { name: "quotes", method: "GET", path: "/api/quotes", expectMinResults: 10, expectSymbols: ["PETR4", "VALE3", "ITUB4"] },
   { name: "quotes/sector BR commodities", method: "GET", path: "/api/quotes/sector?market=br&sector=commodities", expectMinResults: 3 },
   { name: "quotes/sector US tech", method: "GET", path: "/api/quotes/sector?market=us&sector=technology", expectMinResults: 3 },
   { name: "quotes/crypto-sector", method: "GET", path: "/api/quotes/crypto-sector?sector=layer1", expectMinResults: 3 },
@@ -63,8 +63,19 @@ async function probe(c) {
     if (json?.partial) detail += " partial";
     if (json?.code) detail += ` code=${json.code}`;
 
+    let symbolsOk = true;
+    if (c.expectSymbols?.length && Array.isArray(json?.results)) {
+      const have = new Set(json.results.map((r) => String(r.symbol ?? "").toUpperCase()));
+      const missing = c.expectSymbols.filter((s) => !have.has(s.toUpperCase()));
+      if (missing.length) {
+        symbolsOk = false;
+        detail += ` missing=${missing.join(",")}`;
+      }
+    }
+
     const dataOk =
       statusOk &&
+      symbolsOk &&
       (!c.expectMinResults ||
         (json?.results?.length ?? 0) >= c.expectMinResults);
 

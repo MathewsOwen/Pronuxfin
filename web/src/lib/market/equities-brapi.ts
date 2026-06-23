@@ -23,10 +23,10 @@ function readBrapiParallelRequests(): number {
   if (Number.isFinite(raw) && raw >= 1) {
     return Math.min(12, Math.floor(raw));
   }
-  return process.env.BRAPI_TOKEN?.trim() ? 2 : 12;
+  return process.env.BRAPI_TOKEN?.trim() ? 4 : 12;
 }
 
-/** Plano Starter: 1 símbolo/request evita 400/429 em lote. `BRAPI_BATCH_MODE=1` para planos maiores. */
+/** Plano Starter: 1 símbolo/request evita 400/429 em lote; ondas paralelas mantêm latência <60s. */
 function useBrapiSequentialMode(token: string | undefined): boolean {
   if (!token) return false;
   const batch = process.env.BRAPI_BATCH_MODE?.trim().toLowerCase();
@@ -134,10 +134,20 @@ async function fetchBrapiSequential(
   token: string | undefined,
 ): Promise<Map<string, QuoteSnapshot>> {
   const merged = new Map<string, QuoteSnapshot>();
-  for (const sym of symbols) {
-    const rows = await fetchBrapiChunk([sym], token);
-    for (const r of rows) merged.set(r.symbol, r);
-    await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
+  const parallel = readBrapiParallelRequests();
+  for (let i = 0; i < symbols.length; i += parallel) {
+    const wave = symbols.slice(i, i + parallel);
+    const settled = await Promise.allSettled(
+      wave.map((sym) => fetchBrapiChunk([sym], token)),
+    );
+    for (const s of settled) {
+      if (s.status === "fulfilled") {
+        for (const r of s.value) merged.set(r.symbol, r);
+      }
+    }
+    if (i + parallel < symbols.length) {
+      await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
+    }
   }
   return merged;
 }
