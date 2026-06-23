@@ -47,15 +47,46 @@ const CACHE_TTL = {
   relatedNewsMs: 2 * 60_000,
 } as const;
 
+const BR_SNAPSHOT_BUDGET_MS = 45_000;
+
+type EquitiesSnapshot = {
+  rows: QuoteSnapshot[];
+  simulated: boolean;
+  partial: boolean;
+  warning?: string;
+};
+
+async function loadBrEquitiesWithBudget(warnings: string[]): Promise<EquitiesSnapshot> {
+  const snapshot = await Promise.race([
+    loadBrEquitiesSnapshot(warnings),
+    new Promise<EquitiesSnapshot>((resolve) =>
+      setTimeout(
+        () =>
+          resolve({
+            rows: [],
+            simulated: false,
+            partial: true,
+            warning: "br_snapshot_budget",
+          }),
+        BR_SNAPSHOT_BUDGET_MS,
+      ),
+    ),
+  ]);
+  if (snapshot.warning === "br_snapshot_budget") {
+    warnings.push("br_snapshot_budget");
+  }
+  return snapshot;
+}
+
 export async function loadCachedQuotesPayload(): Promise<{
   payload: QuotesPayload;
   warnings: string[];
 }> {
-  return rememberWithTtl("market-gateway:live-desk:v12", CACHE_TTL.liveDeskMs, async () => {
+  return rememberWithTtl("market-gateway:live-desk:v13", CACHE_TTL.liveDeskMs, async () => {
     const warnings: string[] = [];
 
     const [equities, intlEquities, crypto] = await Promise.all([
-      loadBrEquitiesSnapshot(warnings),
+      loadBrEquitiesWithBudget(warnings),
       loadIntlEquitiesSnapshot(warnings),
       loadCryptoSnapshot(warnings),
     ]);
@@ -93,7 +124,7 @@ export async function loadCachedSectorQuotesPayload(
 ): Promise<{ payload: SectorBookPayload; warnings: string[] }> {
   const market = normalizeDeskMarketId(String(marketInput)) ?? "br";
   return rememberWithTtl(
-    `market-gateway:sector:${market}:${sector}:v10`,
+    `market-gateway:sector:${market}:${sector}:v11`,
     CACHE_TTL.sectorBookMs,
     async () => {
       const warnings: string[] = [];

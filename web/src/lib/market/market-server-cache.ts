@@ -45,6 +45,7 @@ export async function rememberWithTtl<T>(
       inFlight.delete(key);
     });
 
-  inFlight.set(key, next);
+  const guard = setTimeout(() => inFlight.delete(key), Math.max(ttlMs, 55_000));
+  inFlight.set(key, next.finally(() => clearTimeout(guard)));
   return (await next) as T;
 }

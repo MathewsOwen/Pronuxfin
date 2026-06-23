@@ -1,4 +1,4 @@
-import { fetchMarket } from "@/lib/http/fetch-with-timeout";
+import { fetchWithTimeout } from "@/lib/http/fetch-with-timeout";
 import { QUOTE_TICKERS, sortQuotesForDesk } from "@/lib/market/indices";
 import { listLiveDeskBrTickers } from "@/lib/market/live-desk-universe";
 import { sortQuotesByCanonicalOrder } from "@/lib/market/quote-order";
@@ -9,7 +9,15 @@ const BRAPI_FREE_MAX_SYMBOLS = 3;
 const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 3;
 const BRAPI_SEQUENTIAL_GAP_MS = 35;
 const BRAPI_RETRY_AFTER_MS = 350;
-const BRAPI_PRIORITY_SYMBOLS = 12;
+const BRAPI_FETCH_TIMEOUT_MS = 4_500;
+
+function brapiFetchTimeoutMs(): number {
+  const raw = Number(process.env.BRAPI_FETCH_TIMEOUT_MS);
+  if (Number.isFinite(raw) && raw >= 1_500) {
+    return Math.min(8_000, Math.floor(raw));
+  }
+  return BRAPI_FETCH_TIMEOUT_MS;
+}
 
 function brapiBatchModeOn(): boolean {
   const batch = process.env.BRAPI_BATCH_MODE?.trim().toLowerCase();
@@ -106,10 +114,14 @@ async function fetchBrapiChunk(
     ? `https://brapi.dev/api/quote/${qs}?token=${encodeURIComponent(token)}`
     : `https://brapi.dev/api/quote/${qs}`;
 
-  const res = await fetchMarket(url, {
-    headers: { Accept: "application/json" },
-    cache: "no-store",
-  });
+  const res = await fetchWithTimeout(
+    url,
+    {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    },
+    { timeoutMs: brapiFetchTimeoutMs(), label: "brapi" },
+  );
 
   if (res.status === 429 && !retried) {
     await new Promise((r) => setTimeout(r, BRAPI_RETRY_AFTER_MS));
@@ -167,18 +179,9 @@ async function fetchBrapiSequential(
   token: string | undefined,
 ): Promise<Map<string, QuoteSnapshot>> {
   const merged = new Map<string, QuoteSnapshot>();
-  const priority = symbols.slice(0, BRAPI_PRIORITY_SYMBOLS);
-  const extended = symbols.slice(BRAPI_PRIORITY_SYMBOLS);
-
-  for (const sym of priority) {
-    const rows = await fetchBrapiSingleWithRetry(sym, token, 1);
-    for (const r of rows) merged.set(r.symbol, r);
-    await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
-  }
-
   const parallel = readBrapiSequentialParallel();
-  for (let i = 0; i < extended.length; i += parallel) {
-    const wave = extended.slice(i, i + parallel);
+  for (let i = 0; i < symbols.length; i += parallel) {
+    const wave = symbols.slice(i, i + parallel);
     const settled = await Promise.allSettled(
       wave.map((sym) => fetchBrapiSingleWithRetry(sym, token, 1)),
     );
@@ -187,7 +190,7 @@ async function fetchBrapiSequential(
         for (const r of s.value) merged.set(r.symbol, r);
       }
     }
-    if (i + parallel < extended.length) {
+    if (i + parallel < symbols.length) {
       await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
     }
   }
