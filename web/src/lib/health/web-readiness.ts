@@ -13,7 +13,7 @@ import {
   publicSiteUrlReadinessDetail,
 } from "@/lib/site-url";
 
-const BACKEND_CHECK_TIMEOUT_MS = 10_000;
+const BACKEND_CHECK_TIMEOUT_MS = 5_000;
 
 export type WebReadinessChecks = {
   api_url_configured: boolean;
@@ -45,21 +45,24 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
 
 async function checkBackendReady(apiUrl: string): Promise<{ ok: boolean; status: number | null }> {
   const base = apiUrl.replace(/\/+$/, "");
+  const paths = ["/health/live", "/health/ready"] as const;
+  const attempts = paths.map(async (path) => {
+    const res = await withTimeout(
+      fetch(`${base}${path}`, {
+        cache: "no-store",
+        headers: { Accept: "application/json" },
+      }),
+      BACKEND_CHECK_TIMEOUT_MS,
+    );
+    return { ok: res.ok, status: res.status };
+  });
+  const results = await Promise.allSettled(attempts);
+  for (const r of results) {
+    if (r.status === "fulfilled" && r.value.ok) return r.value;
+  }
   let lastStatus: number | null = null;
-  for (const path of ["/health/ready", "/health/live"] as const) {
-    try {
-      const res = await withTimeout(
-        fetch(`${base}${path}`, {
-          cache: "no-store",
-          headers: { Accept: "application/json" },
-        }),
-        BACKEND_CHECK_TIMEOUT_MS,
-      );
-      lastStatus = res.status;
-      if (res.ok) return { ok: true, status: res.status };
-    } catch {
-      /* tenta próximo endpoint */
-    }
+  for (const r of results) {
+    if (r.status === "fulfilled") lastStatus = r.value.status;
   }
   return { ok: false, status: lastStatus };
 }
