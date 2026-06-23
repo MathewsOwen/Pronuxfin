@@ -67,7 +67,7 @@ export async function loadCachedQuotesPayload(): Promise<{
   payload: QuotesPayload;
   warnings: string[];
 }> {
-  return rememberWithTtl("market-gateway:live-desk:v5", CACHE_TTL.liveDeskMs, async () => {
+  return rememberWithTtl("market-gateway:live-desk:v6", CACHE_TTL.liveDeskMs, async () => {
     const warnings: string[] = [];
 
     const [equities, intlEquities, crypto] = await Promise.all([
@@ -109,7 +109,7 @@ export async function loadCachedSectorQuotesPayload(
 ): Promise<{ payload: SectorBookPayload; warnings: string[] }> {
   const market = normalizeDeskMarketId(String(marketInput)) ?? "br";
   return rememberWithTtl(
-    `market-gateway:sector:${market}:${sector}:v4`,
+    `market-gateway:sector:${market}:${sector}:v5`,
     CACHE_TTL.sectorBookMs,
     async () => {
       const warnings: string[] = [];
@@ -117,42 +117,46 @@ export async function loadCachedSectorQuotesPayload(
       const now = Date.now();
 
       if (deskMarketUsesBrapi(market)) {
-        const book = await executeProviderChain(
-          "sector_book_br",
-          {
-            brapi: async () => {
-              const result = await fetchBrapiQuotesForSymbols(symbols, {
-                sortOrder: symbols,
-              });
-              return {
-                rows: result.rows,
-                simulated: result.simulated,
-                partial: result.partial,
-                warning: result.warning,
-                source: "brapi" as const,
-              };
-            },
-          },
-          warnings,
-          () =>
-            resolveMarketProviderFallback("sector_book_br", () => ({
-              rows: [],
-              simulated: false,
-              partial: true,
-              source: "brapi" as const,
-              warning: "equities_fallback_budget",
-            })),
-        );
-
-        let sectorRows = book.rows;
+        const desk = await loadCachedQuotesPayload();
+        let sectorRows = supplementBrSectorRows(symbols, [], desk.payload.results);
         const minExpected = Math.min(8, symbols.length);
+
         if (sectorRows.length < minExpected) {
-          const desk = await loadCachedQuotesPayload();
-          const supplemented = supplementBrSectorRows(symbols, sectorRows, desk.payload.results);
-          if (supplemented.length > sectorRows.length) {
-            sectorRows = supplemented;
+          const have = new Set(sectorRows.map((r) => r.symbol));
+          const missing = symbols.filter((s) => !have.has(s));
+          const book = await executeProviderChain(
+            "sector_book_br",
+            {
+              brapi: async () => {
+                const result = await fetchBrapiQuotesForSymbols(missing, {
+                  sortOrder: symbols,
+                });
+                return {
+                  rows: result.rows,
+                  simulated: result.simulated,
+                  partial: result.partial,
+                  warning: result.warning,
+                  source: "brapi" as const,
+                };
+              },
+            },
+            warnings,
+            () =>
+              resolveMarketProviderFallback("sector_book_br", () => ({
+                rows: [],
+                simulated: false,
+                partial: true,
+                source: "brapi" as const,
+                warning: "equities_fallback_budget",
+              })),
+          );
+          sectorRows = supplementBrSectorRows(symbols, sectorRows, book.rows);
+          if (book.warning) warnings.push(book.warning);
+          if (sectorRows.length > 0 && book.rows.length === 0) {
             warnings.push("sector_br_desk_supplement");
           }
+        } else {
+          warnings.push("sector_br_from_live_desk");
         }
 
         const payload: SectorBookPayload = {
@@ -160,12 +164,11 @@ export async function loadCachedSectorQuotesPayload(
           region: market,
           sector,
           universeCount: symbols.length,
-          source: book.source,
+          source: "brapi",
           results: sectorRows,
-          simulated: book.simulated,
-          partial: book.partial || sectorRows.length < symbols.length,
+          simulated: false,
+          partial: sectorRows.length < symbols.length,
         };
-        if (book.warning) warnings.push(book.warning);
         return { payload, warnings: dedupeWarnings(warnings) };
       }
 

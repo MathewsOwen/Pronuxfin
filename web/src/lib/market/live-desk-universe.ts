@@ -6,12 +6,12 @@ import {
   type SectorId,
 } from "@/lib/market/sector-universe";
 
-/** Com BRAPI token e lotes de ~12 símbolos, 72 tickers cabem no timeout serverless. */
+/** Com token BRAPI (Starter), 48 tickers em modo sequencial cabem no timeout serverless. */
 function liveDeskBrDefault(): number {
-  if (typeof process !== "undefined" && process.env.BRAPI_TOKEN?.trim()) return 72;
+  if (typeof process !== "undefined" && process.env.BRAPI_TOKEN?.trim()) return 48;
   return 450;
 }
-const LIVE_DESK_BR_MIN = 58;
+const LIVE_DESK_BR_MIN = 12;
 const LIVE_DESK_BR_MAX = 600;
 
 const LIVE_DESK_INTL_DEF = 280;

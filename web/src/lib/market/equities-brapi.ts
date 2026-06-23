@@ -6,8 +6,9 @@ import type { QuoteSnapshot } from "@/lib/market/types";
 
 /** Sem token, a BRAPI limita quantidade de símbolos por GET — empacotamos várias chamadas. */
 const BRAPI_FREE_MAX_SYMBOLS = 3;
-/** Plano Starter: lotes de 3–6; split automático se o lote falhar. */
 const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 3;
+const BRAPI_SEQUENTIAL_GAP_MS = 40;
+const BRAPI_RETRY_AFTER_MS = 400;
 
 function readBrapiMaxSymbolsPerRequest(): number {
   const raw = Number(process.env.BRAPI_MAX_SYMBOLS_PER_REQUEST);
@@ -23,6 +24,14 @@ function readBrapiParallelRequests(): number {
     return Math.min(12, Math.floor(raw));
   }
   return process.env.BRAPI_TOKEN?.trim() ? 2 : 12;
+}
+
+/** Plano Starter: 1 símbolo/request evita 400/429 em lote. `BRAPI_BATCH_MODE=1` para planos maiores. */
+function useBrapiSequentialMode(token: string | undefined): boolean {
+  if (!token) return false;
+  const batch = process.env.BRAPI_BATCH_MODE?.trim().toLowerCase();
+  if (batch === "1" || batch === "true" || batch === "on") return false;
+  return true;
 }
 
 function chunk<T>(arr: readonly T[], size: number): T[][] {
@@ -71,10 +80,10 @@ function mapBrapiRow(row: Record<string, unknown>): QuoteSnapshot {
 async function fetchBrapiChunk(
   symbols: string[],
   token: string | undefined,
+  retried = false,
 ): Promise<QuoteSnapshot[]> {
   if (symbols.length === 0) return [];
   const qs = symbols.join(",");
-  // Cotações em lote: sem modules (dossiê pede modules numa rota dedicada).
   const url = token
     ? `https://brapi.dev/api/quote/${qs}?token=${encodeURIComponent(token)}`
     : `https://brapi.dev/api/quote/${qs}`;
@@ -83,6 +92,11 @@ async function fetchBrapiChunk(
     headers: { Accept: "application/json" },
     cache: "no-store",
   });
+
+  if (res.status === 429 && !retried) {
+    await new Promise((r) => setTimeout(r, BRAPI_RETRY_AFTER_MS));
+    return fetchBrapiChunk(symbols, token, true);
+  }
 
   if (!res.ok) return [];
 
@@ -99,7 +113,6 @@ async function fetchBrapiChunk(
     .filter((r) => r.symbol.length > 0);
 }
 
-/** Se o lote falhar (plano BRAPI com limite baixo), divide e tenta de novo. */
 async function fetchBrapiChunkResilient(
   symbols: string[],
   token: string | undefined,
@@ -116,12 +129,50 @@ async function fetchBrapiChunkResilient(
   return [...left, ...right];
 }
 
+async function fetchBrapiSequential(
+  symbols: readonly string[],
+  token: string | undefined,
+): Promise<Map<string, QuoteSnapshot>> {
+  const merged = new Map<string, QuoteSnapshot>();
+  for (const sym of symbols) {
+    const rows = await fetchBrapiChunk([sym], token);
+    for (const r of rows) merged.set(r.symbol, r);
+    await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
+  }
+  return merged;
+}
+
 export type BrapiBookResult = {
   rows: QuoteSnapshot[];
   simulated: boolean;
   partial: boolean;
   warning?: string;
 };
+
+function buildBrapiBookResult(
+  merged: Map<string, QuoteSnapshot>,
+  symbolsUpper: readonly string[],
+  canonical: readonly string[],
+): BrapiBookResult {
+  const sorted = sortQuotesByCanonicalOrder([...merged.values()], canonical);
+
+  if (sorted.length === 0) {
+    return {
+      rows: [],
+      simulated: false,
+      partial: true,
+      warning: "equities_empty",
+    };
+  }
+
+  const partial = sorted.length < symbolsUpper.length;
+  return {
+    rows: sorted,
+    simulated: false,
+    partial,
+    ...(partial ? { warning: "equities_partial" as const } : {}),
+  };
+}
 
 /** Agrega cotações BRAPI para um conjunto arbitrário de tickers B3/BDR BR. */
 export async function fetchBrapiQuotesForSymbols(
@@ -131,8 +182,27 @@ export async function fetchBrapiQuotesForSymbols(
   const symbolsUpper = [...new Set(symbolsInput.map((s) => s.trim().toUpperCase()))].filter(Boolean);
   const canonical = opts?.sortOrder ?? symbolsUpper;
   const token = process.env.BRAPI_TOKEN?.trim() || undefined;
+
+  if (symbolsUpper.length === 0) {
+    return { rows: [], simulated: false, partial: false };
+  }
+
+  if (token && useBrapiSequentialMode(token)) {
+    try {
+      const merged = await fetchBrapiSequential(symbolsUpper, token);
+      return buildBrapiBookResult(merged, symbolsUpper, canonical);
+    } catch {
+      return {
+        rows: [],
+        simulated: false,
+        partial: true,
+        warning: "equities_network",
+      };
+    }
+  }
+
   const chunkSize = token ? readBrapiMaxSymbolsPerRequest() : BRAPI_FREE_MAX_SYMBOLS;
-  const chunks = chunk([...symbolsUpper], chunkSize);
+  const chunks = chunk(symbolsUpper, chunkSize);
   const merged = new Map<string, QuoteSnapshot>();
 
   try {
@@ -154,11 +224,10 @@ export async function fetchBrapiQuotesForSymbols(
     }
 
     const missing = symbolsUpper.filter((s) => !merged.has(s));
-    const backfillGapMs = token ? 35 : 45;
     for (const sym of missing) {
       const rows = await fetchBrapiChunk([sym], token);
       for (const r of rows) merged.set(r.symbol, r);
-      await new Promise((r) => setTimeout(r, backfillGapMs));
+      await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
     }
   } catch {
     return {
@@ -169,24 +238,7 @@ export async function fetchBrapiQuotesForSymbols(
     };
   }
 
-  const sorted = sortQuotesByCanonicalOrder([...merged.values()], canonical);
-
-  if (sorted.length === 0) {
-    return {
-      rows: [],
-      simulated: false,
-      partial: true,
-      warning: "equities_empty",
-    };
-  }
-
-  const partial = sorted.length < symbolsUpper.length;
-  return {
-    rows: sorted,
-    simulated: false,
-    partial,
-    ...(partial ? { warning: "equities_partial" as const } : {}),
-  };
+  return buildBrapiBookResult(merged, symbolsUpper, canonical);
 }
 
 async function fetchBrapiInWaves(
@@ -226,37 +278,13 @@ async function fetchBrapiInWaves(
 
 /**
  * Livro institucional padrão (proxies + blue chips) — `/api/quotes` e ticker strip.
- * Sem token BRAPI: blue chips primeiro (ticker visível rápido), depois universo estendido.
+ * Com token: modo sequencial (1 símbolo/request) — confiável no plano Starter.
  */
 export async function fetchEquitiesFromBrapi(): Promise<BrapiBookResult> {
   const tickers = listLiveDeskBrTickers();
-  const prioritySet = new Set<string>(QUOTE_TICKERS);
-  const priority = tickers.filter((t) => prioritySet.has(t));
-  const extended = tickers.filter((t) => !prioritySet.has(t));
-
-  const priorityBook = await fetchBrapiQuotesForSymbols(priority, { sortOrder: priority });
-  const extendedBook =
-    extended.length > 0
-      ? await fetchBrapiQuotesForSymbols(extended, { sortOrder: extended })
-      : { rows: [], simulated: false, partial: false as const };
-
-  const merged = new Map<string, QuoteSnapshot>();
-  for (const row of [...priorityBook.rows, ...extendedBook.rows]) {
-    merged.set(row.symbol, row);
-  }
-  const rows = sortQuotesForDesk(sortQuotesByCanonicalOrder([...merged.values()], tickers));
-  const partial =
-    priorityBook.partial ||
-    extendedBook.partial ||
-    rows.length < tickers.length;
-  const warning = partial
-    ? priorityBook.warning ?? extendedBook.warning ?? "equities_partial"
-    : undefined;
-
+  const book = await fetchBrapiInWaves(tickers, tickers);
   return {
-    rows,
-    simulated: false,
-    partial,
-    ...(warning ? { warning } : {}),
+    ...book,
+    rows: sortQuotesForDesk(book.rows),
   };
 }
