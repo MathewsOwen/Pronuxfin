@@ -67,7 +67,7 @@ export async function loadCachedQuotesPayload(): Promise<{
   payload: QuotesPayload;
   warnings: string[];
 }> {
-  return rememberWithTtl("market-gateway:live-desk:v9", CACHE_TTL.liveDeskMs, async () => {
+  return rememberWithTtl("market-gateway:live-desk:v10", CACHE_TTL.liveDeskMs, async () => {
     const warnings: string[] = [];
 
     const [equities, intlEquities, crypto] = await Promise.all([

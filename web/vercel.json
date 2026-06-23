@@ -3,5 +3,11 @@
   "framework": "nextjs",
   "regions": ["gru1"],
   "installCommand": "npm install",
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "crons": [
+    {
+      "path": "/api/quotes",
+      "schedule": "*/2 * * * *"
+    }
+  ]
 }

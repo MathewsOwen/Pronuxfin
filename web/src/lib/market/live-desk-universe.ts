@@ -42,10 +42,16 @@ function dedupeOrdered(symbols: readonly string[]): string[] {
 }
 
 export function getLiveDeskBrMax(): number {
-  return Math.min(
+  const requested = Math.min(
     LIVE_DESK_BR_MAX,
     Math.max(LIVE_DESK_BR_MIN, readServerInt("PRONUX_LIVE_DESK_BR_MAX", liveDeskBrDefault())),
   );
+  const batch = process.env.BRAPI_BATCH_MODE?.trim().toLowerCase();
+  const batchOn = batch === "1" || batch === "true" || batch === "on";
+  if (process.env.BRAPI_TOKEN?.trim() && !batchOn) {
+    return Math.min(requested, 32);
+  }
+  return requested;
 }
 
 export function getLiveDeskIntlMax(): number {

@@ -9,7 +9,7 @@ const BRAPI_FREE_MAX_SYMBOLS = 3;
 const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 3;
 const BRAPI_SEQUENTIAL_GAP_MS = 35;
 const BRAPI_RETRY_AFTER_MS = 350;
-const BRAPI_PRIORITY_SYMBOLS = 15;
+const BRAPI_PRIORITY_SYMBOLS = 12;
 
 function readBrapiMaxSymbolsPerRequest(): number {
   const raw = Number(process.env.BRAPI_MAX_SYMBOLS_PER_REQUEST);
@@ -162,7 +162,7 @@ async function fetchBrapiSequential(
   const extended = symbols.slice(BRAPI_PRIORITY_SYMBOLS);
 
   for (const sym of priority) {
-    const rows = await fetchBrapiSingleWithRetry(sym, token, 2);
+    const rows = await fetchBrapiSingleWithRetry(sym, token, 1);
     for (const r of rows) merged.set(r.symbol, r);
     await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
   }
@@ -171,7 +171,7 @@ async function fetchBrapiSequential(
   for (let i = 0; i < extended.length; i += parallel) {
     const wave = extended.slice(i, i + parallel);
     const settled = await Promise.allSettled(
-      wave.map((sym) => fetchBrapiSingleWithRetry(sym, token, 2)),
+      wave.map((sym) => fetchBrapiSingleWithRetry(sym, token, 1)),
     );
     for (const s of settled) {
       if (s.status === "fulfilled") {
