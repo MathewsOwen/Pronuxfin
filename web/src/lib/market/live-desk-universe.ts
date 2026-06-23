@@ -6,10 +6,9 @@ import {
   type SectorId,
 } from "@/lib/market/sector-universe";
 
-/** Com token BRAPI (Starter), 12 blue chips cabem no timeout serverless. */
+/** Default conservador para caber no timeout serverless (Starter ou sem token). */
 function liveDeskBrDefault(): number {
-  if (typeof process !== "undefined" && process.env.BRAPI_TOKEN?.trim()) return 12;
-  return 450;
+  return 12;
 }
 const LIVE_DESK_BR_MIN = 12;
 const LIVE_DESK_BR_MAX = 600;
@@ -48,7 +47,7 @@ export function getLiveDeskBrMax(): number {
   );
   const batch = process.env.BRAPI_BATCH_MODE?.trim().toLowerCase();
   const batchOn = batch === "1" || batch === "true" || batch === "on";
-  if (process.env.BRAPI_TOKEN?.trim() && !batchOn) {
+  if (!batchOn) {
     return Math.min(requested, 12);
   }
   return requested;

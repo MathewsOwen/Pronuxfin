@@ -11,8 +11,13 @@ const BRAPI_SEQUENTIAL_GAP_MS = 35;
 const BRAPI_RETRY_AFTER_MS = 350;
 const BRAPI_PRIORITY_SYMBOLS = 12;
 
+function brapiBatchModeOn(): boolean {
+  const batch = process.env.BRAPI_BATCH_MODE?.trim().toLowerCase();
+  return batch === "1" || batch === "true" || batch === "on";
+}
+
 function brapiFetchSymbolCap(): number {
-  return useBrapiSequentialMode(process.env.BRAPI_TOKEN?.trim() || undefined) ? 12 : 48;
+  return brapiBatchModeOn() ? 48 : 12;
 }
 
 function readBrapiMaxSymbolsPerRequest(): number {
