@@ -47,27 +47,11 @@ const CACHE_TTL = {
   relatedNewsMs: 2 * 60_000,
 } as const;
 
-function supplementBrSectorRows(
-  sectorSymbols: readonly string[],
-  rows: QuoteSnapshot[],
-  deskRows: QuoteSnapshot[],
-): QuoteSnapshot[] {
-  const symSet = new Set(sectorSymbols);
-  const merged = new Map<string, QuoteSnapshot>();
-  for (const row of rows) merged.set(row.symbol, row);
-  for (const row of deskRows) {
-    if (symSet.has(row.symbol) && row.regularMarketPrice != null) {
-      merged.set(row.symbol, row);
-    }
-  }
-  return sortQuotesByCanonicalOrder([...merged.values()], sectorSymbols);
-}
-
 export async function loadCachedQuotesPayload(): Promise<{
   payload: QuotesPayload;
   warnings: string[];
 }> {
-  return rememberWithTtl("market-gateway:live-desk:v10", CACHE_TTL.liveDeskMs, async () => {
+  return rememberWithTtl("market-gateway:live-desk:v11", CACHE_TTL.liveDeskMs, async () => {
     const warnings: string[] = [];
 
     const [equities, intlEquities, crypto] = await Promise.all([
@@ -109,7 +93,7 @@ export async function loadCachedSectorQuotesPayload(
 ): Promise<{ payload: SectorBookPayload; warnings: string[] }> {
   const market = normalizeDeskMarketId(String(marketInput)) ?? "br";
   return rememberWithTtl(
-    `market-gateway:sector:${market}:${sector}:v8`,
+    `market-gateway:sector:${market}:${sector}:v9`,
     CACHE_TTL.sectorBookMs,
     async () => {
       const warnings: string[] = [];
@@ -117,47 +101,35 @@ export async function loadCachedSectorQuotesPayload(
       const now = Date.now();
 
       if (deskMarketUsesBrapi(market)) {
-        const desk = await loadCachedQuotesPayload();
-        let sectorRows = supplementBrSectorRows(symbols, [], desk.payload.results);
-        const minExpected = Math.min(8, symbols.length);
-
-        if (sectorRows.length < minExpected) {
-          const have = new Set(sectorRows.map((r) => r.symbol));
-          const missing = symbols.filter((s) => !have.has(s));
-          const book = await executeProviderChain(
-            "sector_book_br",
-            {
-              brapi: async () => {
-                const result = await fetchBrapiQuotesForSymbols(missing, {
-                  sortOrder: symbols,
-                });
-                return {
-                  rows: result.rows,
-                  simulated: result.simulated,
-                  partial: result.partial,
-                  warning: result.warning,
-                  source: "brapi" as const,
-                };
-              },
-            },
-            warnings,
-            () =>
-              resolveMarketProviderFallback("sector_book_br", () => ({
-                rows: [],
-                simulated: false,
-                partial: true,
+        const book = await executeProviderChain(
+          "sector_book_br",
+          {
+            brapi: async () => {
+              const result = await fetchBrapiQuotesForSymbols(symbols, {
+                sortOrder: symbols,
+              });
+              return {
+                rows: result.rows,
+                simulated: result.simulated,
+                partial: result.partial,
+                warning: result.warning,
                 source: "brapi" as const,
-                warning: "equities_fallback_budget",
-              })),
-          );
-          sectorRows = supplementBrSectorRows(symbols, sectorRows, book.rows);
-          if (book.warning) warnings.push(book.warning);
-          if (sectorRows.length > 0 && book.rows.length === 0) {
-            warnings.push("sector_br_desk_supplement");
-          }
-        } else {
-          warnings.push("sector_br_from_live_desk");
-        }
+              };
+            },
+          },
+          warnings,
+          () =>
+            resolveMarketProviderFallback("sector_book_br", () => ({
+              rows: [],
+              simulated: false,
+              partial: true,
+              source: "brapi" as const,
+              warning: "equities_fallback_budget",
+            })),
+        );
+
+        const sectorRows = sortQuotesByCanonicalOrder(book.rows, symbols);
+        if (book.warning) warnings.push(book.warning);
 
         const payload: SectorBookPayload = {
           fetchedAt: now,

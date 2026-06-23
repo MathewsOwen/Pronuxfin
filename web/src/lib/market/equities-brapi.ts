@@ -11,6 +11,10 @@ const BRAPI_SEQUENTIAL_GAP_MS = 35;
 const BRAPI_RETRY_AFTER_MS = 350;
 const BRAPI_PRIORITY_SYMBOLS = 12;
 
+function brapiFetchSymbolCap(): number {
+  return useBrapiSequentialMode(process.env.BRAPI_TOKEN?.trim() || undefined) ? 12 : 48;
+}
+
 function readBrapiMaxSymbolsPerRequest(): number {
   const raw = Number(process.env.BRAPI_MAX_SYMBOLS_PER_REQUEST);
   if (Number.isFinite(raw) && raw >= 1) {
@@ -223,17 +227,18 @@ export async function fetchBrapiQuotesForSymbols(
   opts?: { sortOrder?: readonly string[] },
 ): Promise<BrapiBookResult> {
   const symbolsUpper = [...new Set(symbolsInput.map((s) => s.trim().toUpperCase()))].filter(Boolean);
+  const capped = symbolsUpper.slice(0, brapiFetchSymbolCap());
   const canonical = opts?.sortOrder ?? symbolsUpper;
   const token = process.env.BRAPI_TOKEN?.trim() || undefined;
 
-  if (symbolsUpper.length === 0) {
+  if (capped.length === 0) {
     return { rows: [], simulated: false, partial: false };
   }
 
   if (token && useBrapiSequentialMode(token)) {
     try {
-      const merged = await fetchBrapiSequential(symbolsUpper, token);
-      return buildBrapiBookResult(merged, symbolsUpper, canonical);
+      const merged = await fetchBrapiSequential(capped, token);
+      return buildBrapiBookResult(merged, capped, canonical);
     } catch {
       return {
         rows: [],
@@ -245,7 +250,7 @@ export async function fetchBrapiQuotesForSymbols(
   }
 
   const chunkSize = token ? readBrapiMaxSymbolsPerRequest() : BRAPI_FREE_MAX_SYMBOLS;
-  const chunks = chunk(symbolsUpper, chunkSize);
+  const chunks = chunk(capped, chunkSize);
   const merged = new Map<string, QuoteSnapshot>();
 
   try {
@@ -266,7 +271,7 @@ export async function fetchBrapiQuotesForSymbols(
       }
     }
 
-    const missing = symbolsUpper.filter((s) => !merged.has(s));
+    const missing = capped.filter((s) => !merged.has(s));
     for (const sym of missing) {
       const rows = await fetchBrapiChunk([sym], token);
       for (const r of rows) merged.set(r.symbol, r);
@@ -281,7 +286,7 @@ export async function fetchBrapiQuotesForSymbols(
     };
   }
 
-  return buildBrapiBookResult(merged, symbolsUpper, canonical);
+  return buildBrapiBookResult(merged, capped, canonical);
 }
 
 async function fetchBrapiInWaves(

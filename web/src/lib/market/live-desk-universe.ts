@@ -6,9 +6,9 @@ import {
   type SectorId,
 } from "@/lib/market/sector-universe";
 
-/** Com token BRAPI (Starter), 32 blue chips em ondas paralelas cabem no timeout serverless. */
+/** Com token BRAPI (Starter), 12 blue chips cabem no timeout serverless. */
 function liveDeskBrDefault(): number {
-  if (typeof process !== "undefined" && process.env.BRAPI_TOKEN?.trim()) return 32;
+  if (typeof process !== "undefined" && process.env.BRAPI_TOKEN?.trim()) return 12;
   return 450;
 }
 const LIVE_DESK_BR_MIN = 12;
@@ -49,7 +49,7 @@ export function getLiveDeskBrMax(): number {
   const batch = process.env.BRAPI_BATCH_MODE?.trim().toLowerCase();
   const batchOn = batch === "1" || batch === "true" || batch === "on";
   if (process.env.BRAPI_TOKEN?.trim() && !batchOn) {
-    return Math.min(requested, 32);
+    return Math.min(requested, 12);
   }
   return requested;
 }
