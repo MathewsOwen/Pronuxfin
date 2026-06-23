@@ -6,9 +6,9 @@ import {
   type SectorId,
 } from "@/lib/market/sector-universe";
 
-/** Com token BRAPI (Starter), 48 tickers em modo sequencial cabem no timeout serverless. */
+/** Com token BRAPI (Starter), 32 blue chips em ondas paralelas cabem no timeout serverless. */
 function liveDeskBrDefault(): number {
-  if (typeof process !== "undefined" && process.env.BRAPI_TOKEN?.trim()) return 48;
+  if (typeof process !== "undefined" && process.env.BRAPI_TOKEN?.trim()) return 32;
   return 450;
 }
 const LIVE_DESK_BR_MIN = 12;

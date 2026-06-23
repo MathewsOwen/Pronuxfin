@@ -7,8 +7,9 @@ import type { QuoteSnapshot } from "@/lib/market/types";
 /** Sem token, a BRAPI limita quantidade de símbolos por GET — empacotamos várias chamadas. */
 const BRAPI_FREE_MAX_SYMBOLS = 3;
 const BRAPI_TOKEN_MAX_SYMBOLS_DEFAULT = 3;
-const BRAPI_SEQUENTIAL_GAP_MS = 40;
-const BRAPI_RETRY_AFTER_MS = 400;
+const BRAPI_SEQUENTIAL_GAP_MS = 35;
+const BRAPI_RETRY_AFTER_MS = 350;
+const BRAPI_PRIORITY_SYMBOLS = 15;
 
 function readBrapiMaxSymbolsPerRequest(): number {
   const raw = Number(process.env.BRAPI_MAX_SYMBOLS_PER_REQUEST);
@@ -137,46 +138,49 @@ async function fetchBrapiChunkResilient(
   return [...left, ...right];
 }
 
+async function fetchBrapiSingleWithRetry(
+  sym: string,
+  token: string | undefined,
+  maxAttempts: number,
+): Promise<QuoteSnapshot[]> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const rows = await fetchBrapiChunk([sym], token);
+    if (rows.length > 0) return rows;
+    if (attempt + 1 < maxAttempts) {
+      await new Promise((r) => setTimeout(r, BRAPI_RETRY_AFTER_MS));
+    }
+  }
+  return [];
+}
+
 async function fetchBrapiSequential(
   symbols: readonly string[],
   token: string | undefined,
 ): Promise<Map<string, QuoteSnapshot>> {
   const merged = new Map<string, QuoteSnapshot>();
-  const parallel = readBrapiSequentialParallel();
-  for (let i = 0; i < symbols.length; i += parallel) {
-    const wave = symbols.slice(i, i + parallel);
-    const settled = await Promise.allSettled(
-      wave.map((sym) => fetchBrapiChunk([sym], token)),
-    );
-    for (let w = 0; w < wave.length; w++) {
-      const sym = wave[w]!;
-      const s = settled[w];
-      if (s?.status === "fulfilled") {
-        for (const r of s.value) merged.set(r.symbol, r);
-      }
-      if (!merged.has(sym)) {
-        for (let attempt = 0; attempt < 2 && !merged.has(sym); attempt++) {
-          await new Promise((r) => setTimeout(r, BRAPI_RETRY_AFTER_MS));
-          const rows = await fetchBrapiChunk([sym], token);
-          for (const r of rows) merged.set(r.symbol, r);
-        }
-      }
-    }
-    if (i + parallel < symbols.length) {
-      await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
-    }
+  const priority = symbols.slice(0, BRAPI_PRIORITY_SYMBOLS);
+  const extended = symbols.slice(BRAPI_PRIORITY_SYMBOLS);
+
+  for (const sym of priority) {
+    const rows = await fetchBrapiSingleWithRetry(sym, token, 2);
+    for (const r of rows) merged.set(r.symbol, r);
+    await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
   }
 
-  const missing = symbols.filter((s) => !merged.has(s));
-  for (const sym of missing) {
-    for (let attempt = 0; attempt < 3 && !merged.has(sym); attempt++) {
-      const rows = await fetchBrapiChunk([sym], token);
-      for (const r of rows) merged.set(r.symbol, r);
-      if (!merged.has(sym)) {
-        await new Promise((r) => setTimeout(r, BRAPI_RETRY_AFTER_MS));
+  const parallel = readBrapiSequentialParallel();
+  for (let i = 0; i < extended.length; i += parallel) {
+    const wave = extended.slice(i, i + parallel);
+    const settled = await Promise.allSettled(
+      wave.map((sym) => fetchBrapiSingleWithRetry(sym, token, 2)),
+    );
+    for (const s of settled) {
+      if (s.status === "fulfilled") {
+        for (const r of s.value) merged.set(r.symbol, r);
       }
     }
-    await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
+    if (i + parallel < extended.length) {
+      await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
+    }
   }
   return merged;
 }

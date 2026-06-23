@@ -107,7 +107,7 @@ const lines = [
   "BRAPI_TOKEN=<<< MANUAL: token brapi.dev >>>",
   "BRAPI_MAX_SYMBOLS_PER_REQUEST=12",
   "BRAPI_PARALLEL_REQUESTS=6",
-  "PRONUX_LIVE_DESK_BR_MAX=48",
+  "PRONUX_LIVE_DESK_BR_MAX=32",
   "FMP_API_KEY=<<< MANUAL: financialmodelingprep.com >>>",
   "",
   "# Opcional — observabilidade",
