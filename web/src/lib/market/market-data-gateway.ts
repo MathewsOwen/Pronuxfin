@@ -67,7 +67,7 @@ export async function loadCachedQuotesPayload(): Promise<{
   payload: QuotesPayload;
   warnings: string[];
 }> {
-  return rememberWithTtl("market-gateway:live-desk:v7", CACHE_TTL.liveDeskMs, async () => {
+  return rememberWithTtl("market-gateway:live-desk:v8", CACHE_TTL.liveDeskMs, async () => {
     const warnings: string[] = [];
 
     const [equities, intlEquities, crypto] = await Promise.all([
@@ -109,7 +109,7 @@ export async function loadCachedSectorQuotesPayload(
 ): Promise<{ payload: SectorBookPayload; warnings: string[] }> {
   const market = normalizeDeskMarketId(String(marketInput)) ?? "br";
   return rememberWithTtl(
-    `market-gateway:sector:${market}:${sector}:v6`,
+    `market-gateway:sector:${market}:${sector}:v7`,
     CACHE_TTL.sectorBookMs,
     async () => {
       const warnings: string[] = [];

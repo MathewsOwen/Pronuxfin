@@ -1,4 +1,4 @@
-import { INDEX_PROXY_TICKERS } from "@/lib/market/indices";
+import { QUOTE_TICKERS } from "@/lib/market/indices";
 import { listWorldMarketHeadlineTickers } from "@/lib/market/world-markets";
 import {
   SECTOR_ORDER,
@@ -70,7 +70,7 @@ export function listLiveDeskBrTickers(): readonly string[] {
   const sectorSymbols = SECTOR_ORDER.flatMap((sector: SectorId) =>
     listSectorSymbols("br", sector),
   );
-  return dedupeOrdered([...INDEX_PROXY_TICKERS, ...sectorSymbols]).slice(
+  return dedupeOrdered([...QUOTE_TICKERS, ...sectorSymbols]).slice(
     0,
     getLiveDeskBrMax(),
   );

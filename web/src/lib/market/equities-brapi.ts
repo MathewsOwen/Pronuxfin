@@ -26,6 +26,14 @@ function readBrapiParallelRequests(): number {
   return process.env.BRAPI_TOKEN?.trim() ? 4 : 12;
 }
 
+function readBrapiSequentialParallel(): number {
+  const raw = Number(process.env.BRAPI_SEQUENTIAL_PARALLEL);
+  if (Number.isFinite(raw) && raw >= 1) {
+    return Math.min(6, Math.floor(raw));
+  }
+  return Math.min(2, readBrapiParallelRequests());
+}
+
 /** Plano Starter: 1 símbolo/request evita 400/429 em lote; ondas paralelas mantêm latência <60s. */
 function useBrapiSequentialMode(token: string | undefined): boolean {
   if (!token) return false;
@@ -134,20 +142,41 @@ async function fetchBrapiSequential(
   token: string | undefined,
 ): Promise<Map<string, QuoteSnapshot>> {
   const merged = new Map<string, QuoteSnapshot>();
-  const parallel = readBrapiParallelRequests();
+  const parallel = readBrapiSequentialParallel();
   for (let i = 0; i < symbols.length; i += parallel) {
     const wave = symbols.slice(i, i + parallel);
     const settled = await Promise.allSettled(
       wave.map((sym) => fetchBrapiChunk([sym], token)),
     );
-    for (const s of settled) {
-      if (s.status === "fulfilled") {
+    for (let w = 0; w < wave.length; w++) {
+      const sym = wave[w]!;
+      const s = settled[w];
+      if (s?.status === "fulfilled") {
         for (const r of s.value) merged.set(r.symbol, r);
+      }
+      if (!merged.has(sym)) {
+        for (let attempt = 0; attempt < 2 && !merged.has(sym); attempt++) {
+          await new Promise((r) => setTimeout(r, BRAPI_RETRY_AFTER_MS));
+          const rows = await fetchBrapiChunk([sym], token);
+          for (const r of rows) merged.set(r.symbol, r);
+        }
       }
     }
     if (i + parallel < symbols.length) {
       await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
     }
+  }
+
+  const missing = symbols.filter((s) => !merged.has(s));
+  for (const sym of missing) {
+    for (let attempt = 0; attempt < 3 && !merged.has(sym); attempt++) {
+      const rows = await fetchBrapiChunk([sym], token);
+      for (const r of rows) merged.set(r.symbol, r);
+      if (!merged.has(sym)) {
+        await new Promise((r) => setTimeout(r, BRAPI_RETRY_AFTER_MS));
+      }
+    }
+    await new Promise((r) => setTimeout(r, BRAPI_SEQUENTIAL_GAP_MS));
   }
   return merged;
 }
