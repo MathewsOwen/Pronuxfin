@@ -14,7 +14,7 @@ jobs:
   quality-gates:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -33,7 +33,7 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -96,7 +96,7 @@ jobs:
       OPENAI_API_KEY: sk-ci-e2e-placeholder
       CSP_MODE: report-only
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -145,7 +145,7 @@ jobs:
       JWT_SECRET: ci-placeholder-jwt-secret-min-32-characters-long
       FRONTEND_URL: http://localhost:3000
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
@@ -181,7 +181,7 @@ jobs:
     needs: quality-gates
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build API Docker image (smoke, no registry push)
         run: docker build -t pronuxfin-api:ci ./backend
@@ -190,7 +190,7 @@ jobs:
     needs: quality-gates
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v4
         with:
